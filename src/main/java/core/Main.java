@@ -1,21 +1,19 @@
 package core;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
 @SpringBootApplication
 public class Main {
+
+    private MainUI mainUI;
 
     public static void main(String[] args) {
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Main.class);
@@ -24,11 +22,13 @@ public class Main {
 
     }
 
-    public Main () throws IOException {
+    public Main (MainUI mainUI) throws IOException {
+        this.mainUI = mainUI;
         JFrame frame = new JFrame();
         JMenuBar menu = createMenu();
         frame.setJMenuBar(menu);
         frame.setExtendedState( frame.getExtendedState()|JFrame.MAXIMIZED_BOTH );
+        frame.setContentPane(mainUI.getMainPanel());
         frame.setVisible(true);
 
     }
