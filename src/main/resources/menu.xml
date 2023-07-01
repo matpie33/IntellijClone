@@ -1,0 +1,270 @@
+<menu>
+    <File>
+        <New></New>
+        <Open ></Open>
+        <Recent_projects></Recent_projects>
+        <Remote_development newGroup="true"></Remote_development>
+        <Settings newGroup="true"></Settings>
+        <Project_structure></Project_structure>
+        <File_properties></File_properties>
+        <Local_history newGroup="true"></Local_history>
+        <Save_all newGroup="true"></Save_all>
+        <Reload_All_from_Disk></Reload_All_from_Disk>
+        <Repair_IDE></Repair_IDE>
+        <Invalidate_caches></Invalidate_caches>
+        <Manage_IDE_settings newGroup="true"></Manage_IDE_settings>
+        <New_projects_setup></New_projects_setup>
+        <Save_file_as_template></Save_file_as_template>
+        <Export newGroup="true"></Export>
+        <Print></Print>
+        <Power_save_mode newGroup="true"></Power_save_mode>
+        <Exit newGroup="true"></Exit>
+    </File>
+    <Edit>
+        <Undo_typing></Undo_typing>
+        <Redo></Redo>
+        <Cut newGroup="true"></Cut>
+        <Copy></Copy>
+        <Copy_path_SLS_Reference></Copy_path_SLS_Reference>
+        <Paste></Paste>
+        <Delete></Delete>
+        <Find newGroup="true"></Find>
+        <Find_Usages></Find_Usages>
+        <Column_selection_mode newGroup="true"></Column_selection_mode>
+        <Select_all></Select_all>
+        <Add_carets_to_ends_of_selected_lines></Add_carets_to_ends_of_selected_lines>
+        <Extend_selection></Extend_selection>
+        <Shrink_selection></Shrink_selection>
+        <Toggle_case newGroup="true"></Toggle_case>
+        <Join_lines></Join_lines>
+        <Duplicate_line></Duplicate_line>
+        <Fill_paragraph></Fill_paragraph>
+        <Sort_lines></Sort_lines>
+        <Reverse_lines></Reverse_lines>
+        <Transpose></Transpose>
+        <Indent_selection newGroup="true"></Indent_selection>
+        <Unindent_line_or_selection></Unindent_line_or_selection>
+        <Convert_indents></Convert_indents>
+        <Macros newGroup="true"></Macros>
+        <Bookmarks></Bookmarks>
+        <Encode_XML_SLSH_HTML_Special_Characters newGroup="true"></Encode_XML_SLSH_HTML_Special_Characters>
+        <Edit_as_table></Edit_as_table>
+    </Edit>
+    <View>
+        <Tool_windows></Tool_windows>
+        <Appearance></Appearance>
+        <Quick_definition newGroup="true"></Quick_definition>
+        <Show_siblings></Show_siblings>
+        <Quick_type_definition></Quick_type_definition>
+        <Quick_documentation></Quick_documentation>
+        <Show_bytecode></Show_bytecode>
+        <Parameter_info></Parameter_info>
+        <Type_info></Type_info>
+        <Context_info></Context_info>
+        <Jump_to_source newGroup="true"></Jump_to_source>
+        <Recent_files newGroup="true"></Recent_files>
+        <Recently_changed_files></Recently_changed_files>
+        <Recent_locations></Recent_locations>
+        <Recent_changes></Recent_changes>
+        <Compare_with newGroup="true"></Compare_with>
+        <Compare_with_clipboard></Compare_with_clipboard>
+        <Quick_switch_scheme newGroup="true"></Quick_switch_scheme>
+        <Active_editor></Active_editor>
+        <Increase_font_size_in_all_editors newGroup="true"></Increase_font_size_in_all_editors>
+        <Decrease_font_size_in_all_editors></Decrease_font_size_in_all_editors>
+        <Reset_font_size></Reset_font_size>
+        <Bidi_text_base_direction newGroup="true"></Bidi_text_base_direction>
+    </View>
+    <Navigate>
+        <Back></Back>
+        <Forward></Forward>
+        <Search_everywhere newGroup="true"></Search_everywhere>
+        <Class newGroup="true"></Class>
+        <File></File>
+        <Symbol></Symbol>
+        <Line_CLN_Column></Line_CLN_Column>
+        <URL_mapping></URL_mapping>
+        <Next_highlighted_error newGroup="true"></Next_highlighted_error>
+        <Previous_highlighted_error></Previous_highlighted_error>
+        <Last_edit_location></Last_edit_location>
+        <Next_edit_location></Next_edit_location>
+        <Navigate_in_file newGroup="true"></Navigate_in_file>
+        <Select_in newGroup="true"></Select_in>
+        <Jump_to_navigation_bar></Jump_to_navigation_bar>
+        <Declaration_or_usages newGroup="true"></Declaration_or_usages>
+        <Implementation_PRN_s></Implementation_PRN_s>
+        <Type_declaration></Type_declaration>
+        <Super_method></Super_method>
+        <Test></Test>
+        <Related_symbol></Related_symbol>
+        <File_structure newGroup="true"></File_structure>
+        <File_path></File_path>
+        <Type_hierarchy></Type_hierarchy>
+        <Method_hierarchy></Method_hierarchy>
+        <Call_hierarchy></Call_hierarchy>
+        <Up_the_stack_trace newGroup="true"></Up_the_stack_trace>
+        <Down_the_stack_trace></Down_the_stack_trace>
+    </Navigate>
+    <Code>
+        <Override_methods></Override_methods>
+        <Implement_methods></Implement_methods>
+        <Delegate_methods></Delegate_methods>
+        <Generate></Generate>
+        <Code_completion newGroup="true"></Code_completion>
+        <Inspect_code newGroup="true"></Inspect_code>
+        <Code_cleanup></Code_cleanup>
+        <Analyze_code></Analyze_code>
+        <Analyze_stack_trace_or_thread_dump></Analyze_stack_trace_or_thread_dump>
+        <Insert_live_template newGroup="true"></Insert_live_template>
+        <Save_as_live_template></Save_as_live_template>
+        <Surround_with newGroup="true"></Surround_with>
+        <Unwrap_SLS_remove></Unwrap_SLS_remove>
+        <Folding newGroup="true"></Folding>
+        <Comment_with_line_comment newGroup="true"></Comment_with_line_comment>
+        <Comment_with_block_comment></Comment_with_block_comment>
+        <Reformat_code></Reformat_code>
+        <Reformat_file></Reformat_file>
+        <Auto_indent_lines></Auto_indent_lines>
+        <Optimize_imports></Optimize_imports>
+        <Rearrange_code></Rearrange_code>
+        <Move_statement_down newGroup="true"></Move_statement_down>
+        <Move_statement_up></Move_statement_up>
+        <Move_element_left></Move_element_left>
+        <Move_element_right></Move_element_right>
+        <Move_line_down></Move_line_down>
+        <Move_line_up></Move_line_up>
+        <Update_copyright newGroup="true"></Update_copyright>
+        <Generate_module_info_descriptors></Generate_module_info_descriptors>
+        <Convert_java_file_to_kotlin_file newGroup="true"></Convert_java_file_to_kotlin_file>
+    </Code>
+    <Refactor>
+        <Refactor_this></Refactor_this>
+        <Rename></Rename>
+        <Rename_file></Rename_file>
+        <Change_signature></Change_signature>
+        <Extract_SLSH_Introduce newGroup="true"></Extract_SLSH_Introduce>
+        <Inline></Inline>
+        <Find_and_replace_code_duplicates></Find_and_replace_code_duplicates>
+        <Move_classes newGroup="true"></Move_classes>
+        <Copy_class></Copy_class>
+        <Safe_delete></Safe_delete>
+        <Pull_members_up newGroup="true"></Pull_members_up>
+        <Pull_members_down></Pull_members_down>
+        <Type_migration newGroup="true"></Type_migration>
+        <Make_static></Make_static>
+        <Convert_to_instance_method></Convert_to_instance_method>
+        <Use_interface_where_possible newGroup="true"></Use_interface_where_possible>
+        <Replace_inheritance_with_delegation></Replace_inheritance_with_delegation>
+        <Encapsulate_fields newGroup="true"></Encapsulate_fields>
+        <Migrate_packages_and_classes></Migrate_packages_and_classes>
+        <Convert_raw_types_to_generics newGroup="true"></Convert_raw_types_to_generics>
+        <Invert_boolean newGroup="true"></Invert_boolean>
+        <Internationalize></Internationalize>
+        <Migrate_to_AndroidX></Migrate_to_AndroidX>
+        <Migrate_to_non_transitive_r_classes></Migrate_to_non_transitive_r_classes>
+    </Refactor>
+    <Build>
+        <Build_project></Build_project>
+        <Build_module_M></Build_module_M>
+        <Recompile_F></Recompile_F>
+        <Rebuild_project newGroup="true"></Rebuild_project>
+        <Build_artifacts newGroup="true"></Build_artifacts>
+        <Analyze_build_performance newGroup="true"></Analyze_build_performance>
+        <Run_art_target></Run_art_target>
+    </Build>
+    <Run>
+        <Run_R></Run_R>
+        <Debug_R></Debug_R>
+        <Run_R_with_coverage></Run_R_with_coverage>
+        <Profile_R_with_intellij_profiler></Profile_R_with_intellij_profiler>
+        <Run newGroup="true"></Run>
+        <Debug></Debug>
+        <Profile></Profile>
+        <Attach_to_process></Attach_to_process>
+        <Edit_configurations></Edit_configurations>
+        <Manage_targets></Manage_targets>
+        <Stop_R newGroup="true"></Stop_R>
+        <Stop_background_processes></Stop_background_processes>
+        <Show_running_list></Show_running_list>
+        <Debugging_actions newGroup="true"></Debugging_actions>
+        <Toggle_breakpoint></Toggle_breakpoint>
+        <View_breakpoints></View_breakpoints>
+        <Test_history newGroup="true"></Test_history>
+        <Import_tests_from_file></Import_tests_from_file>
+        <Show_coverage_data></Show_coverage_data>
+        <Attach_profiler_to_process newGroup="true"></Attach_profiler_to_process>
+        <Open_profiler_snapshot></Open_profiler_snapshot>
+    </Run>
+    <Tools>
+        <Tasks_AMPR_Contexts></Tasks_AMPR_Contexts>
+        <Code_with_me newGroup="true"></Code_with_me>
+        <Generate_javadoc newGroup="true"></Generate_javadoc>
+        <Create_command_line_launcher></Create_command_line_launcher>
+        <XML_Actions newGroup="true"></XML_Actions>
+        <Markdown_converter></Markdown_converter>
+        <Deployment></Deployment>
+        <Start_SSH_Session></Start_SSH_Session>
+        <HTTP_client></HTTP_client>
+        <JShell_console></JShell_console>
+        <Groovy_console></Groovy_console>
+        <Kotlin></Kotlin>
+        <Space></Space>
+        <AGP_Upgrade_assistant></AGP_Upgrade_assistant>
+        <Qodana></Qodana>
+    </Tools>
+    <Git>
+        <Commit></Commit>
+        <Push></Push>
+        <Update_project></Update_project>
+        <Pull></Pull>
+        <Fetch></Fetch>
+        <Merge newGroup="true"></Merge>
+        <Rebase></Rebase>
+        <Branches newGroup="true"></Branches>
+        <New_branch></New_branch>
+        <New_tag></New_tag>
+        <Reset_head></Reset_head>
+        <Show_git_log newGroup="true"></Show_git_log>
+        <Patch></Patch>
+        <Uncommited_changes></Uncommited_changes>
+        <Current_file></Current_file>
+        <Github newGroup="true"></Github>
+        <Manage_remotes></Manage_remotes>
+        <Clone></Clone>
+        <VCS_Operations_popup newGroup="true"></VCS_Operations_popup>
+    </Git>
+    <Window>
+        <Layouts></Layouts>
+        <Active_tool_window newGroup="true"></Active_tool_window>
+        <Editor_tabs></Editor_tabs>
+        <Notifications></Notifications>
+        <Background_tasks></Background_tasks>
+        <Next_project_window newGroup="true"></Next_project_window>
+        <Previous_project_window></Previous_project_window>
+        <IntellijClone newGroup="true"></IntellijClone>
+    </Window>
+    <Help>
+        <Find_action></Find_action>
+        <Help newGroup="true"></Help>
+        <Learn_IDE_features newGroup="true"></Learn_IDE_features>
+        <Whats_new_in_intellij_IDEA newGroup="true"></Whats_new_in_intellij_IDEA>
+        <Getting_started></Getting_started>
+        <Intellij_IDEA_on_Youtube></Intellij_IDEA_on_Youtube>
+        <Keyboard_shortcuts_PDF></Keyboard_shortcuts_PDF>
+        <Tip_of_the_day></Tip_of_the_day>
+        <My_productivity newGroup="true"></My_productivity>
+        <Contact_support newGroup="true"></Contact_support>
+        <Submit_a_bug_report></Submit_a_bug_report>
+        <Submit_feedback></Submit_feedback>
+        <Show_log_in_explorer newGroup="true"></Show_log_in_explorer>
+        <Collect_logs_and_diagnostic_data></Collect_logs_and_diagnostic_data>
+        <Delete_leftover_IDE_directories></Delete_leftover_IDE_directories>
+        <Diagnostic_tools newGroup="true"></Diagnostic_tools>
+        <Change_memory_settings></Change_memory_settings>
+        <Edit_custom_properties></Edit_custom_properties>
+        <Edit_custom_VM_options></Edit_custom_VM_options>
+        <Register newGroup="true"></Register>
+        <Check_for_updates></Check_for_updates>
+        <About></About>
+    </Help>
+</menu>
