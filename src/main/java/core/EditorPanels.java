@@ -1,18 +1,12 @@
 package core;
 
-import core.uibuilders.IconsPanelBuilderUI;
 import core.uibuilders.NavigationPanelBuilderUI;
 import core.uibuilders.SplitPanesBuilderUI;
-import core.uievents.UIEventHandler;
-import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Component
 public class EditorPanels {

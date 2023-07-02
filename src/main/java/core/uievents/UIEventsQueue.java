@@ -2,22 +2,20 @@ package core.uievents;
 
 import org.springframework.stereotype.Component;
 
-import javax.swing.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Component
 public class UIEventsQueue {
 
-    private Set<UIEventHandler> handlers;
+    private Set<UIEventObserver> observers = new HashSet<>();
 
-    public UIEventsQueue(Set<UIEventHandler> handlers) {
-        this.handlers = handlers;
-    }
-
-    public void handleEvent(UIEventType eventType, JComponent... data){
-        handlers.stream().filter(handler -> handler.handledEventTypes().contains(eventType))
+    public void handleEvent(UIEventType eventType, Object data){
+        observers.stream().filter(handler -> handler.handledEventTypes().contains(eventType))
                 .forEach(handler->handler.handleEvent(eventType, data));
-
     }
 
+    public void addObserver(UIEventObserver uiEventObserver) {
+        observers.add(uiEventObserver);
+    }
 }

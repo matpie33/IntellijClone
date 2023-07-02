@@ -1,6 +1,7 @@
 package core.menuitemlisteners;
 
 import core.*;
+import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 import core.uibuilders.FileTreeBuilderUI;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
@@ -23,11 +25,14 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private UIEventsQueue uiEventsQueue;
 
+    private ApplicatonState applicatonState;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, FileTreeBuilderUI fileTreeBuilderUI, UIEventsQueue uiEventsQueue) {
+
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, FileTreeBuilderUI fileTreeBuilderUI, UIEventsQueue uiEventsQueue,  ApplicatonState applicatonState) {
         this.projectStructureReader = projectStructureReader;
         this.fileTreeBuilderUI = fileTreeBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
+        this.applicatonState = applicatonState;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -37,9 +42,10 @@ public class OpenProjectActionListener implements MenuItemListener {
         int action = jFileChooser.showOpenDialog(Main.FRAME);
         if (action == JFileChooser.APPROVE_OPTION){
             File selectedFile = jFileChooser.getSelectedFile();
+            applicatonState.setProjectPath(selectedFile.getParent());
             List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
-            JTree tree = fileTreeBuilderUI.build(selectedFile, files);
-            uiEventsQueue.handleEvent(UIEventType.FILE_OPENED, tree);
+            DefaultMutableTreeNode rootNode = fileTreeBuilderUI.build(selectedFile, files);
+            uiEventsQueue.handleEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
 
