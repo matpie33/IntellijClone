@@ -1,5 +1,7 @@
 package core.uibuilders;
 
+import core.backend.FileAutoSaver;
+import core.backend.FileIO;
 import core.contextMenu.ContextMenuValues;
 import core.contextMenu.ContextType;
 import core.mouselisteners.TreeNodeDoubleClickListener;
@@ -13,11 +15,9 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.HashSet;
+import java.awt.event.*;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class SplitPanesBuilderUI extends UIEventObserver {
@@ -31,11 +31,15 @@ public class SplitPanesBuilderUI extends UIEventObserver {
     private TreeNodeDoubleClickListener treeNodeDoubleClickListener;
     private JTree projectStructureTree;
 
+    private FileAutoSaver fileAutoSaver;
 
-    public SplitPanesBuilderUI(UIEventsQueue uiEventsQueue,ContextMenuValues contextMenuValues, TreeNodeDoubleClickListener treeNodeDoubleClickListener) {
+
+    public SplitPanesBuilderUI(UIEventsQueue uiEventsQueue, ContextMenuValues contextMenuValues, TreeNodeDoubleClickListener treeNodeDoubleClickListener, FileAutoSaver fileAutoSaver) {
         super(uiEventsQueue);
         this.contextMenuValues = contextMenuValues;
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
+
+        this.fileAutoSaver = fileAutoSaver;
     }
 
     public JPanel createSplitPanesRootPanel() {
@@ -49,6 +53,12 @@ public class SplitPanesBuilderUI extends UIEventObserver {
         JPanel console = new JPanel(new BorderLayout());
 
         editorText = new JTextArea("code here");
+        editorText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                fileAutoSaver.recordKeyRelease(editorText.getText());
+            }
+        });
         addMouseReleasedListener(editorText, ContextType.FILE_EDITOR);
         JTextArea structureLabel = new JTextArea("class structure");
         addMouseReleasedListener(structureLabel, ContextType.FILE_STRUCTURE);

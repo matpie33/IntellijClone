@@ -2,10 +2,22 @@ package core.dto;
 
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+
 @Component
 public class ApplicatonState {
 
     private String projectPath;
+
+    private File openedFile;
+
+    public File getOpenedFile() {
+        return openedFile;
+    }
+
+    public void setOpenedFile(File openedFile) {
+        this.openedFile = openedFile;
+    }
 
     public String getProjectPath() {
         return projectPath;

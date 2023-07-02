@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class FileReader {
+public class FileIO {
 
     private ApplicatonState applicatonState;
 
-    public FileReader(ApplicatonState applicatonState) {
+    public FileIO(ApplicatonState applicatonState) {
         this.applicatonState = applicatonState;
     }
 
@@ -27,7 +27,17 @@ public class FileReader {
             if (file.isDirectory()){
                 return new ArrayList<>();
             }
+            applicatonState.setOpenedFile(file);
             return Files.readAllLines(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void save(String text){
+        File openedFile = applicatonState.getOpenedFile();
+        try {
+            Files.writeString(openedFile.toPath(), text);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
