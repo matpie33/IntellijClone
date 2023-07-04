@@ -3,13 +3,16 @@ package core.dto;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.List;
 
 @Component
 public class ApplicatonState {
 
+
     private String projectPath;
 
     private File openedFile;
+
 
     public File getOpenedFile() {
         return openedFile;

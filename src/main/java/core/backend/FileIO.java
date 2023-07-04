@@ -1,6 +1,7 @@
 package core.backend;
 
 import core.dto.ApplicatonState;
+import core.dto.FileReadResultDTO;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -19,16 +20,22 @@ public class FileIO {
         this.applicatonState = applicatonState;
     }
 
-    public List<String> read(String[] directories){
+    public FileReadResultDTO read(String[] directories){
         String projectPath = applicatonState.getProjectPath();
         try {
             Path path = Path.of(projectPath, directories);
             File file = path.toFile();
             if (file.isDirectory()){
-                return new ArrayList<>();
+                FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
+                return fileReadResultDTO;
             }
             applicatonState.setOpenedFile(file);
-            return Files.readAllLines(path);
+            List<String> lines = Files.readAllLines(path);
+            FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
+            fileReadResultDTO.setLines(lines);
+            fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
+            fileReadResultDTO.setReaded(true);
+            return fileReadResultDTO;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

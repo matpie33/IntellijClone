@@ -1,9 +1,13 @@
 package core.uibuilders;
 
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import core.backend.FileAutoSaver;
-import core.backend.FileIO;
 import core.contextMenu.ContextMenuValues;
 import core.contextMenu.ContextType;
+import core.dto.ApplicatonState;
+import core.dto.FileReadResultDTO;
 import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.ui.components.ContextMenu;
 import core.uievents.UIEventObserver;
@@ -16,6 +20,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.List;
 
@@ -33,13 +38,21 @@ public class SplitPanesBuilderUI extends UIEventObserver {
 
     private FileAutoSaver fileAutoSaver;
 
+    private ClassStructureBuilderUI classStructureBuilderUI;
+    private JTree fileStructureTree;
+    private JPanel classStructurePanel;
 
-    public SplitPanesBuilderUI(UIEventsQueue uiEventsQueue, ContextMenuValues contextMenuValues, TreeNodeDoubleClickListener treeNodeDoubleClickListener, FileAutoSaver fileAutoSaver) {
+    private ApplicatonState applicatonState;
+
+
+    public SplitPanesBuilderUI(UIEventsQueue uiEventsQueue, ContextMenuValues contextMenuValues, TreeNodeDoubleClickListener treeNodeDoubleClickListener, FileAutoSaver fileAutoSaver, ClassStructureBuilderUI classStructureBuilderUI, ApplicatonState applicatonState) {
         super(uiEventsQueue);
         this.contextMenuValues = contextMenuValues;
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
 
         this.fileAutoSaver = fileAutoSaver;
+        this.classStructureBuilderUI = classStructureBuilderUI;
+        this.applicatonState = applicatonState;
     }
 
     public JPanel createSplitPanesRootPanel() {
@@ -49,9 +62,12 @@ public class SplitPanesBuilderUI extends UIEventObserver {
         createFileTree();
         projectStructurePanel.add(new JScrollPane(projectStructureTree));
         JPanel code = new JPanel(new BorderLayout());
-        JPanel structure = new JPanel(new BorderLayout());
+
+        classStructurePanel = new JPanel(new BorderLayout());
         JPanel console = new JPanel(new BorderLayout());
 
+        fileStructureTree = new JTree(new DefaultMutableTreeNode(""));
+        classStructurePanel.add(new JScrollPane(fileStructureTree));
         editorText = new JTextArea("code here");
         editorText.addKeyListener(new KeyAdapter() {
             @Override
@@ -60,17 +76,16 @@ public class SplitPanesBuilderUI extends UIEventObserver {
             }
         });
         addMouseReleasedListener(editorText, ContextType.FILE_EDITOR);
-        JTextArea structureLabel = new JTextArea("class structure");
-        addMouseReleasedListener(structureLabel, ContextType.FILE_STRUCTURE);
+        addMouseReleasedListener(fileStructureTree, ContextType.FILE_STRUCTURE);
         JTextArea consoleLabel = new JTextArea("console goes here");
         addMouseReleasedListener(consoleLabel, ContextType.CONSOLE);
 
         code.add(editorText, BorderLayout.CENTER);
-        structure.add(structureLabel, BorderLayout.CENTER);
+        classStructurePanel.add(fileStructureTree, BorderLayout.CENTER);
         console.add(consoleLabel, BorderLayout.CENTER);
 
         JSplitPane horizontalLeftPart = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectStructurePanel, code);
-        JSplitPane horizontalRightPart = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, horizontalLeftPart, structure);
+        JSplitPane horizontalRightPart = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, horizontalLeftPart, classStructurePanel);
         JSplitPane rootSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, horizontalRightPart, console);
         horizontalLeftPart.setResizeWeight(0.3);
         horizontalRightPart.setResizeWeight(0.7);
@@ -97,11 +112,31 @@ public class SplitPanesBuilderUI extends UIEventObserver {
                 break;
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
-                List<String> content = (List<String>)data;
-                editorText.setText(String.join("\n", content));
+                FileReadResultDTO resultDTO = (FileReadResultDTO)data;
+                editorText.setText(String.join(System.lineSeparator(), resultDTO.getLines()));
+                if (resultDTO.isJavaFile()){
+                    displayJavaFileStructure();
+                }
+                else{
+                    DefaultTreeModel structureModel = (DefaultTreeModel) fileStructureTree.getModel();
+                    structureModel.setRoot(new DefaultMutableTreeNode("N/a"));
+                }
                 break;
         }
 
+    }
+
+    private void displayJavaFileStructure() {
+        try {
+            DefaultTreeModel structureModel = (DefaultTreeModel) fileStructureTree.getModel();
+            CompilationUnit compilationUnit = StaticJavaParser.parse(applicatonState.getOpenedFile());
+            ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) compilationUnit.getTypes().iterator().next();
+            DefaultMutableTreeNode tree = classStructureBuilderUI.build(classDeclaration);
+            structureModel.setRoot(tree);
+            classStructurePanel.revalidate();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void addMouseReleasedListener(JComponent component, ContextType contextType) {

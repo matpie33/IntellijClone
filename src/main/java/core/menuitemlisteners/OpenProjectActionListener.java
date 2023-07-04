@@ -1,6 +1,7 @@
 package core.menuitemlisteners;
 
 import core.*;
+import core.backend.CommandLineRunner;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
@@ -12,6 +13,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -28,7 +30,7 @@ public class OpenProjectActionListener implements MenuItemListener {
     private ApplicatonState applicatonState;
 
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, FileTreeBuilderUI fileTreeBuilderUI, UIEventsQueue uiEventsQueue,  ApplicatonState applicatonState) {
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, FileTreeBuilderUI fileTreeBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState) {
         this.projectStructureReader = projectStructureReader;
         this.fileTreeBuilderUI = fileTreeBuilderUI;
         this.uiEventsQueue = uiEventsQueue;

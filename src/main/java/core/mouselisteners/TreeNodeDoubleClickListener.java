@@ -1,6 +1,8 @@
 package core.mouselisteners;
 
 import core.backend.FileIO;
+import core.dto.FileReadResultDTO;
+import core.uibuilders.ClassStructureBuilderUI;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -36,8 +38,10 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
                 DefaultMutableTreeNode pathComponent = (DefaultMutableTreeNode) path.getPathComponent(i);
                 paths[i] =(String) pathComponent.getUserObject();
             }
-            List<String> content = fileIO.read(paths);
-            uiEventsQueue.handleEvent(UIEventType.FILE_OPENED_FOR_EDIT, content);
+            FileReadResultDTO resultDTO = fileIO.read(paths);
+            if (resultDTO.isReaded()){
+                uiEventsQueue.handleEvent(UIEventType.FILE_OPENED_FOR_EDIT, resultDTO);
+            }
         }
     }
 }
