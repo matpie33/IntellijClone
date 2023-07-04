@@ -1,5 +1,6 @@
 package core;
 
+import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
 import core.uibuilders.MenuBuilderUI;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -13,6 +14,7 @@ public class Main {
     public static final JFrame FRAME = new JFrame();
 
     public static void main(String[] args) {
+        FlatNordIJTheme.setup();
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Main.class);
         builder.headless(false);
         builder.run(args);
@@ -20,6 +22,7 @@ public class Main {
     }
 
     public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels) throws IOException {
+
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
         FRAME.setExtendedState( FRAME.getExtendedState()|JFrame.MAXIMIZED_BOTH );
