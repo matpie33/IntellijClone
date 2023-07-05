@@ -1,7 +1,6 @@
 package core.uibuilders;
 
-import com.github.javaparser.Range;
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.Position;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.Type;
@@ -9,15 +8,18 @@ import core.dto.*;
 import org.springframework.stereotype.Component;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class ClassStructureBuilderUI {
 
     public DefaultMutableTreeNode build (ClassOrInterfaceDeclaration classOrInterfaceDeclaration){
+        NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
+        Position position = classOrInterfaceDeclaration.getRange().orElseThrow().begin;
+        navigableTreeElementDTO.setStartingPosition(position);
+        navigableTreeElementDTO.setDisplayName(classOrInterfaceDeclaration.getNameAsString());
         DefaultMutableTreeNode top =
-                new DefaultMutableTreeNode(classOrInterfaceDeclaration.getName());
+                new DefaultMutableTreeNode(navigableTreeElementDTO);
         for (FieldDeclaration fieldDeclaration : classOrInterfaceDeclaration.getFields()) {
             addFieldNode(top, fieldDeclaration);
         }
@@ -28,10 +30,14 @@ public class ClassStructureBuilderUI {
 
     }
 
-    private void addFieldNode(DefaultMutableTreeNode parentNode, FieldDeclaration fieldSignature) {
+    private void addFieldNode(DefaultMutableTreeNode parentNode, FieldDeclaration fieldDeclaration) {
 
-        DefaultMutableTreeNode fieldNode = new DefaultMutableTreeNode(String.format("%s %s:%s",getModifiers(fieldSignature),
-                getFieldNames(fieldSignature), getType(fieldSignature)));
+        NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
+        navigableTreeElementDTO.setStartingPosition(fieldDeclaration.getRange().orElseThrow().begin);
+        String displayName = String.format("%s %s:%s", getModifiers(fieldDeclaration),
+                getFieldNames(fieldDeclaration), getType(fieldDeclaration));
+        navigableTreeElementDTO.setDisplayName(displayName);
+        DefaultMutableTreeNode fieldNode = new DefaultMutableTreeNode(navigableTreeElementDTO);
         parentNode.add(fieldNode);
     }
 
@@ -47,11 +53,15 @@ public class ClassStructureBuilderUI {
         return fieldSignature.getModifiers().stream().map(modifier -> modifier.getKeyword().asString()).collect(Collectors.joining(" "));
     }
 
-    private void addMethodNode(DefaultMutableTreeNode parentNode, MethodDeclaration methodSignature) {
+    private void addMethodNode(DefaultMutableTreeNode parentNode, MethodDeclaration methodDeclaration) {
 
-        DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode( String.format("%s %s(%s):%s", getModifiers(methodSignature), methodSignature.getName(),
-                getParameters(methodSignature), methodSignature.getType()));
-        parentNode.add(fileNode);
+        NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
+        String displayName = String.format("%s %s(%s):%s", getModifiers(methodDeclaration), methodDeclaration.getName(),
+                getParameters(methodDeclaration), methodDeclaration.getType());
+        navigableTreeElementDTO.setDisplayName(displayName);
+        navigableTreeElementDTO.setStartingPosition(methodDeclaration.getRange().orElseThrow().begin);
+        DefaultMutableTreeNode methodNode = new DefaultMutableTreeNode(navigableTreeElementDTO);
+        parentNode.add(methodNode);
     }
 
     private  String getParameters(MethodDeclaration methodSignature) {
