@@ -11,8 +11,7 @@ public class UIEventsQueue {
     private Set<UIEventObserver> observers = new HashSet<>();
 
     public void handleEvent(UIEventType eventType, Object data){
-        observers.stream().filter(handler -> handler.handledEventTypes().contains(eventType))
-                .forEach(handler->handler.handleEvent(eventType, data));
+        observers.stream().forEach(handler->handler.handleEvent(eventType, data));
     }
 
     public void addObserver(UIEventObserver uiEventObserver) {

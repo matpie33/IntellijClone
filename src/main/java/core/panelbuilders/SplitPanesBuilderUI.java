@@ -1,13 +1,13 @@
-package core.uibuilders;
+package core.panelbuilders;
 
 import com.github.javaparser.Position;
 import core.backend.FileAutoSaver;
 import core.contextMenu.ContextMenuValues;
 import core.contextMenu.ContextType;
-import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.ui.components.ContextMenu;
+import core.uibuilders.ClassStructureBuilderUI;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
@@ -134,11 +134,6 @@ public class SplitPanesBuilderUI extends UIEventObserver {
             }
 
         });
-    }
-
-    @Override
-    public Set<UIEventType> handledEventTypes() {
-        return new HashSet<>(List.of(UIEventType.PROJECT_OPENED, UIEventType.FILE_OPENED_FOR_EDIT, UIEventType.CLASS_STRUCTURE_NODE_CLICKED));
     }
 
 }

@@ -1,19 +1,17 @@
 package core.menuitemlisteners;
 
 import core.*;
-import core.backend.CommandLineRunner;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
-import core.uibuilders.FileTreeBuilderUI;
+import core.uibuilders.ProjectStructureBuilderUI;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -23,16 +21,16 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private ProjectStructureReader projectStructureReader;
 
-    private FileTreeBuilderUI fileTreeBuilderUI;
+    private ProjectStructureBuilderUI projectStructureBuilderUI;
 
     private UIEventsQueue uiEventsQueue;
 
     private ApplicatonState applicatonState;
 
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, FileTreeBuilderUI fileTreeBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState) {
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState) {
         this.projectStructureReader = projectStructureReader;
-        this.fileTreeBuilderUI = fileTreeBuilderUI;
+        this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
         jFileChooser = new JFileChooser();
@@ -46,7 +44,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             File selectedFile = jFileChooser.getSelectedFile();
             applicatonState.setProjectPath(selectedFile.getParent());
             List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
-            DefaultMutableTreeNode rootNode = fileTreeBuilderUI.build(selectedFile, files);
+            DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(selectedFile, files);
             uiEventsQueue.handleEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }

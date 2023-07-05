@@ -1,4 +1,4 @@
-package core.uibuilders;
+package core.panelbuilders;
 
 import org.springframework.stereotype.Component;
 

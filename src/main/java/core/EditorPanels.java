@@ -1,7 +1,7 @@
 package core;
 
-import core.uibuilders.NavigationPanelBuilderUI;
-import core.uibuilders.SplitPanesBuilderUI;
+import core.panelbuilders.NavigationPanelBuilderUI;
+import core.panelbuilders.SplitPanesBuilderUI;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;

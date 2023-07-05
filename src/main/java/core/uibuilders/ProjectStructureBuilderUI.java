@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.List;
 
 @Component
-public class FileTreeBuilderUI {
+public class ProjectStructureBuilderUI {
 
     public DefaultMutableTreeNode build (File root, List<FileDTO> children){
         DefaultMutableTreeNode top =

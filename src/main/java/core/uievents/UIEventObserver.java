@@ -10,6 +10,5 @@ public abstract class UIEventObserver {
 
     public abstract void handleEvent(UIEventType eventType, Object data);
 
-    public abstract Set<UIEventType> handledEventTypes();
 
 }

@@ -1,4 +1,4 @@
-package core.uibuilders;
+package core.panelbuilders;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.mouselisteners.ClassStructureNodeClickListener;
+import core.uibuilders.ClassStructureBuilderUI;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
@@ -89,8 +90,4 @@ public class ClassStructurePanelBuilderUI extends UIEventObserver {
         }
     }
 
-    @Override
-    public Set<UIEventType> handledEventTypes() {
-        return new HashSet<>(Arrays.asList(UIEventType.FILE_OPENED_FOR_EDIT));
-    }
 }
