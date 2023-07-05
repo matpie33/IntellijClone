@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.List;
 
 @Component
-public class SplitPanesBuilderUI extends UIEventObserver {
+public class SplitPanesBuilderUI implements UIEventObserver {
 
     private JPanel projectStructurePanel;
 
@@ -41,8 +41,7 @@ public class SplitPanesBuilderUI extends UIEventObserver {
     private ClassStructurePanelBuilderUI classStructurePanelBuilderUI;
 
 
-    public SplitPanesBuilderUI(UIEventsQueue uiEventsQueue, ContextMenuValues contextMenuValues, TreeNodeDoubleClickListener treeNodeDoubleClickListener, FileAutoSaver fileAutoSaver, ClassStructureBuilderUI classStructureBuilderUI, ClassStructurePanelBuilderUI classStructurePanelBuilderUI) {
-        super(uiEventsQueue);
+    public SplitPanesBuilderUI( ContextMenuValues contextMenuValues, TreeNodeDoubleClickListener treeNodeDoubleClickListener, FileAutoSaver fileAutoSaver, ClassStructureBuilderUI classStructureBuilderUI, ClassStructurePanelBuilderUI classStructurePanelBuilderUI) {
         this.contextMenuValues = contextMenuValues;
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
 

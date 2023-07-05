@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-public class ClassStructurePanelBuilderUI extends UIEventObserver {
+public class ClassStructurePanelBuilderUI implements UIEventObserver {
 
     private JPanel classStructurePanel;
 
@@ -36,8 +36,7 @@ public class ClassStructurePanelBuilderUI extends UIEventObserver {
 
     private ApplicatonState applicatonState;
 
-    public ClassStructurePanelBuilderUI(UIEventsQueue uiEventsQueue, ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureBuilderUI classStructureBuilderUI, ApplicatonState applicatonState) {
-        super(uiEventsQueue);
+    public ClassStructurePanelBuilderUI( ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureBuilderUI classStructureBuilderUI, ApplicatonState applicatonState) {
         this.classStructureNodeClickListener = classStructureNodeClickListener;
         this.classStructureBuilderUI = classStructureBuilderUI;
         this.applicatonState = applicatonState;
