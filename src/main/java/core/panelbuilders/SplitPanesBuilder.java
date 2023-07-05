@@ -1,15 +1,14 @@
 package core.panelbuilders;
 
-import core.contextMenu.ContextMenuValues;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
 
 @Component
-public class SplitPanesBuilderUI {
+public class SplitPanesBuilder {
 
-    private ClassStructurePanelBuilderUI classStructurePanelBuilderUI;
+    private ClassStructurePanelBuilder classStructurePanelBuilder;
 
     private ProjectStructurePanelBuilder projectStructurePanelBuilder;
 
@@ -18,8 +17,8 @@ public class SplitPanesBuilderUI {
     private ConsolePanelBuilder consolePanelBuilder;
 
 
-    public SplitPanesBuilderUI(ClassStructurePanelBuilderUI classStructurePanelBuilderUI, ProjectStructurePanelBuilder projectStructurePanelBuilder, FileEditorPanelBuilder fileEditorPanelBuilder, ConsolePanelBuilder consolePanelBuilder) {
-        this.classStructurePanelBuilderUI = classStructurePanelBuilderUI;
+    public SplitPanesBuilder(ClassStructurePanelBuilder classStructurePanelBuilder, ProjectStructurePanelBuilder projectStructurePanelBuilder, FileEditorPanelBuilder fileEditorPanelBuilder, ConsolePanelBuilder consolePanelBuilder) {
+        this.classStructurePanelBuilder = classStructurePanelBuilder;
         this.projectStructurePanelBuilder = projectStructurePanelBuilder;
         this.fileEditorPanelBuilder = fileEditorPanelBuilder;
         this.consolePanelBuilder = consolePanelBuilder;
@@ -28,7 +27,7 @@ public class SplitPanesBuilderUI {
     public JPanel createSplitPanesRootPanel() {
         JPanel rootPanel = new JPanel(new BorderLayout());
 
-        JPanel classStructurePanel = classStructurePanelBuilderUI.getPanel();
+        JPanel classStructurePanel = classStructurePanelBuilder.getPanel();
         JPanel fileEditorPanel = fileEditorPanelBuilder.getPanel();
         JPanel projectStructurePanel = projectStructurePanelBuilder.getPanel();
         JPanel consolePanel = consolePanelBuilder.getPanel();

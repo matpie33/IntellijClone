@@ -7,12 +7,12 @@ import javax.swing.border.BevelBorder;
 import java.awt.*;
 
 @Component
-public class NavigationPanelBuilderUI {
+public class NavigationPanelBuilder {
 
-    private IconsPanelBuilderUI iconsPanelBuilderUI;
+    private IconsPanelBuilder iconsPanelBuilder;
 
-    public NavigationPanelBuilderUI(IconsPanelBuilderUI iconsPanelBuilderUI) {
-        this.iconsPanelBuilderUI = iconsPanelBuilderUI;
+    public NavigationPanelBuilder(IconsPanelBuilder iconsPanelBuilder) {
+        this.iconsPanelBuilder = iconsPanelBuilder;
     }
 
     public JPanel createNavigationPanel() {
@@ -21,7 +21,7 @@ public class NavigationPanelBuilderUI {
 
         JLabel navigation = new JLabel("src>main>java>core>MainUI>createNavigationPanel");
         navigationPanel.add(navigation, BorderLayout.WEST);
-        JPanel iconsPanel = iconsPanelBuilderUI.createIconsPanel();
+        JPanel iconsPanel = iconsPanelBuilder.createIconsPanel();
         navigationPanel.add(iconsPanel, BorderLayout.EAST);
 
         return navigationPanel;

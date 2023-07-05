@@ -8,7 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 @Component
-public class IconsPanelBuilderUI {
+public class IconsPanelBuilder {
 
     public JPanel createIconsPanel() {
         JPanel iconsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
