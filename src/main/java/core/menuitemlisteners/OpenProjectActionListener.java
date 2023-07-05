@@ -45,7 +45,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             applicatonState.setProjectPath(selectedFile.getParent());
             List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(selectedFile, files);
-            uiEventsQueue.handleEvent(UIEventType.PROJECT_OPENED, rootNode);
+            uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
 

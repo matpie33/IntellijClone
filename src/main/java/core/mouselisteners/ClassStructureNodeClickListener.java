@@ -33,7 +33,7 @@ public class ClassStructureNodeClickListener extends MouseAdapter {
                 DefaultMutableTreeNode pathComponent = (DefaultMutableTreeNode) path.getPathComponent(i);
                 NavigableTreeElementDTO navigableElement = (NavigableTreeElementDTO) pathComponent.getUserObject();
                 Position positionInClassFile = navigableElement.getStartingPosition();
-                uiEventsQueue.handleEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, positionInClassFile);
+                uiEventsQueue.dispatchEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, positionInClassFile);
 
             }
         }

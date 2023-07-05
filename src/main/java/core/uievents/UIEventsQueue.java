@@ -10,7 +10,7 @@ public class UIEventsQueue {
 
     private Set<UIEventObserver> observers = new HashSet<>();
 
-    public void handleEvent(UIEventType eventType, Object data){
+    public void dispatchEvent(UIEventType eventType, Object data){
         observers.stream().forEach(handler->handler.handleEvent(eventType, data));
     }
 
