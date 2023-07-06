@@ -1,7 +1,8 @@
 package core.panelbuilders;
 
-import core.contextMenu.ContextMenuValues;
+import core.context.ContextConfiguration;
 import core.contextMenu.ContextType;
+import core.dto.ProjectStructureSelectionContextDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.uievents.UIEventObserver;
@@ -12,6 +13,8 @@ import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 
 @Component
@@ -23,18 +26,18 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private TreeNodeDoubleClickListener treeNodeDoubleClickListener;
 
-    private ContextMenuValues contextMenuValues;
+    private ContextConfiguration contextConfiguration;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextMenuValues contextMenuValues) {
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
-        this.contextMenuValues = contextMenuValues;
+        this.contextConfiguration = contextConfiguration;
     }
 
     @PostConstruct
     public void init (){
         projectStructurePanel = new JPanel(new BorderLayout());
         projectStructureTree = new JTree(new DefaultMutableTreeNode("Empty"));
-        projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextMenuValues));
+        projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextConfiguration));
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
         projectStructurePanel.add(new JScrollPane(projectStructureTree));
     }
@@ -45,11 +48,16 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
+        DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
         switch (eventType) {
             case PROJECT_OPENED:
                 DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) data;
-                DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
                 model.setRoot(rootNode);
+                projectStructurePanel.revalidate();
+                break;
+            case FILE_REMOVED_FROM_PROJECT:
+                ProjectStructureSelectionContextDTO context = (ProjectStructureSelectionContextDTO) data;
+                model.removeNodeFromParent((MutableTreeNode) context.getTreePath().getLastPathComponent());
                 projectStructurePanel.revalidate();
                 break;
         }

@@ -3,9 +3,13 @@ package core.panelbuilders;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import core.context.ContextConfiguration;
+import core.contextMenu.ContextMenuValues;
+import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.mouselisteners.ClassStructureNodeClickListener;
+import core.mouselisteners.PopupMenuRequestListener;
 import core.uibuilders.ClassStructureBuilderUI;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
@@ -32,10 +36,13 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
 
     private ApplicatonState applicatonState;
 
-    public ClassStructurePanelBuilder(ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureBuilderUI classStructureBuilderUI, ApplicatonState applicatonState) {
+    private ContextConfiguration contextConfiguration;
+
+    public ClassStructurePanelBuilder(ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureBuilderUI classStructureBuilderUI, ApplicatonState applicatonState, ContextConfiguration contextConfiguration) {
         this.classStructureNodeClickListener = classStructureNodeClickListener;
         this.classStructureBuilderUI = classStructureBuilderUI;
         this.applicatonState = applicatonState;
+        this.contextConfiguration = contextConfiguration;
     }
 
     public JPanel getPanel (){
@@ -52,6 +59,7 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
             }
         };
         classStructureTree.addMouseListener(classStructureNodeClickListener);
+        classStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.CLASS_STRUCTURE, contextConfiguration));
         classStructurePanel.add(new JScrollPane(classStructureTree), BorderLayout.CENTER);
     }
 

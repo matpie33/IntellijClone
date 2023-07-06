@@ -41,6 +41,14 @@ public class FileIO {
         }
     }
 
+    public void removeFile(String [] paths){
+        String projectPath = applicatonState.getProjectPath();
+        Path path = Path.of(projectPath, paths);
+        File file = path.toFile();
+        file.delete();
+    }
+
+
     public void save(String text){
         File openedFile = applicatonState.getOpenedFile();
         try {

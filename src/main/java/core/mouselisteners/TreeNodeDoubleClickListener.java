@@ -1,14 +1,13 @@
 package core.mouselisteners;
 
 import core.backend.FileIO;
+import core.context.providers.NodePathExtractor;
 import core.dto.FileReadResultDTO;
+import core.dto.ProjectStructureSelectionContextDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -19,9 +18,12 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
 
     private UIEventsQueue uiEventsQueue;
 
-    public TreeNodeDoubleClickListener(FileIO fileIO, UIEventsQueue uiEventsQueue) {
+    private NodePathExtractor nodePathExtractor;
+
+    public TreeNodeDoubleClickListener(FileIO fileIO, UIEventsQueue uiEventsQueue, NodePathExtractor nodePathExtractor) {
         this.fileIO = fileIO;
         this.uiEventsQueue = uiEventsQueue;
+        this.nodePathExtractor = nodePathExtractor;
     }
 
     @Override
@@ -29,17 +31,13 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
         super.mouseClicked(e);
         if (e.getClickCount() == 2) {
 
-            JTree tree = (JTree) e.getSource();
-            TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
-            String [] paths = new String [path.getPathCount()];
-            for (int i=0; i<paths.length; i++){
-                DefaultMutableTreeNode pathComponent = (DefaultMutableTreeNode) path.getPathComponent(i);
-                paths[i] =(String) pathComponent.getUserObject();
-            }
-            FileReadResultDTO resultDTO = fileIO.read(paths);
+            ProjectStructureSelectionContextDTO context = (ProjectStructureSelectionContextDTO) nodePathExtractor.getContext(e);
+            FileReadResultDTO resultDTO = fileIO.read(context.getNodeNames());
             if (resultDTO.isReaded()){
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, resultDTO);
             }
         }
     }
+
+
 }

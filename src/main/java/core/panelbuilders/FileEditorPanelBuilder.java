@@ -2,11 +2,11 @@ package core.panelbuilders;
 
 import com.github.javaparser.Position;
 import core.backend.FileAutoSaver;
+import core.context.ContextConfiguration;
 import core.contextMenu.ContextMenuValues;
 import core.contextMenu.ContextType;
 import core.dto.FileReadResultDTO;
 import core.mouselisteners.PopupMenuRequestListener;
-import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -14,8 +14,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -26,16 +24,16 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private JPanel panel;
 
-    private ContextMenuValues contextMenuValues;
+    private ContextConfiguration contextConfiguration;
 
     private JTextArea editorText;
 
 
     private FileAutoSaver fileAutoSaver;
 
-    public FileEditorPanelBuilder(ContextMenuValues contextMenuValues, FileAutoSaver fileAutoSaver) {
-        this.contextMenuValues = contextMenuValues;
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver) {
         this.fileAutoSaver = fileAutoSaver;
+        this.contextConfiguration = contextConfiguration;
     }
 
     @PostConstruct
@@ -48,7 +46,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
                 fileAutoSaver.recordKeyRelease(editorText.getText());
             }
         });
-        editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextMenuValues));
+        editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
         panel.add(editorText, BorderLayout.CENTER);
     }
 

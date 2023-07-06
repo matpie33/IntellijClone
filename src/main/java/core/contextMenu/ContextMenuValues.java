@@ -1,5 +1,12 @@
 package core.contextMenu;
 
+import core.context.actionlisteners.ContextActionListener;
+import core.context.actionlisteners.EmptyActionListener;
+import core.context.actionlisteners.FileDeleteListener;
+import core.dto.MenuItemDTO;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -9,21 +16,35 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class ContextMenuValues {
+public class ContextMenuValues implements ApplicationContextAware {
 
-    private Map<ContextType, List<String>> menuItemsMap = new HashMap<> ();
+    private Map<ContextType, List<MenuItemDTO>> menuItemsMap = new HashMap<> ();
+    private ApplicationContext applicationContext;
 
     @PostConstruct
     public void init (){
-        menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList("New", "-", "Cut", "Copy", "Copy path/reference", "-", "Find usages", "Refactor"));
-        menuItemsMap.put(ContextType.FILE_EDITOR, Arrays.asList("Find usages", "Go to", "copy"));
-        menuItemsMap.put(ContextType.CONSOLE, Arrays.asList("Pause output", "Fold lines"));
-        menuItemsMap.put(ContextType.FILE_STRUCTURE, Arrays.asList("Toggle method breakpoint", "Compare with", "Diagrams"));
+        menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList(new MenuItemDTO("New", getBean(EmptyActionListener.class)), new MenuItemDTO("-", getBean(EmptyActionListener.class)), new MenuItemDTO("New", getBean(EmptyActionListener.class)),
+                new MenuItemDTO("Copy", getBean(EmptyActionListener.class)),
+                new MenuItemDTO("Delete", getBean(FileDeleteListener.class))));
+        menuItemsMap.put(ContextType.FILE_EDITOR, Arrays.asList(new MenuItemDTO("Extract method", getBean(EmptyActionListener.class)),
+                new MenuItemDTO("go to", getBean(EmptyActionListener.class)),
+                new MenuItemDTO("Find usages", getBean(EmptyActionListener.class))));
+        menuItemsMap.put(ContextType.CONSOLE, Arrays.asList(new MenuItemDTO("Pause output", getBean(EmptyActionListener.class)), new MenuItemDTO("Fold lines", getBean(EmptyActionListener.class))));
+        menuItemsMap.put(ContextType.CLASS_STRUCTURE, Arrays.asList(new MenuItemDTO("Open in", getBean(EmptyActionListener.class)),
+                new MenuItemDTO("Find usages", getBean(EmptyActionListener.class)), new MenuItemDTO("Jump to source", getBean(EmptyActionListener.class))));
     }
 
-    public List<String> getValues (ContextType contextType){
+    public List<MenuItemDTO> getValues (ContextType contextType){
         return menuItemsMap.get(contextType);
     }
 
+    private ContextActionListener getBean(Class<? extends ContextActionListener> classType){
+        return applicationContext.getBean(classType);
+    }
 
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }
