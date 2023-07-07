@@ -3,11 +3,14 @@ package core.dto;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.util.List;
+import java.nio.file.WatchService;
 
 @Component
 public class ApplicatonState {
 
+
+
+    private WatchService fileWatcher;
 
     private String projectPath;
 
@@ -29,4 +32,13 @@ public class ApplicatonState {
     public void setProjectPath(String projectPath) {
         this.projectPath = projectPath;
     }
+
+    public WatchService getFileWatcher() {
+        return fileWatcher;
+    }
+
+    public void setFileWatcher(WatchService fileWatcher) {
+        this.fileWatcher = fileWatcher;
+    }
+
 }

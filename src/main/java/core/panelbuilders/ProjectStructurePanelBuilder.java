@@ -1,9 +1,12 @@
 package core.panelbuilders;
 
+import core.backend.DirectoryChangesDetector;
 import core.context.ContextConfiguration;
 import core.context.actionlisteners.FileDeleteKeyPressListener;
-import core.context.actionlisteners.FileDeleteRequestListener;
+import core.context.providers.NodePathExtractor;
 import core.contextMenu.ContextType;
+import core.dto.ApplicatonState;
+import core.dto.FileSystemChangeDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.mouselisteners.TreeNodeDoubleClickListener;
@@ -18,6 +21,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.nio.file.Path;
+import java.util.List;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -32,10 +37,19 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private FileDeleteKeyPressListener fileDeleteKeyPressListener;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, FileDeleteKeyPressListener fileDeleteKeyPressListener) {
+    private ApplicatonState applicatonState;
+
+    private DirectoryChangesDetector directoryChangesDetector;
+
+    private NodePathExtractor nodePathExtractor;
+
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, FileDeleteKeyPressListener fileDeleteKeyPressListener, ApplicatonState applicatonState, DirectoryChangesDetector directoryChangesDetector, NodePathExtractor nodePathExtractor) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
         this.fileDeleteKeyPressListener = fileDeleteKeyPressListener;
+        this.applicatonState = applicatonState;
+        this.directoryChangesDetector = directoryChangesDetector;
+        this.nodePathExtractor = nodePathExtractor;
     }
 
     @PostConstruct
@@ -46,6 +60,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
         projectStructureTree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
         projectStructureTree.getActionMap().put("delete", fileDeleteKeyPressListener);
+        projectStructureTree.addMouseListener(directoryChangesDetector);
         projectStructurePanel.add(new JScrollPane(projectStructureTree));
     }
 
@@ -56,9 +71,10 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
         DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
+        DefaultMutableTreeNode rootNode;
         switch (eventType) {
             case PROJECT_OPENED:
-                DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) data;
+                rootNode = (DefaultMutableTreeNode) data;
                 model.setRoot(rootNode);
                 projectStructurePanel.revalidate();
                 break;
@@ -67,6 +83,11 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 model.removeNodeFromParent((MutableTreeNode) context.getTreePath().getLastPathComponent());
                 projectStructurePanel.revalidate();
                 break;
+            case PROJECT_STRUCTURE_CHANGED:
+                FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
+                rootNode = (DefaultMutableTreeNode) projectStructureTree.getModel().getRoot();
+                nodePathExtractor.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
         }
     }
+
 }
