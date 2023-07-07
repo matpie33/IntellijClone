@@ -21,7 +21,7 @@ public class FileDeleteKeyPressListener extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        ProjectStructureSelectionContextDTO context = nodePathExtractor.getContextFromKeyPress(e);
+        ProjectStructureSelectionContextDTO context = nodePathExtractor.getContext(e);
         fileDeleteRequestListener.setContext(context);
         fileDeleteRequestListener.actionPerformed(e);
     }

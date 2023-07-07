@@ -12,11 +12,11 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 @Component
-public class FileDeleteRequestListener extends ContextAction {
+public class FileDeleteRequestListener extends ContextAction<ProjectStructureSelectionContextDTO> {
 
     private FileIO fileIO;
 
-    private Object context;
+    private ProjectStructureSelectionContextDTO context;
 
     private UIEventsQueue uiEventsQueue;
 
@@ -27,10 +27,10 @@ public class FileDeleteRequestListener extends ContextAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        ProjectStructureSelectionContextDTO context = (ProjectStructureSelectionContextDTO) this.context;
+        ProjectStructureSelectionContextDTO context = this.context;
         String[] nodeNames = context.getNodeNames();
         int result = JOptionPane.showConfirmDialog(Main.FRAME.getContentPane(),
-                String.format(DialogText.CONFIRM_FILE_DELETE, nodeNames[nodeNames.length-1]));
+                String.format(DialogText.CONFIRM_FILE_DELETE, (Object) null));
         if (result == JOptionPane.YES_OPTION){
             fileIO.removeFile(nodeNames);
             uiEventsQueue.dispatchEvent(UIEventType.FILE_REMOVED_FROM_PROJECT, context);
@@ -38,7 +38,7 @@ public class FileDeleteRequestListener extends ContextAction {
     }
 
     @Override
-    public void setContext(Object context) {
+    public void setContext(ProjectStructureSelectionContextDTO context) {
         this.context = context;
     }
 }

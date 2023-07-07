@@ -16,20 +16,20 @@ public class ContextConfiguration {
 
     private ContextMenuValues contextMenuValues;
 
-    private Map<ContextType, ContextProvider> contextProviders = new HashMap<>();
+    private Map<ContextType, ContextProvider<?>> contextProviders = new HashMap<>();
 
-    public ContextConfiguration(ContextMenuValues contextMenuValues, Set<ContextProvider> contextProviders) {
+    public ContextConfiguration(ContextMenuValues contextMenuValues, Set<ContextProvider<?>> contextProviders) {
         this.contextMenuValues = contextMenuValues;
         mapContextProviders(contextProviders);
     }
 
-    private void mapContextProviders(Set<ContextProvider> contextProviders) {
-        for (ContextProvider contextProvider : contextProviders) {
+    private void mapContextProviders(Set<ContextProvider<?>> contextProviders) {
+        for (ContextProvider<?> contextProvider : contextProviders) {
             this.contextProviders.put(contextProvider.getContextType(), contextProvider);
         }
     }
 
-    public ContextProvider getContextProvider(ContextType contextType) {
+    public ContextProvider<?> getContextProvider(ContextType contextType) {
         return contextProviders.get(contextType);
     }
 

@@ -11,10 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
 @Component
-public class NodePathExtractor implements ContextProvider {
+public class NodePathExtractor implements ContextProvider<ProjectStructureSelectionContextDTO> {
 
     @Override
-    public Object getContext (MouseEvent e){
+    public ProjectStructureSelectionContextDTO getContext (MouseEvent e){
 
         JTree tree = (JTree) e.getSource();
         TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
@@ -32,10 +32,17 @@ public class NodePathExtractor implements ContextProvider {
         return paths;
     }
 
-    public ProjectStructureSelectionContextDTO getContextFromKeyPress (ActionEvent actionEvent){
+    @Override
+    public ProjectStructureSelectionContextDTO getContext(ActionEvent actionEvent){
         JTree tree = (JTree) actionEvent.getSource();
         TreePath selectionPath = tree.getSelectionPath();
-        String[] nodeNames = extractPaths(selectionPath);
+        String[] nodeNames;
+        if (selectionPath != null){
+            nodeNames = extractPaths(selectionPath);
+        }
+        else{
+            nodeNames = new String [] {};
+        }
         return new ProjectStructureSelectionContextDTO(selectionPath, nodeNames);
 
     }
