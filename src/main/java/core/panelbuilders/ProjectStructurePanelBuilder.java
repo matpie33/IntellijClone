@@ -3,7 +3,7 @@ package core.panelbuilders;
 import core.backend.DirectoryChangesDetector;
 import core.context.ContextConfiguration;
 import core.context.actionlisteners.FileDeleteKeyPressListener;
-import core.context.providers.NodePathExtractor;
+import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
@@ -21,8 +21,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.nio.file.Path;
-import java.util.List;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -41,15 +39,15 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private DirectoryChangesDetector directoryChangesDetector;
 
-    private NodePathExtractor nodePathExtractor;
+    private NodePathManipulation nodePathManipulation;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, FileDeleteKeyPressListener fileDeleteKeyPressListener, ApplicatonState applicatonState, DirectoryChangesDetector directoryChangesDetector, NodePathExtractor nodePathExtractor) {
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, FileDeleteKeyPressListener fileDeleteKeyPressListener, ApplicatonState applicatonState, DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
         this.fileDeleteKeyPressListener = fileDeleteKeyPressListener;
         this.applicatonState = applicatonState;
         this.directoryChangesDetector = directoryChangesDetector;
-        this.nodePathExtractor = nodePathExtractor;
+        this.nodePathManipulation = nodePathManipulation;
     }
 
     @PostConstruct
@@ -86,7 +84,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
             case PROJECT_STRUCTURE_CHANGED:
                 FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
                 rootNode = (DefaultMutableTreeNode) projectStructureTree.getModel().getRoot();
-                nodePathExtractor.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
+                nodePathManipulation.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
         }
     }
 

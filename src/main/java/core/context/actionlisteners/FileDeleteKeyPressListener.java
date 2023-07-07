@@ -1,6 +1,6 @@
 package core.context.actionlisteners;
 
-import core.context.providers.NodePathExtractor;
+import core.context.providers.NodePathManipulation;
 import core.dto.ProjectStructureSelectionContextDTO;
 import org.springframework.stereotype.Component;
 
@@ -12,16 +12,16 @@ public class FileDeleteKeyPressListener extends AbstractAction {
 
     private FileDeleteRequestListener fileDeleteRequestListener;
 
-    private NodePathExtractor nodePathExtractor;
+    private NodePathManipulation nodePathManipulation;
 
-    public FileDeleteKeyPressListener(FileDeleteRequestListener fileDeleteRequestListener, NodePathExtractor nodePathExtractor) {
+    public FileDeleteKeyPressListener(FileDeleteRequestListener fileDeleteRequestListener, NodePathManipulation nodePathManipulation) {
         this.fileDeleteRequestListener = fileDeleteRequestListener;
-        this.nodePathExtractor = nodePathExtractor;
+        this.nodePathManipulation = nodePathManipulation;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        ProjectStructureSelectionContextDTO context = nodePathExtractor.getContext(e);
+        ProjectStructureSelectionContextDTO context = nodePathManipulation.getContext(e);
         fileDeleteRequestListener.setContext(context);
         fileDeleteRequestListener.actionPerformed(e);
     }

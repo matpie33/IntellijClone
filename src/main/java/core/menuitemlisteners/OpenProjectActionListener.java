@@ -46,33 +46,35 @@ public class OpenProjectActionListener implements MenuItemListener {
         int action = jFileChooser.showOpenDialog(Main.FRAME);
         if (action == JFileChooser.APPROVE_OPTION){
             File selectedFile = jFileChooser.getSelectedFile();
-            try {
-                try {
-                    WatchService watcher = FileSystems.getDefault().newWatchService();
-                    applicatonState.setFileWatcher(watcher);
-                    Files.walkFileTree(selectedFile.toPath(), new SimpleFileVisitor<>() {
-
-                        @Override
-                        public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
-                                throws IOException {
-                            directory.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                    });
-                }
-                finally {
-
-                }
-
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+            monitorPathsChanges(selectedFile);
             applicatonState.setProjectPath(selectedFile.getParent());
             List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(selectedFile, files);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
+    }
+
+    private void monitorPathsChanges(File selectedFile) {
+        try {
+            addPathsToWatchService(selectedFile);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void addPathsToWatchService(File selectedFile) throws IOException {
+        WatchService watcher = FileSystems.getDefault().newWatchService();
+        applicatonState.setFileWatcher(watcher);
+        Files.walkFileTree(selectedFile.toPath(), new SimpleFileVisitor<>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
+                    throws IOException {
+                directory.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+                return FileVisitResult.CONTINUE;
+            }
+
+        });
     }
 
     @Override

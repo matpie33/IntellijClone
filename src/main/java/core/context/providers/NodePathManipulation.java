@@ -20,11 +20,11 @@ import java.util.Enumeration;
 import java.util.List;
 
 @Component
-public class NodePathExtractor implements ContextProvider<ProjectStructureSelectionContextDTO> {
+public class NodePathManipulation implements ContextProvider<ProjectStructureSelectionContextDTO> {
 
     private ApplicatonState applicatonState;
 
-    public NodePathExtractor(ApplicatonState applicatonState) {
+    public NodePathManipulation(ApplicatonState applicatonState) {
         this.applicatonState = applicatonState;
     }
 
