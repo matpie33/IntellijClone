@@ -45,32 +45,39 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
         if (applicatonState.getFileWatcher() == null){
             return;
         }
-        WatchKey key = applicatonState.getFileWatcher().poll();
-        if (key != null){
-            List<WatchEvent<?>> watchEvents = key.pollEvents();
-            List<Path> createdFiles = new ArrayList<>();
-            List<Path> removedFiles = new ArrayList<>();
-            List<Path> modifiedFiles = new ArrayList<>();
-            for (WatchEvent<?> watchEvent : watchEvents) {
-                WatchEvent.Kind<?> kind = watchEvent.kind();
-                Path file = (Path) watchEvent.context();
-                Path directory = (Path) key.watchable();
-                Path absolutePath = directory.resolve(file);
-                if (kind.equals(StandardWatchEventKinds.ENTRY_DELETE)){
-                    handleFileDelete(createdFiles, removedFiles, modifiedFiles, absolutePath);
-                }
-                else if (kind.equals(StandardWatchEventKinds.ENTRY_CREATE)){
-                    handleFileCreate(createdFiles, removedFiles, absolutePath);
-                }
-                else if (kind.equals(StandardWatchEventKinds.ENTRY_MODIFY)){
-                    modifiedFiles.add(absolutePath);
-                }
-            }
 
-            FileSystemChangeDTO fileSystemChangeDTO = new FileSystemChangeDTO(createdFiles, modifiedFiles, removedFiles);
-            uiEventsQueue.dispatchEvent(UIEventType.PROJECT_STRUCTURE_CHANGED, fileSystemChangeDTO);
-            key.reset();
+        boolean shouldCheckForKeys = true;
+        while (shouldCheckForKeys){
+            WatchKey key = applicatonState.getFileWatcher().poll();
+            if (key != null){
+                List<WatchEvent<?>> watchEvents = key.pollEvents();
+                List<Path> createdFiles = new ArrayList<>();
+                List<Path> removedFiles = new ArrayList<>();
+                List<Path> modifiedFiles = new ArrayList<>();
+                for (WatchEvent<?> watchEvent : watchEvents) {
+                    WatchEvent.Kind<?> kind = watchEvent.kind();
+                    Path file = (Path) watchEvent.context();
+                    Path directory = (Path) key.watchable();
+                    Path absolutePath = directory.resolve(file);
+                    if (kind.equals(StandardWatchEventKinds.ENTRY_DELETE)){
+                        handleFileDelete(createdFiles, removedFiles, modifiedFiles, absolutePath);
+                    }
+                    else if (kind.equals(StandardWatchEventKinds.ENTRY_CREATE)){
+                        handleFileCreate(createdFiles, removedFiles, absolutePath);
+                    }
+                    else if (kind.equals(StandardWatchEventKinds.ENTRY_MODIFY)){
+                        modifiedFiles.add(absolutePath);
+                    }
+                }
+
+                FileSystemChangeDTO fileSystemChangeDTO = new FileSystemChangeDTO(createdFiles, modifiedFiles, removedFiles);
+                uiEventsQueue.dispatchEvent(UIEventType.PROJECT_STRUCTURE_CHANGED, fileSystemChangeDTO);
+                key.reset();
+            }
+            shouldCheckForKeys = key !=null;
         }
+
+
     }
 
     private void handleFileCreate(List<Path> createdFile, List<Path> removedFiles, Path file) {
@@ -83,13 +90,13 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
         }
     }
 
-    private void handleFileDelete(List<Path> createdFiles, List<Path> removedFiles, List<Path> modifiedFiles, Path file) {
-        if (createdFiles.contains(file) && modifiedFiles.contains(file)){
-            createdFiles.remove(file);
+    private void handleFileDelete(List<Path> createdFile, List<Path> removedFiles, List<Path> modifiedFiles, Path file) {
+        if (createdFile.contains(file) && modifiedFiles.contains(file)){
+            createdFile.remove(file);
             modifiedFiles.remove(file);
         }
-        else if (createdFiles.contains(file)){
-            createdFiles.remove(file);
+        else if (createdFile.contains(file)){
+            createdFile.remove(file);
         }
         else if (modifiedFiles.contains(file)){
             modifiedFiles.remove(file);
