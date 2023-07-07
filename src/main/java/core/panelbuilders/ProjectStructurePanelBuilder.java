@@ -1,6 +1,8 @@
 package core.panelbuilders;
 
 import core.context.ContextConfiguration;
+import core.context.actionlisteners.FileDeleteKeyPressListener;
+import core.context.actionlisteners.FileDeleteRequestListener;
 import core.contextMenu.ContextType;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.mouselisteners.PopupMenuRequestListener;
@@ -14,8 +16,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -28,9 +30,12 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private ContextConfiguration contextConfiguration;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration) {
+    private FileDeleteKeyPressListener fileDeleteKeyPressListener;
+
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, FileDeleteKeyPressListener fileDeleteKeyPressListener) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
+        this.fileDeleteKeyPressListener = fileDeleteKeyPressListener;
     }
 
     @PostConstruct
@@ -39,6 +44,8 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         projectStructureTree = new JTree(new DefaultMutableTreeNode("Empty"));
         projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextConfiguration));
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
+        projectStructureTree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+        projectStructureTree.getActionMap().put("delete", fileDeleteKeyPressListener);
         projectStructurePanel.add(new JScrollPane(projectStructureTree));
     }
 

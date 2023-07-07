@@ -12,7 +12,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 @Component
-public class FileDeleteListener implements ContextActionListener {
+public class FileDeleteRequestListener extends ContextAction {
 
     private FileIO fileIO;
 
@@ -20,7 +20,7 @@ public class FileDeleteListener implements ContextActionListener {
 
     private UIEventsQueue uiEventsQueue;
 
-    public FileDeleteListener(FileIO fileIO, UIEventsQueue uiEventsQueue) {
+    public FileDeleteRequestListener(FileIO fileIO, UIEventsQueue uiEventsQueue) {
         this.fileIO = fileIO;
         this.uiEventsQueue = uiEventsQueue;
     }

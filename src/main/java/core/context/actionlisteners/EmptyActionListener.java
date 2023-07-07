@@ -1,13 +1,11 @@
 package core.context.actionlisteners;
 
-import core.contextMenu.ContextType;
 import org.springframework.stereotype.Component;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 @Component
-public class EmptyActionListener implements ContextActionListener {
+public class EmptyActionListener extends ContextAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         System.out.println("click");

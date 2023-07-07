@@ -1,6 +1,6 @@
 package core.ui.components;
 
-import core.context.actionlisteners.ContextActionListener;
+import core.context.actionlisteners.ContextAction;
 import core.dto.MenuItemDTO;
 
 import javax.swing.*;
@@ -17,9 +17,9 @@ public class ContextMenu extends JPopupMenu {
             else{
 
                 JMenuItem menuItem = new JMenuItem(menu.getMenuValue());
-                ContextActionListener actionListener = menu.getActionListener();
-                actionListener.setContext(context);
-                menuItem.addActionListener(actionListener);
+                ContextAction action = menu.getAction();
+                action.setContext(context);
+                menuItem.addActionListener(action);
                 add(menuItem);
             }
 
