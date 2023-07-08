@@ -1,5 +1,6 @@
 package core.context.providers;
 
+import com.sun.source.tree.Tree;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
@@ -33,8 +34,23 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
 
         JTree tree = (JTree) e.getSource();
         TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
-        String[] paths = extractPaths(path);
-        return new ProjectStructureSelectionContextDTO(path, paths);
+        if (tree.getSelectionPaths()==null || tree.getSelectionPaths().length==1){
+            tree.setSelectionPath(path);
+            String[] paths = extractPaths(path);
+            ArrayList<String[]> pathsList = new ArrayList<>();
+            pathsList.add(paths);
+            return new ProjectStructureSelectionContextDTO(new TreePath[]{path}, pathsList);
+        }
+        else{
+            TreePath[] selectionPaths = tree.getSelectionPaths();
+            List<String[]> nodeNamesList = new ArrayList<>();
+            for (TreePath selectionPath : selectionPaths) {
+                String[] paths = extractPaths(selectionPath);
+                nodeNamesList.add(paths);
+            }
+            return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList);
+        }
+
 
     }
 
@@ -92,15 +108,16 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
     @Override
     public ProjectStructureSelectionContextDTO getContext(ActionEvent actionEvent){
         JTree tree = (JTree) actionEvent.getSource();
-        TreePath selectionPath = tree.getSelectionPath();
-        String[] nodeNames;
-        if (selectionPath != null){
-            nodeNames = extractPaths(selectionPath);
+        TreePath[] selectionPaths = tree.getSelectionPaths();
+        if (selectionPaths == null){
+            return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>());
         }
-        else{
-            nodeNames = new String [] {};
+        List<String[]> nodeNamesList = new ArrayList<>();
+        for (TreePath selectionPath : selectionPaths) {
+            String[] nodeNames = extractPaths(selectionPath);
+            nodeNamesList.add(nodeNames);
         }
-        return new ProjectStructureSelectionContextDTO(selectionPath, nodeNames);
+        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList);
 
     }
 

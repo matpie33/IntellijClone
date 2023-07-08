@@ -19,6 +19,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
@@ -78,7 +79,10 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 break;
             case FILE_REMOVED_FROM_PROJECT:
                 ProjectStructureSelectionContextDTO context = (ProjectStructureSelectionContextDTO) data;
-                model.removeNodeFromParent((MutableTreeNode) context.getTreePath().getLastPathComponent());
+                TreePath[] selectedPaths = context.getSelectedPaths();
+                for (TreePath selectedPath : selectedPaths) {
+                    model.removeNodeFromParent((MutableTreeNode) selectedPath.getLastPathComponent());
+                }
                 projectStructurePanel.revalidate();
                 break;
             case PROJECT_STRUCTURE_CHANGED:

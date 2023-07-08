@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 @Component
 public class TreeNodeDoubleClickListener extends MouseAdapter {
@@ -32,7 +33,8 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
         if (e.getClickCount() == 2) {
 
             ProjectStructureSelectionContextDTO context = nodePathManipulation.getContext(e);
-            FileReadResultDTO resultDTO = fileIO.read(context.getNodeNames());
+            List<String[]> nodeNames = context.getNodesPaths();
+            FileReadResultDTO resultDTO = fileIO.read(nodeNames.iterator().next());
             if (resultDTO.isReaded()){
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, resultDTO);
             }

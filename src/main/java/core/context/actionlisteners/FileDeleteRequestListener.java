@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 @Component
 public class FileDeleteRequestListener extends ContextAction<ProjectStructureSelectionContextDTO> {
@@ -28,13 +29,32 @@ public class FileDeleteRequestListener extends ContextAction<ProjectStructureSel
     @Override
     public void actionPerformed(ActionEvent e) {
         ProjectStructureSelectionContextDTO context = this.context;
-        String[] nodeNames = context.getNodeNames();
+        List<String[]> nodesPaths = context.getNodesPaths();
+        if (nodesPaths.isEmpty()){
+            return;
+        }
+        String objectToDelete = getObjectToDeleteName(nodesPaths);
         int result = JOptionPane.showConfirmDialog(Main.FRAME.getContentPane(),
-                String.format(DialogText.CONFIRM_FILE_DELETE, (Object) null));
-        if (result == JOptionPane.YES_OPTION){
-            fileIO.removeFile(nodeNames);
+                String.format(DialogText.CONFIRM_FILE_DELETE, objectToDelete));
+        if (result == JOptionPane.YES_OPTION) {
+            for (String[] nodeNames : nodesPaths) {
+                fileIO.removeFile(nodeNames);
+            }
             uiEventsQueue.dispatchEvent(UIEventType.FILE_REMOVED_FROM_PROJECT, context);
         }
+    }
+
+    private String getObjectToDeleteName(List<String[]> nodesPaths) {
+        String objectToDelete;
+        if (nodesPaths.size()>1){
+            objectToDelete = String.format("%d files", nodesPaths.size());
+        }
+        else{
+            String[] paths = nodesPaths.iterator().next();
+            objectToDelete = paths[paths.length-1];
+
+        }
+        return objectToDelete;
     }
 
     @Override

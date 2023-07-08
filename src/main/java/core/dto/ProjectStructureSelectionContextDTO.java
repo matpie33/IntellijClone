@@ -5,21 +5,21 @@ import java.util.List;
 
 public class ProjectStructureSelectionContextDTO {
 
-    private TreePath treePath;
+    private TreePath[] selectionPaths;
 
-    private String[] nodeNames;
+    private List<String[]> nodePathsForEachSelectedItem;
 
-    public ProjectStructureSelectionContextDTO(TreePath treePath, String[] nodeNames) {
-        this.treePath = treePath;
-        this.nodeNames = nodeNames;
+    public ProjectStructureSelectionContextDTO(TreePath[] treePath, List<String[]> nodePathsForEachSelectedItem) {
+        this.selectionPaths = treePath;
+        this.nodePathsForEachSelectedItem = nodePathsForEachSelectedItem;
     }
 
 
-    public TreePath getTreePath() {
-        return treePath;
+    public TreePath[] getSelectedPaths() {
+        return selectionPaths;
     }
 
-    public String[] getNodeNames() {
-        return nodeNames;
+    public List<String[]> getNodesPaths() {
+        return nodePathsForEachSelectedItem;
     }
 }
