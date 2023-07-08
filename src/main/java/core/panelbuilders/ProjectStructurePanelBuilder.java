@@ -2,7 +2,6 @@ package core.panelbuilders;
 
 import core.backend.DirectoryChangesDetector;
 import core.context.ContextConfiguration;
-import core.context.actionlisteners.FileDeleteKeyPressListener;
 import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
@@ -11,6 +10,7 @@ import core.dto.ProjectStructureSelectionContextDTO;
 import core.dto.RenamedFileDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.mouselisteners.TreeNodeDoubleClickListener;
+import core.shortcuts.ProjectStructureTreeShortcuts;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -22,9 +22,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.File;
-import java.nio.file.Path;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -37,7 +35,6 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private ContextConfiguration contextConfiguration;
 
-    private FileDeleteKeyPressListener fileDeleteKeyPressListener;
 
     private ApplicatonState applicatonState;
 
@@ -45,13 +42,15 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private NodePathManipulation nodePathManipulation;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, FileDeleteKeyPressListener fileDeleteKeyPressListener, ApplicatonState applicatonState, DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation) {
+    private ProjectStructureTreeShortcuts projectStructureTreeShortcuts;
+
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, ApplicatonState applicatonState, DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation, ProjectStructureTreeShortcuts projectStructureTreeShortcuts) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
-        this.fileDeleteKeyPressListener = fileDeleteKeyPressListener;
         this.applicatonState = applicatonState;
         this.directoryChangesDetector = directoryChangesDetector;
         this.nodePathManipulation = nodePathManipulation;
+        this.projectStructureTreeShortcuts = projectStructureTreeShortcuts;
     }
 
     @PostConstruct
@@ -60,10 +59,9 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         projectStructureTree = new JTree(new DefaultMutableTreeNode("Empty"));
         projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextConfiguration));
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
-        projectStructureTree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-        projectStructureTree.getActionMap().put("delete", fileDeleteKeyPressListener);
         projectStructureTree.addMouseListener(directoryChangesDetector);
         projectStructurePanel.add(new JScrollPane(projectStructureTree));
+        projectStructureTreeShortcuts.assignShortcuts(projectStructureTree);
     }
 
     public JPanel getPanel() {

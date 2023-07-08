@@ -115,11 +115,13 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
             return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>(), null);
         }
         List<String[]> nodeNamesList = new ArrayList<>();
+        Point point = null;
         for (TreePath selectionPath : selectionPaths) {
+            point = tree.getPathBounds(selectionPath).getLocation();
             String[] nodeNames = extractPaths(selectionPath);
             nodeNamesList.add(nodeNames);
         }
-        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, null);
+        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point);
 
     }
 

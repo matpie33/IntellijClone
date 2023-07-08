@@ -1,6 +1,8 @@
 package core.dialogbuilders;
 
 import core.dto.RenamedFileDTO;
+import core.shortcuts.DialogShortcuts;
+import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -8,14 +10,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 
 @Component
-public class RenameFileDialogBuilder {
+public class RenameFileDialogBuilder implements UIEventObserver {
 
     private JDialog dialog;
 
@@ -23,8 +23,11 @@ public class RenameFileDialogBuilder {
     private File file;
     private JTextField textInput;
 
-    public RenameFileDialogBuilder(UIEventsQueue uiEventsQueue) {
+    private DialogShortcuts dialogShortcuts;
+
+    public RenameFileDialogBuilder(UIEventsQueue uiEventsQueue, DialogShortcuts dialogShortcuts) {
         this.uiEventsQueue = uiEventsQueue;
+        this.dialogShortcuts = dialogShortcuts;
     }
 
     @PostConstruct
@@ -58,14 +61,7 @@ public class RenameFileDialogBuilder {
             }
         });
         JRootPane rootPane = dialog.getRootPane();
-        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-        rootPane.getActionMap().put("close", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                textInput.setText("");
-                dialog.dispose();
-            }
-        });
+        dialogShortcuts.assignShortcuts(rootPane);
         dialog.setContentPane(panel);
         dialog.pack();
         dialog.setVisible(false);
@@ -109,13 +105,6 @@ public class RenameFileDialogBuilder {
 
     private JTextField createTextField() {
         textInput = new JTextField(20);
-        textInput.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "accept");
-        textInput.getActionMap().put("accept", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                acceptFilenameChange();
-            }
-        });
         return textInput;
     }
 
@@ -126,4 +115,16 @@ public class RenameFileDialogBuilder {
         return label;
     }
 
+    @Override
+    public void handleEvent(UIEventType eventType, Object data) {
+        switch (eventType){
+            case DIALOG_CLOSE_REQUEST:
+                textInput.setText("");
+                dialog.dispose();
+                break;
+            case DIALOG_ACCEPT_REQUEST:
+                acceptFilenameChange();
+                break;
+        }
+    }
 }
