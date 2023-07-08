@@ -8,6 +8,7 @@ import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
+import core.dto.RenamedFileDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.uievents.UIEventObserver;
@@ -22,6 +23,8 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.nio.file.Path;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -89,6 +92,15 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
                 rootNode = (DefaultMutableTreeNode) projectStructureTree.getModel().getRoot();
                 nodePathManipulation.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
+                break;
+            case FILENAME_CHANGED:
+                RenamedFileDTO renamedFileDTO = (RenamedFileDTO) data;
+                File file = renamedFileDTO.getFile();
+                File newFile = file.toPath().resolveSibling(renamedFileDTO.getNewName()).toFile();
+                boolean isSuccess = file.renameTo(newFile);
+                if (!isSuccess){
+                    System.err.println("Failed to rename");
+                }
         }
     }
 

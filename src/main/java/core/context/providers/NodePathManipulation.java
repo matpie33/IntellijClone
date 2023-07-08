@@ -12,6 +12,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
@@ -34,12 +35,13 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
 
         JTree tree = (JTree) e.getSource();
         TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
+        Point point = e.getLocationOnScreen();
         if (tree.getSelectionPaths()==null || tree.getSelectionPaths().length==1){
             tree.setSelectionPath(path);
             String[] paths = extractPaths(path);
             ArrayList<String[]> pathsList = new ArrayList<>();
             pathsList.add(paths);
-            return new ProjectStructureSelectionContextDTO(new TreePath[]{path}, pathsList);
+            return new ProjectStructureSelectionContextDTO(new TreePath[]{path}, pathsList, point);
         }
         else{
             TreePath[] selectionPaths = tree.getSelectionPaths();
@@ -48,7 +50,7 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
                 String[] paths = extractPaths(selectionPath);
                 nodeNamesList.add(paths);
             }
-            return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList);
+            return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point);
         }
 
 
@@ -110,14 +112,14 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
         JTree tree = (JTree) actionEvent.getSource();
         TreePath[] selectionPaths = tree.getSelectionPaths();
         if (selectionPaths == null){
-            return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>());
+            return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>(), null);
         }
         List<String[]> nodeNamesList = new ArrayList<>();
         for (TreePath selectionPath : selectionPaths) {
             String[] nodeNames = extractPaths(selectionPath);
             nodeNamesList.add(nodeNames);
         }
-        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList);
+        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, null);
 
     }
 
