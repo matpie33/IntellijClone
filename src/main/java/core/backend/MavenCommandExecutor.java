@@ -1,6 +1,7 @@
 package core.backend;
 
 import core.dto.ApplicatonState;
+import core.dto.MavenCommandResultDTO;
 import org.apache.maven.shared.invoker.*;
 import org.springframework.stereotype.Component;
 
@@ -27,17 +28,20 @@ public class MavenCommandExecutor {
         pomFile = new File(projectPathObject + "/pom.xml");
     }
 
-    public File runCommandWithFileOutput(String command, String... args) {
+    public MavenCommandResultDTO runCommandWithFileOutput(String command, String... args) {
 
         InvocationRequest request = createInvocationRequest(command, args);
         request.setQuiet(true);
 
         DefaultInvoker defaultInvoker = new DefaultInvoker();
+        StringBuilder builder = addOutputHandler(defaultInvoker);
 
         try {
-            defaultInvoker.execute(request);
+            InvocationResult result = defaultInvoker.execute(request);
             Path createdFile = pomFile.getParentFile().toPath().resolve(createdFileName);
-            return createdFile.toFile();
+            MavenCommandResultDTO mavenCommandResultDTO = new MavenCommandResultDTO(result.getExitCode() == 0, builder.toString());
+            mavenCommandResultDTO.setOutputFile(createdFile.toFile());
+            return mavenCommandResultDTO;
 
         } catch (MavenInvocationException e) {
             throw new RuntimeException(e);
@@ -67,13 +71,13 @@ public class MavenCommandExecutor {
         return request;
     }
 
-    public String runCommandInConsole (String goal, String... arguments){
+    public MavenCommandResultDTO runCommandInConsole (String goal, String... arguments){
         InvocationRequest invocationRequest = createInvocationRequest(goal, arguments);
         DefaultInvoker defaultInvoker = new DefaultInvoker();
         StringBuilder output = addOutputHandler(defaultInvoker);
         try {
-            defaultInvoker.execute(invocationRequest);
-            return output.toString();
+            InvocationResult result = defaultInvoker.execute(invocationRequest);
+            return new MavenCommandResultDTO(result.getExitCode()==0, output.toString());
         } catch (MavenInvocationException e) {
             throw new RuntimeException(e);
         }

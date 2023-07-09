@@ -1,11 +1,14 @@
 package core.context.actionlisteners;
 
+import core.Main;
 import core.backend.*;
+import core.dto.MavenCommandResultDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.*;
 import java.util.concurrent.CompletableFuture;
@@ -44,9 +47,13 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         mavenTask.thenRun(this::executeJavaRunCommand);
     }
 
-    private String executeMavenCleanInstall() {
+    private void executeMavenCleanInstall() {
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Executing maven clean install");
-        return mavenCommandExecutor.runCommandInConsole("clean install");
+        MavenCommandResultDTO result = mavenCommandExecutor.runCommandInConsole("clean install");
+        if (!result.isSuccess()){
+            JOptionPane.showMessageDialog(Main.FRAME, "Failed to run maven, check console");
+            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, result.getOutput());
+        }
     }
 
     private void executeJavaRunCommand()  {

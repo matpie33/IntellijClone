@@ -7,6 +7,7 @@ import core.backend.MainMethodSeeker;
 import core.backend.ThreadExecutor;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
+import core.dto.MavenCommandResultDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -72,14 +73,23 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private void readClassPath() {
         mavenCommandExecutor.initialize();
-        File fileWithClasspathValue = mavenCommandExecutor.runCommandWithFileOutput("dependency:build-classpath", String.format("-Dmdep.outputFile=%s", "cp.txt"));
-        String outputDirectory = mavenCommandExecutor.runCommandInConsole("help:evaluate", "-Dexpression=project.build.outputDirectory", "-q", "-DforceStdout");
+        MavenCommandResultDTO firstResult = mavenCommandExecutor.runCommandWithFileOutput("dependency:build-classpath", String.format("-Dmdep.outputFile=%s", "cp.txt"));
+        if (!firstResult.isSuccess()){
+            JOptionPane.showMessageDialog(Main.FRAME, "Failed to run mvn command. Check console");
+            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, firstResult.getOutput());
+        }
+        //TODO error handling: it does not show any error if the maven command is wrong, e.g. project.build.outputDirecto
+        MavenCommandResultDTO commandResult = mavenCommandExecutor.runCommandInConsole("help:evaluate", "-Dexpression=project.build.outputDirectory", "-q", "-DforceStdout");
+        if (!commandResult.isSuccess()){
+            JOptionPane.showMessageDialog(Main.FRAME, "Failed to run mvn command. Check console");
+            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, commandResult.getOutput());
+        }
         try {
-            List<String> classPathValues = Files.readAllLines(fileWithClasspathValue.toPath());
-            classPathValues.add(";"+outputDirectory.trim());
+            List<String> classPathValues = Files.readAllLines(firstResult.getOutputFile().toPath());
+            classPathValues.add(";"+commandResult.getOutput().trim());
             String fullClasspath = String.join("", classPathValues);
             applicatonState.setClassPath(fullClasspath);
-            boolean isDeleted = fileWithClasspathValue.delete();
+            boolean isDeleted = firstResult.getOutputFile().delete();
             if (!isDeleted){
                 System.err.println("file is not deleted");
             }
