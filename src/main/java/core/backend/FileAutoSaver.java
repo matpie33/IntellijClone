@@ -11,6 +11,7 @@ public class FileAutoSaver {
     private final Timer saveTimer;
     private final int firstCheckDelay;
     private final int checkPeriod;
+    private final FileIO fileIO;
 
     private int idleTimeBeforeSave = 5000;
 
@@ -21,6 +22,7 @@ public class FileAutoSaver {
 
 
     public FileAutoSaver(FileIO fileIO) {
+        this.fileIO = fileIO;
         saveTimer = new Timer();
         firstCheckDelay = 1000;
         checkPeriod = 1000;
@@ -34,6 +36,11 @@ public class FileAutoSaver {
                 }
             }
         }, firstCheckDelay, checkPeriod);
+    }
+
+    public void save (){
+        isDirty=false;
+        fileIO.save(currentText);
     }
 
     public void recordKeyRelease (String currentText){

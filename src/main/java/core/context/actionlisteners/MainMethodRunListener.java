@@ -1,13 +1,14 @@
 package core.context.actionlisteners;
 
-import core.backend.JavaRunCommandBuilder;
-import core.backend.ThreadExecutor;
+import core.backend.*;
 import core.dto.ProjectStructureSelectionContextDTO;
+import core.uievents.UIEventType;
+import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO>{
@@ -18,14 +19,34 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
 
     private ThreadExecutor threadExecutor;
 
-    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor) {
+    private ProcessOutputReader processOutputReader;
+
+    private UIEventsQueue uiEventsQueue;
+
+    private MavenCommandExecutor mavenCommandExecutor;
+
+    private FileAutoSaver fileAutoSaver;
+
+    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, ProcessOutputReader processOutputReader, UIEventsQueue uiEventsQueue, MavenCommandExecutor mavenCommandExecutor, FileAutoSaver fileAutoSaver) {
         this.javaRunCommandBuilder = javaRunCommandBuilder;
         this.threadExecutor = threadExecutor;
+        this.processOutputReader = processOutputReader;
+        this.uiEventsQueue = uiEventsQueue;
+        this.mavenCommandExecutor = mavenCommandExecutor;
+        this.fileAutoSaver = fileAutoSaver;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        threadExecutor.scheduleNewTask(this::executeJavaRunCommand);
+        uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
+        fileAutoSaver.save(); //TODO if exception occurs during saving, it's not logged nowhere
+        CompletableFuture<Void> mavenTask = threadExecutor.thenTask(this::executeMavenCleanInstall);
+        mavenTask.thenRun(this::executeJavaRunCommand);
+    }
+
+    private String executeMavenCleanInstall() {
+        uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Executing maven clean install");
+        return mavenCommandExecutor.runCommandInConsole("clean install");
     }
 
     private void executeJavaRunCommand()  {
@@ -33,11 +54,13 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         String[] commands = javaRunCommandBuilder.build(selectedFile.getName());
 
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         try {
-            processBuilder.start();
-        } catch (IOException e) {
+            Process process = processBuilder.start();
+            InputStream inputStream = process.getInputStream();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            processOutputReader.setBufferedReader(bufferedReader);
+            threadExecutor.scheduleIndependentTask(processOutputReader);
+        } catch (IOException  e) {
             throw new RuntimeException(e);
         }
     }

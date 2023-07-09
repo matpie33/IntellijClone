@@ -36,6 +36,7 @@ public class Main implements UIEventObserver {
         FRAME.setContentPane(editorPanels.getMainPanel());
         FRAME.setVisible(true);
         FRAME.addWindowFocusListener(directoryChangesDetector);
+        FRAME.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 
     }

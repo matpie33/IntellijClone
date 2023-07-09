@@ -65,6 +65,9 @@ public class FileIO {
 
     public void save(String text){
         File openedFile = applicatonState.getOpenedFile();
+        if (openedFile == null){
+            return;
+        }
         try {
             Files.writeString(openedFile.toPath(), text);
         } catch (IOException e) {

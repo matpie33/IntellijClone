@@ -65,8 +65,8 @@ public class MavenCommandExecutor {
         return request;
     }
 
-    public String runCommandInConsole (String command, String... arguments){
-        InvocationRequest invocationRequest = createInvocationRequest(command, arguments);
+    public String runCommandInConsole (String goal, String... arguments){
+        InvocationRequest invocationRequest = createInvocationRequest(goal, arguments);
         DefaultInvoker defaultInvoker = new DefaultInvoker();
         StringBuilder output = addOutputHandler(defaultInvoker);
         try {
