@@ -2,11 +2,9 @@ package core.panelbuilders;
 
 import core.backend.DirectoryChangesDetector;
 import core.backend.FileIO;
-import core.backend.FileWatcher;
 import core.context.ContextConfiguration;
 import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
-import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.dto.RenamedFileDTO;

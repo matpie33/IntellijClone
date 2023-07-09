@@ -1,7 +1,7 @@
 package core.menuitemlisteners;
 
 import core.*;
-import core.backend.FileWatcher;
+import core.backend.DirectoriesWatcher;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
@@ -28,14 +28,14 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private ApplicatonState applicatonState;
 
-    private FileWatcher fileWatcher;
+    private DirectoriesWatcher directoriesWatcher;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, FileWatcher fileWatcher) {
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher) {
         this.projectStructureReader = projectStructureReader;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
-        this.fileWatcher = fileWatcher;
+        this.directoriesWatcher = directoriesWatcher;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -47,7 +47,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             File selectedFile = jFileChooser.getSelectedFile();
             applicatonState.setProjectRootDirectoryName(selectedFile.getName());
             applicatonState.setProjectPath(selectedFile.getParent());
-            fileWatcher.watchProjectDirectory();
+            directoriesWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(selectedFile, files);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);

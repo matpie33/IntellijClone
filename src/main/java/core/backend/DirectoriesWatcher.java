@@ -11,12 +11,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 @Component
-public class FileWatcher {
+public class DirectoriesWatcher {
 
 
     private ApplicatonState applicatonState;
 
-    public FileWatcher(ApplicatonState applicatonState) {
+    public DirectoriesWatcher(ApplicatonState applicatonState) {
         this.applicatonState = applicatonState;
     }
 

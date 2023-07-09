@@ -16,11 +16,11 @@ public class FileIO {
 
     private ApplicatonState applicatonState;
 
-    private FileWatcher fileWatcher;
+    private DirectoriesWatcher directoriesWatcher;
 
-    public FileIO(ApplicatonState applicatonState, FileWatcher fileWatcher) {
+    public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher) {
         this.applicatonState = applicatonState;
-        this.fileWatcher = fileWatcher;
+        this.directoriesWatcher = directoriesWatcher;
     }
 
     public FileReadResultDTO read(String[] directories){
@@ -67,9 +67,9 @@ public class FileIO {
     public boolean renameFile (RenamedFileDTO renamedFileDTO){
         File file = renamedFileDTO.getFile();
         File newFile = file.toPath().resolveSibling(renamedFileDTO.getNewName()).toFile();
-        fileWatcher.stopWatchingDirectories();
+        directoriesWatcher.stopWatchingDirectories();
         boolean isRenamed = file.renameTo(newFile);
-        fileWatcher.watchProjectDirectory();
+        directoriesWatcher.watchProjectDirectory();
         return isRenamed;
     }
 

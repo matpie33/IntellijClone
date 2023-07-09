@@ -15,6 +15,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,8 +102,27 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
             if (iteratedCreatedFile.getParent().equals(iteratedNodeFilePath)) {
                 createdFiles.remove(iteratedCreatedFile);
                 i--;
-                DefaultMutableTreeNode addedNode = new DefaultMutableTreeNode(iteratedCreatedFile.getFileName().toString());
+                DefaultMutableTreeNode addedNode = addNodeWithAllChildren(iteratedCreatedFile);
                 model.insertNodeInto(addedNode, iteratedNode, iteratedNode.getChildCount());
+            }
+        }
+    }
+
+    private DefaultMutableTreeNode addNodeWithAllChildren(Path filePath) {
+        File file = filePath.toFile();
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(filePath.getFileName().toString());
+        if (file.isDirectory()){
+            extractNodes(file, node);
+        }
+        return node;
+    }
+
+    private void extractNodes(File directory, DefaultMutableTreeNode parent) {
+        for (File childFile : directory.listFiles()) {
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(childFile.getName());
+            parent.add(childNode);
+            if (childFile.isDirectory()){
+                extractNodes(childFile, childNode);
             }
         }
     }
