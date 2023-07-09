@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class FileIO {
@@ -21,6 +23,12 @@ public class FileIO {
     public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher) {
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
+    }
+
+    public File getFile(String[] directories ){
+        String projectPath = applicatonState.getProjectPath();
+        Path path = Path.of(projectPath, directories);
+        return path.toFile();
     }
 
     public FileReadResultDTO read(String[] directories){
@@ -64,13 +72,56 @@ public class FileIO {
         }
     }
 
-    public boolean renameFile (RenamedFileDTO renamedFileDTO){
+    public RenameResult renameFile (RenamedFileDTO renamedFileDTO){
         File file = renamedFileDTO.getFile();
+
+        Map<File, File> replacements = getFilesThatNeedPathsUpdate(renamedFileDTO, file);
         File newFile = file.toPath().resolveSibling(renamedFileDTO.getNewName()).toFile();
         directoriesWatcher.stopWatchingDirectories();
         boolean isRenamed = file.renameTo(newFile);
+        if (isRenamed){
+            applicatonState.updatePathsToClassesWithMainMethods(replacements);
+            applicatonState.renameFileIfContainsMainMethod(file, newFile);
+        }
         directoriesWatcher.watchProjectDirectory();
-        return isRenamed;
+        return new RenameResult(newFile, isRenamed);
+    }
+
+    private Map<File, File> getFilesThatNeedPathsUpdate(RenamedFileDTO renamedFileDTO, File file) {
+        Map<File, File> filesToReplace=  new HashMap<>();
+        if (file.isDirectory()){
+            String parentDirectory = file.getParentFile().getAbsolutePath();
+            String directoryToRenamePath = file.getAbsolutePath();
+            List<File> classesWithMainMethod = applicatonState.getClassesWithMainMethod();
+            for (File mainMethodClass : classesWithMainMethod) {
+                if (mainMethodClass.getAbsolutePath().startsWith(directoryToRenamePath)){
+                    String oldPath = mainMethodClass.getAbsolutePath();
+                    String newPath = oldPath.replace(directoryToRenamePath, parentDirectory+File.separator+ renamedFileDTO.getNewName());
+                    Path updatedPath = Path.of(newPath);
+                    filesToReplace.put(mainMethodClass, updatedPath.toFile());
+                }
+            }
+        }
+        return filesToReplace;
+    }
+
+    public class RenameResult {
+        private File newFile;
+        private boolean isSuccess;
+
+        public RenameResult(File newFile, boolean isSuccess) {
+            this.newFile = newFile;
+            this.isSuccess = isSuccess;
+        }
+
+
+        public File getNewFile() {
+            return newFile;
+        }
+
+        public boolean isSuccess() {
+            return isSuccess;
+        }
     }
 
 

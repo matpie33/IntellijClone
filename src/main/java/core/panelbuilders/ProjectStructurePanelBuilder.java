@@ -5,6 +5,7 @@ import core.backend.FileIO;
 import core.context.ContextConfiguration;
 import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
+import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.dto.RenamedFileDTO;
@@ -23,6 +24,11 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -48,7 +54,9 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private FileIO fileIO;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration,  DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation, ProjectStructureTreeShortcuts projectStructureTreeShortcuts,  ProjectStructureBuilderUI projectStructureBuilderUI, FileIO fileIO) {
+    private ApplicatonState applicatonState;
+
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation, ProjectStructureTreeShortcuts projectStructureTreeShortcuts, ProjectStructureBuilderUI projectStructureBuilderUI, FileIO fileIO, ApplicatonState applicatonState) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
         this.directoryChangesDetector = directoryChangesDetector;
@@ -56,6 +64,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         this.projectStructureTreeShortcuts = projectStructureTreeShortcuts;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.fileIO = fileIO;
+        this.applicatonState = applicatonState;
     }
 
     @PostConstruct
@@ -98,8 +107,8 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 break;
             case FILENAME_CHANGED:
                 RenamedFileDTO renamedFileDTO = (RenamedFileDTO) data;
-                boolean isRenamed = fileIO.renameFile(renamedFileDTO);
-                if (!isRenamed){
+                FileIO.RenameResult renameResult = fileIO.renameFile(renamedFileDTO);
+                if (!renameResult.isSuccess()){
                     System.err.println("Failed to rename file");
                 }
                 else{

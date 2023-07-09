@@ -3,16 +3,16 @@ package core.dto;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Component
 public class ApplicatonState {
 
 
+    private List<File> classesWithMainMethod = new ArrayList<>();
 
     private WatchService fileWatcher;
 
@@ -22,6 +22,20 @@ public class ApplicatonState {
 
     private File openedFile;
 
+    public void addClassWithMainMethod (File file){
+        classesWithMainMethod.add(file);
+    }
+
+    public List<File> getClassesWithMainMethod() {
+        return classesWithMainMethod;
+    }
+
+    public void renameFileIfContainsMainMethod(File oldFile, File newFile ){
+        if (classesWithMainMethod.contains(oldFile)){
+            classesWithMainMethod.remove(oldFile);
+            classesWithMainMethod.add(newFile);
+        }
+    }
 
     public String getProjectRootDirectoryName() {
         return projectRootDirectoryName;
@@ -56,4 +70,10 @@ public class ApplicatonState {
         this.fileWatcher = fileWatcher;
     }
 
+    public void updatePathsToClassesWithMainMethods(Map<File, File> replacements) {
+        for (Map.Entry<File, File> replacement : replacements.entrySet()) {
+            classesWithMainMethod.remove(replacement.getKey());
+            classesWithMainMethod.add(replacement.getValue());
+        }
+    }
 }

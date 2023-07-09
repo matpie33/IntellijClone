@@ -1,8 +1,8 @@
 package core.dto;
 
-import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 
 public class ProjectStructureSelectionContextDTO {
@@ -13,10 +13,17 @@ public class ProjectStructureSelectionContextDTO {
 
     private List<String[]> nodePathsForEachSelectedItem;
 
-    public ProjectStructureSelectionContextDTO(TreePath[] treePath, List<String[]> nodePathsForEachSelectedItem, Point position) {
+    private File selectedFile;
+
+    public ProjectStructureSelectionContextDTO(TreePath[] treePath, List<String[]> nodePathsForEachSelectedItem, Point position, File selectedFile) {
         this.selectionPaths = treePath;
         this.nodePathsForEachSelectedItem = nodePathsForEachSelectedItem;
         this.position = position;
+        this.selectedFile = selectedFile;
+    }
+
+    public File getSelectedFile() {
+        return selectedFile;
     }
 
     public Point getPosition() {

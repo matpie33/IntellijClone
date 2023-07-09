@@ -16,6 +16,9 @@ public class ContextMenu extends JPopupMenu {
             }
             else{
 
+                if (menu.getConditionChecker() != null && !menu.getConditionChecker().isConditionFulfilled(context)){
+                    continue;
+                }
                 JMenuItem menuItem = new JMenuItem(menu.getMenuValue());
                 ContextAction action = menu.getAction();
                 action.setContext(context);

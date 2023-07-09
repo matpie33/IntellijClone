@@ -2,6 +2,7 @@ package core.menuitemlisteners;
 
 import core.*;
 import core.backend.DirectoriesWatcher;
+import core.backend.MainMethodSeeker;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
@@ -30,12 +31,15 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private DirectoriesWatcher directoriesWatcher;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher) {
+    private MainMethodSeeker mainMethodSeeker;
+
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker) {
         this.projectStructureReader = projectStructureReader;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
+        this.mainMethodSeeker = mainMethodSeeker;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -44,16 +48,32 @@ public class OpenProjectActionListener implements MenuItemListener {
     public void actionPerformed(ActionEvent e) {
         int action = jFileChooser.showOpenDialog(Main.FRAME);
         if (action == JFileChooser.APPROVE_OPTION){
-            File selectedFile = jFileChooser.getSelectedFile();
-            applicatonState.setProjectRootDirectoryName(selectedFile.getName());
-            applicatonState.setProjectPath(selectedFile.getParent());
+            File rootDirectory = jFileChooser.getSelectedFile();
+            cacheClassesWithMainMethods(rootDirectory);
+            applicatonState.setProjectRootDirectoryName(rootDirectory.getName());
+            applicatonState.setProjectPath(rootDirectory.getParent());
             directoriesWatcher.watchProjectDirectory();
-            List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
-            DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(selectedFile, files);
+            List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
+            DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
 
+    private void cacheClassesWithMainMethods(File rootDirectory) {
+        for (File file : rootDirectory.listFiles()) {
+            if (file.isDirectory()){
+                cacheClassesWithMainMethods(file);
+            }
+            else{
+                if (file.getName().endsWith(".java")){
+                    boolean isMain = mainMethodSeeker.findMainMethod(file);
+                    if (isMain){
+                        applicatonState.addClassWithMainMethod(file);
+                    }
+                }
+            }
+        }
+    }
 
 
     @Override

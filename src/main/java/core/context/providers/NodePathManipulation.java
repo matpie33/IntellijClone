@@ -1,6 +1,6 @@
 package core.context.providers;
 
-import com.sun.source.tree.Tree;
+import core.backend.FileIO;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
@@ -27,8 +27,11 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
 
     private ApplicatonState applicatonState;
 
-    public NodePathManipulation(ApplicatonState applicatonState) {
+    private FileIO fileIO;
+
+    public NodePathManipulation(ApplicatonState applicatonState, FileIO fileIO) {
         this.applicatonState = applicatonState;
+        this.fileIO = fileIO;
     }
 
     @Override
@@ -42,7 +45,8 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
             String[] paths = extractPaths(path);
             ArrayList<String[]> pathsList = new ArrayList<>();
             pathsList.add(paths);
-            return new ProjectStructureSelectionContextDTO(new TreePath[]{path}, pathsList, point);
+            File file = fileIO.getFile(paths);
+            return new ProjectStructureSelectionContextDTO(new TreePath[]{path}, pathsList, point, file);
         }
         else{
             TreePath[] selectionPaths = tree.getSelectionPaths();
@@ -51,7 +55,7 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
                 String[] paths = extractPaths(selectionPath);
                 nodeNamesList.add(paths);
             }
-            return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point);
+            return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point, null);
         }
 
 
@@ -132,7 +136,7 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
         JTree tree = (JTree) actionEvent.getSource();
         TreePath[] selectionPaths = tree.getSelectionPaths();
         if (selectionPaths == null){
-            return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>(), null);
+            return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>(), null, null);
         }
         List<String[]> nodeNamesList = new ArrayList<>();
         Point point = null;
@@ -141,7 +145,7 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
             String[] nodeNames = extractPaths(selectionPath);
             nodeNamesList.add(nodeNames);
         }
-        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point);
+        return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point, null);
 
     }
 

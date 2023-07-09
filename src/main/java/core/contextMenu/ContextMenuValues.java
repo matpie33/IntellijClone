@@ -1,9 +1,8 @@
 package core.contextMenu;
 
-import core.context.actionlisteners.ContextAction;
-import core.context.actionlisteners.EmptyActionListener;
-import core.context.actionlisteners.FileDeleteRequestListener;
-import core.context.actionlisteners.FileRenameListener;
+import core.context.actionlisteners.*;
+import core.context.conditionalmenu.ConditionChecker;
+import core.context.conditionalmenu.MainMethodConditionChecker;
 import core.dto.MenuItemDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -26,6 +25,7 @@ public class ContextMenuValues implements ApplicationContextAware {
     public void init (){
         menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList(new MenuItemDTO("New", getBean(EmptyActionListener.class)), new MenuItemDTO("-", getBean(EmptyActionListener.class)), new MenuItemDTO("New", getBean(EmptyActionListener.class)),
                 new MenuItemDTO("Rename", getBean(FileRenameListener.class)),
+                new MenuItemDTO("Run main method", getBean(MainMethodRunListener.class), getConditionChecker(MainMethodConditionChecker.class)),
                 new MenuItemDTO("Delete", getBean(FileDeleteRequestListener.class))));
         menuItemsMap.put(ContextType.FILE_EDITOR, Arrays.asList(new MenuItemDTO("Extract method", getBean(EmptyActionListener.class)),
                 new MenuItemDTO("go to", getBean(EmptyActionListener.class)),
@@ -39,7 +39,10 @@ public class ContextMenuValues implements ApplicationContextAware {
         return menuItemsMap.get(contextType);
     }
 
-    private ContextAction getBean(Class<? extends ContextAction> classType){
+    private ContextAction<?> getBean(Class<? extends ContextAction<?>> classType){
+        return applicationContext.getBean(classType);
+    }
+    private ConditionChecker getConditionChecker(Class<? extends ConditionChecker> classType){
         return applicationContext.getBean(classType);
     }
 
