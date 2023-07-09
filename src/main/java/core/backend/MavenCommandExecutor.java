@@ -30,6 +30,7 @@ public class MavenCommandExecutor {
     public File runCommandWithFileOutput(String command, String... args) {
 
         InvocationRequest request = createInvocationRequest(command, args);
+        request.setQuiet(true);
 
         DefaultInvoker defaultInvoker = new DefaultInvoker();
 
@@ -57,6 +58,7 @@ public class MavenCommandExecutor {
 
     private InvocationRequest createInvocationRequest(String command, String[] arguments) {
         InvocationRequest request = new DefaultInvocationRequest();
+        request.setInputStream(InputStream.nullInputStream());
         request.setGoals(List.of(command));
         request.setPomFile(pomFile);
         for (String arg : arguments) {

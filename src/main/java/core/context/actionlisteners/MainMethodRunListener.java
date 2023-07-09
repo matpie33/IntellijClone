@@ -39,7 +39,7 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
     @Override
     public void actionPerformed(ActionEvent e) {
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
-        fileAutoSaver.save(); //TODO if exception occurs during saving, it's not logged nowhere
+        fileAutoSaver.save();
         CompletableFuture<Void> mavenTask = threadExecutor.thenTask(this::executeMavenCleanInstall);
         mavenTask.thenRun(this::executeJavaRunCommand);
     }
