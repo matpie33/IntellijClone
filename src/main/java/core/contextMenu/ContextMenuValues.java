@@ -23,23 +23,23 @@ public class ContextMenuValues implements ApplicationContextAware {
 
     @PostConstruct
     public void init (){
-        menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList(new MenuItemDTO("New", getBean(EmptyActionListener.class)), new MenuItemDTO("-", getBean(EmptyActionListener.class)), new MenuItemDTO("New", getBean(EmptyActionListener.class)),
-                new MenuItemDTO("Rename", getBean(FileRenameListener.class)),
-                new MenuItemDTO("Run main method", getBean(MainMethodRunListener.class), getConditionChecker(MainMethodConditionChecker.class)),
-                new MenuItemDTO("Delete", getBean(FileDeleteRequestListener.class))));
-        menuItemsMap.put(ContextType.FILE_EDITOR, Arrays.asList(new MenuItemDTO("Extract method", getBean(EmptyActionListener.class)),
-                new MenuItemDTO("go to", getBean(EmptyActionListener.class)),
-                new MenuItemDTO("Find usages", getBean(EmptyActionListener.class))));
-        menuItemsMap.put(ContextType.CONSOLE, Arrays.asList(new MenuItemDTO("Pause output", getBean(EmptyActionListener.class)), new MenuItemDTO("Fold lines", getBean(EmptyActionListener.class))));
-        menuItemsMap.put(ContextType.CLASS_STRUCTURE, Arrays.asList(new MenuItemDTO("Open in", getBean(EmptyActionListener.class)),
-                new MenuItemDTO("Find usages", getBean(EmptyActionListener.class)), new MenuItemDTO("Jump to source", getBean(EmptyActionListener.class))));
+        menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList(new MenuItemDTO("New", getContextAction(EmptyActionListener.class)), new MenuItemDTO("-", getContextAction(EmptyActionListener.class)), new MenuItemDTO("New", getContextAction(EmptyActionListener.class)),
+                new MenuItemDTO("Rename", getContextAction(FileRenameListener.class)),
+                new MenuItemDTO("Run main method", getContextAction(MainMethodRunListener.class), getConditionChecker(MainMethodConditionChecker.class)),
+                new MenuItemDTO("Delete", getContextAction(FileDeleteRequestListener.class))));
+        menuItemsMap.put(ContextType.FILE_EDITOR, Arrays.asList(new MenuItemDTO("Extract method", getContextAction(EmptyActionListener.class)),
+                new MenuItemDTO("go to", getContextAction(EmptyActionListener.class)),
+                new MenuItemDTO("Find usages", getContextAction(EmptyActionListener.class))));
+        menuItemsMap.put(ContextType.CONSOLE, Arrays.asList(new MenuItemDTO("Pause output", getContextAction(EmptyActionListener.class)), new MenuItemDTO("Fold lines", getContextAction(EmptyActionListener.class))));
+        menuItemsMap.put(ContextType.CLASS_STRUCTURE, Arrays.asList(new MenuItemDTO("Open in", getContextAction(EmptyActionListener.class)),
+                new MenuItemDTO("Find usages", getContextAction(EmptyActionListener.class)), new MenuItemDTO("Jump to source", getContextAction(EmptyActionListener.class))));
     }
 
     public List<MenuItemDTO> getValues (ContextType contextType){
         return menuItemsMap.get(contextType);
     }
 
-    private ContextAction<?> getBean(Class<? extends ContextAction<?>> classType){
+    private ContextAction<?> getContextAction(Class<? extends ContextAction<?>> classType){
         return applicationContext.getBean(classType);
     }
     private ConditionChecker getConditionChecker(Class<? extends ConditionChecker> classType){
