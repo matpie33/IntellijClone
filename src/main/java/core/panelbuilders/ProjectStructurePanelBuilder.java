@@ -106,6 +106,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 }
                 else{
                     projectStructureBuilderUI.renameNode(renamedFileDTO.getNode(), renamedFileDTO.getNewName());
+                    model.nodeChanged(renamedFileDTO.getNode());
                 }
         }
     }
