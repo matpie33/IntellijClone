@@ -2,13 +2,13 @@ package core.backend;
 
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
+import core.dto.RenamedFileDTO;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -16,8 +16,11 @@ public class FileIO {
 
     private ApplicatonState applicatonState;
 
-    public FileIO(ApplicatonState applicatonState) {
+    private FileWatcher fileWatcher;
+
+    public FileIO(ApplicatonState applicatonState, FileWatcher fileWatcher) {
         this.applicatonState = applicatonState;
+        this.fileWatcher = fileWatcher;
     }
 
     public FileReadResultDTO read(String[] directories){
@@ -45,7 +48,10 @@ public class FileIO {
         String projectPath = applicatonState.getProjectPath();
         Path path = Path.of(projectPath, paths);
         File file = path.toFile();
-        file.delete();
+        boolean isDeleted = file.delete();
+        if (!isDeleted){
+            System.out.println("is not deleted");
+        }
     }
 
 
@@ -57,5 +63,15 @@ public class FileIO {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean renameFile (RenamedFileDTO renamedFileDTO){
+        File file = renamedFileDTO.getFile();
+        File newFile = file.toPath().resolveSibling(renamedFileDTO.getNewName()).toFile();
+        fileWatcher.stopWatchingDirectories();
+        boolean isRenamed = file.renameTo(newFile);
+        fileWatcher.watchProjectDirectory();
+        return isRenamed;
+    }
+
 
 }

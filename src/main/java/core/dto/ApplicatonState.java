@@ -3,7 +3,11 @@ package core.dto;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class ApplicatonState {
@@ -14,7 +18,18 @@ public class ApplicatonState {
 
     private String projectPath;
 
+    private String projectRootDirectoryName;
+
     private File openedFile;
+
+
+    public String getProjectRootDirectoryName() {
+        return projectRootDirectoryName;
+    }
+
+    public void setProjectRootDirectoryName(String projectRootDirectoryName) {
+        this.projectRootDirectoryName = projectRootDirectoryName;
+    }
 
 
     public File getOpenedFile() {

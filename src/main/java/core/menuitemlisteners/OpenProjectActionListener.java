@@ -1,6 +1,7 @@
 package core.menuitemlisteners;
 
 import core.*;
+import core.backend.FileWatcher;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
@@ -12,12 +13,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
-
-import static java.nio.file.StandardWatchEventKinds.*;
 
 @Component
 public class OpenProjectActionListener implements MenuItemListener {
@@ -32,11 +28,14 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private ApplicatonState applicatonState;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState) {
+    private FileWatcher fileWatcher;
+
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, FileWatcher fileWatcher) {
         this.projectStructureReader = projectStructureReader;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
+        this.fileWatcher = fileWatcher;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -46,36 +45,16 @@ public class OpenProjectActionListener implements MenuItemListener {
         int action = jFileChooser.showOpenDialog(Main.FRAME);
         if (action == JFileChooser.APPROVE_OPTION){
             File selectedFile = jFileChooser.getSelectedFile();
-            monitorPathsChanges(selectedFile);
+            applicatonState.setProjectRootDirectoryName(selectedFile.getName());
             applicatonState.setProjectPath(selectedFile.getParent());
+            fileWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(selectedFile);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(selectedFile, files);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
 
-    private void monitorPathsChanges(File selectedFile) {
-        try {
-            addPathsToWatchService(selectedFile);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
-    private void addPathsToWatchService(File selectedFile) throws IOException {
-        WatchService watcher = FileSystems.getDefault().newWatchService();
-        applicatonState.setFileWatcher(watcher);
-        Files.walkFileTree(selectedFile.toPath(), new SimpleFileVisitor<>() {
-
-            @Override
-            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
-                    throws IOException {
-                directory.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-                return FileVisitResult.CONTINUE;
-            }
-
-        });
-    }
 
     @Override
     public String getName() {

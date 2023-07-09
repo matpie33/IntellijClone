@@ -11,6 +11,10 @@ import java.util.List;
 @Component
 public class ProjectStructureBuilderUI {
 
+    public void renameNode (DefaultMutableTreeNode node, String newFileName){
+        node.setUserObject(newFileName);
+    }
+
     public DefaultMutableTreeNode build (File root, List<FileDTO> children){
         DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(root.getName());

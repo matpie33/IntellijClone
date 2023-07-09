@@ -6,6 +6,8 @@ import core.dto.ApplicatonState;
 import core.dto.ProjectStructureSelectionContextDTO;
 import org.springframework.stereotype.Component;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -30,11 +32,16 @@ public class FileRenameListener extends ContextAction<ProjectStructureSelectionC
     public void actionPerformed(ActionEvent e) {
         List<String[]> nodesPaths = context.getNodesPaths();
         String[] nodes = nodesPaths.iterator().next();
+        TreePath[] selectedPaths = context.getSelectedPaths();
+        if (selectedPaths.length==0){
+            return;
+        }
+        TreePath selectedPath = selectedPaths[0];
         String projectPath = applicatonState.getProjectPath();
         Path path = Path.of(projectPath, nodes);
         File file = path.toFile();
         Point position = context.getPosition();
-        renameFileDialogBuilder.showDialog(position, file);
+        renameFileDialogBuilder.showDialog(position, file, (DefaultMutableTreeNode)selectedPath.getLastPathComponent());
     }
 
     @Override

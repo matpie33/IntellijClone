@@ -1,6 +1,8 @@
 package core.panelbuilders;
 
 import core.backend.DirectoryChangesDetector;
+import core.backend.FileIO;
+import core.backend.FileWatcher;
 import core.context.ContextConfiguration;
 import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
@@ -11,6 +13,7 @@ import core.dto.RenamedFileDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.shortcuts.ProjectStructureTreeShortcuts;
+import core.uibuilders.ProjectStructureBuilderUI;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -22,7 +25,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.io.File;
 
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
@@ -36,7 +38,6 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     private ContextConfiguration contextConfiguration;
 
 
-    private ApplicatonState applicatonState;
 
     private DirectoryChangesDetector directoryChangesDetector;
 
@@ -44,13 +45,19 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private ProjectStructureTreeShortcuts projectStructureTreeShortcuts;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, ApplicatonState applicatonState, DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation, ProjectStructureTreeShortcuts projectStructureTreeShortcuts) {
+
+    private ProjectStructureBuilderUI projectStructureBuilderUI;
+
+    private FileIO fileIO;
+
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration,  DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation, ProjectStructureTreeShortcuts projectStructureTreeShortcuts,  ProjectStructureBuilderUI projectStructureBuilderUI, FileIO fileIO) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
-        this.applicatonState = applicatonState;
         this.directoryChangesDetector = directoryChangesDetector;
         this.nodePathManipulation = nodePathManipulation;
         this.projectStructureTreeShortcuts = projectStructureTreeShortcuts;
+        this.projectStructureBuilderUI = projectStructureBuilderUI;
+        this.fileIO = fileIO;
     }
 
     @PostConstruct
@@ -93,11 +100,12 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 break;
             case FILENAME_CHANGED:
                 RenamedFileDTO renamedFileDTO = (RenamedFileDTO) data;
-                File file = renamedFileDTO.getFile();
-                File newFile = file.toPath().resolveSibling(renamedFileDTO.getNewName()).toFile();
-                boolean isSuccess = file.renameTo(newFile);
-                if (!isSuccess){
-                    System.err.println("Failed to rename");
+                boolean isRenamed = fileIO.renameFile(renamedFileDTO);
+                if (!isRenamed){
+                    System.err.println("Failed to rename file");
+                }
+                else{
+                    projectStructureBuilderUI.renameNode(renamedFileDTO.getNode(), renamedFileDTO.getNewName());
                 }
         }
     }
