@@ -1,44 +1,44 @@
 package core.context.actionlisteners;
 
-import core.backend.RunCommandBuilder;
-import core.dialogbuilders.RenameFileDialogBuilder;
-import core.dto.ApplicatonState;
+import core.backend.JavaRunCommandBuilder;
+import core.backend.ThreadExecutor;
 import core.dto.ProjectStructureSelectionContextDTO;
 import org.springframework.stereotype.Component;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 
 @Component
 public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO>{
 
     private ProjectStructureSelectionContextDTO context;
 
-    private RunCommandBuilder runCommandBuilder;
+    private JavaRunCommandBuilder javaRunCommandBuilder;
 
-    public MainMethodRunListener(RunCommandBuilder runCommandBuilder) {
-        this.runCommandBuilder = runCommandBuilder;
+    private ThreadExecutor threadExecutor;
+
+    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor) {
+        this.javaRunCommandBuilder = javaRunCommandBuilder;
+        this.threadExecutor = threadExecutor;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        try {
-            File selectedFile = context.getSelectedFile();
-            String[] commands = runCommandBuilder.build(selectedFile.getName());
+        threadExecutor.scheduleNewTask(this::executeJavaRunCommand);
+    }
 
-            ProcessBuilder processBuilder = new ProcessBuilder(commands);
-            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-            processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+    private void executeJavaRunCommand()  {
+        File selectedFile = context.getSelectedFile();
+        String[] commands = javaRunCommandBuilder.build(selectedFile.getName());
+
+        ProcessBuilder processBuilder = new ProcessBuilder(commands);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+        try {
             processBuilder.start();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

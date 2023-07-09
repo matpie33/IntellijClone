@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class RunCommandBuilder {
+public class JavaRunCommandBuilder {
 
     private ApplicatonState applicatonState;
 
-    public RunCommandBuilder(ApplicatonState applicatonState) {
+    public JavaRunCommandBuilder(ApplicatonState applicatonState) {
         this.applicatonState = applicatonState;
     }
 

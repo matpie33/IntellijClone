@@ -4,6 +4,7 @@ import core.*;
 import core.backend.MavenCommandExecutor;
 import core.backend.DirectoriesWatcher;
 import core.backend.MainMethodSeeker;
+import core.backend.ThreadExecutor;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
 import core.uievents.UIEventType;
@@ -38,7 +39,9 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private MavenCommandExecutor mavenCommandExecutor;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker, MavenCommandExecutor mavenCommandExecutor) {
+    private ThreadExecutor threadExecutor;
+
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker, MavenCommandExecutor mavenCommandExecutor, ThreadExecutor threadExecutor) {
         this.projectStructureReader = projectStructureReader;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
@@ -46,6 +49,7 @@ public class OpenProjectActionListener implements MenuItemListener {
         this.directoriesWatcher = directoriesWatcher;
         this.mainMethodSeeker = mainMethodSeeker;
         this.mavenCommandExecutor = mavenCommandExecutor;
+        this.threadExecutor = threadExecutor;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -61,7 +65,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             directoriesWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
-            readClassPath();
+            threadExecutor.scheduleFirstTask(this::readClassPath);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
