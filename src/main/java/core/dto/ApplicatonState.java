@@ -22,6 +22,16 @@ public class ApplicatonState {
 
     private File openedFile;
 
+    private String classPath;
+
+    public String getClassPath() {
+        return classPath;
+    }
+
+    public void setClassPath(String classPath) {
+        this.classPath = classPath;
+    }
+
     public void addClassWithMainMethod (File file){
         classesWithMainMethod.add(file);
     }

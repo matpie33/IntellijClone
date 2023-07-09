@@ -1,6 +1,7 @@
 package core.menuitemlisteners;
 
 import core.*;
+import core.backend.MavenCommandExecutor;
 import core.backend.DirectoriesWatcher;
 import core.backend.MainMethodSeeker;
 import core.dto.ApplicatonState;
@@ -14,6 +15,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 @Component
@@ -33,13 +36,16 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private MainMethodSeeker mainMethodSeeker;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker) {
+    private MavenCommandExecutor mavenCommandExecutor;
+
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker, MavenCommandExecutor mavenCommandExecutor) {
         this.projectStructureReader = projectStructureReader;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
         this.mainMethodSeeker = mainMethodSeeker;
+        this.mavenCommandExecutor = mavenCommandExecutor;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -55,7 +61,26 @@ public class OpenProjectActionListener implements MenuItemListener {
             directoriesWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
+            readClassPath();
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
+        }
+    }
+
+    private void readClassPath() {
+        mavenCommandExecutor.initialize();
+        File fileWithClasspathValue = mavenCommandExecutor.runCommandWithFileOutput("dependency:build-classpath", String.format("-Dmdep.outputFile=%s", "cp.txt"));
+        String outputDirectory = mavenCommandExecutor.runCommandInConsole("help:evaluate", "-Dexpression=project.build.outputDirectory", "-q", "-DforceStdout");
+        try {
+            List<String> classPathValues = Files.readAllLines(fileWithClasspathValue.toPath());
+            classPathValues.add(";"+outputDirectory.trim());
+            String fullClasspath = String.join("", classPathValues);
+            applicatonState.setClassPath(fullClasspath);
+            boolean isDeleted = fileWithClasspathValue.delete();
+            if (!isDeleted){
+                System.err.println("file is not deleted");
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
