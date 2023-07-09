@@ -1,5 +1,6 @@
 package core.mouselisteners;
 
+import core.backend.FileAutoSaver;
 import core.backend.FileIO;
 import core.context.providers.NodePathManipulation;
 import core.dto.FileReadResultDTO;
@@ -21,10 +22,13 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
 
     private NodePathManipulation nodePathManipulation;
 
-    public TreeNodeDoubleClickListener(FileIO fileIO, UIEventsQueue uiEventsQueue, NodePathManipulation nodePathManipulation) {
+    private FileAutoSaver fileAutoSaver;
+
+    public TreeNodeDoubleClickListener(FileIO fileIO, UIEventsQueue uiEventsQueue, NodePathManipulation nodePathManipulation, FileAutoSaver fileAutoSaver) {
         this.fileIO = fileIO;
         this.uiEventsQueue = uiEventsQueue;
         this.nodePathManipulation = nodePathManipulation;
+        this.fileAutoSaver = fileAutoSaver;
     }
 
     @Override
@@ -34,6 +38,7 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
 
             ProjectStructureSelectionContextDTO context = nodePathManipulation.getContext(e);
             List<String[]> nodeNames = context.getNodesPaths();
+            fileAutoSaver.save();
             FileReadResultDTO resultDTO = fileIO.read(nodeNames.iterator().next());
             if (resultDTO.isReaded()){
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, resultDTO);

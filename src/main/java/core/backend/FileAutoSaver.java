@@ -1,5 +1,7 @@
 package core.backend;
 
+import core.uievents.UIEventObserver;
+import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
 
 import java.util.Timer;
@@ -31,16 +33,20 @@ public class FileAutoSaver {
             public void run() {
                 long now = System.currentTimeMillis();
                 if (isDirty && now-lastKeyReleasedTime>idleTimeBeforeSave){
-                    isDirty = false;
-                    fileIO.save(currentText);
+                    saveInternal();
                 }
             }
         }, firstCheckDelay, checkPeriod);
     }
 
-    public void save (){
-        isDirty=false;
+    private void saveInternal() {
+        isDirty = false;
         fileIO.save(currentText);
+    }
+
+    public void save (){
+        saveInternal();
+        currentText=null;
     }
 
     public void recordKeyRelease (String currentText){
