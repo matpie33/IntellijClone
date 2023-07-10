@@ -2,6 +2,7 @@ package core.panelbuilders;
 
 import core.context.ContextConfiguration;
 import core.contextMenu.ContextType;
+import core.dto.ErrorDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 
 @Component
 public class ConsolePanelBuilder implements UIEventObserver {
@@ -44,11 +44,22 @@ public class ConsolePanelBuilder implements UIEventObserver {
     public void handleEvent(UIEventType eventType, Object data) {
         switch (eventType) {
             case CONSOLE_DATA_AVAILABLE:
-                consoleOutput.append((String) data);
-                consoleOutput.append("\n");
+                writeLineToConsole((String) data);
                 JScrollBar verticalScrollBar = outputScrollPane.getVerticalScrollBar();
                 SwingUtilities.invokeLater(() -> verticalScrollBar.setValue(verticalScrollBar.getMaximum()));
                 break;
+            case ERROR_OCCURRED:
+                ErrorDTO errorDTO = (ErrorDTO) data;
+                Throwable exception = errorDTO.getException();
+                writeLineToConsole(exception.getMessage());
+                for (StackTraceElement stackTraceElement : exception.getStackTrace()) {
+                    writeLineToConsole(stackTraceElement.toString());
+                }
         }
+    }
+
+    private void writeLineToConsole(String data) {
+        consoleOutput.append(data);
+        consoleOutput.append("\n");
     }
 }

@@ -2,10 +2,14 @@ package core.context.actionlisteners;
 
 import core.Main;
 import core.backend.*;
+import core.dto.ErrorDTO;
 import core.dto.MavenCommandResultDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -14,7 +18,7 @@ import java.io.*;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO>{
+public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO> implements ApplicationContextAware {
 
     private ProjectStructureSelectionContextDTO context;
 
@@ -22,18 +26,17 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
 
     private ThreadExecutor threadExecutor;
 
-    private ProcessOutputReader processOutputReader;
 
     private UIEventsQueue uiEventsQueue;
 
     private MavenCommandExecutor mavenCommandExecutor;
 
     private FileAutoSaver fileAutoSaver;
+    private ApplicationContext applicationContext;
 
-    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, ProcessOutputReader processOutputReader, UIEventsQueue uiEventsQueue, MavenCommandExecutor mavenCommandExecutor, FileAutoSaver fileAutoSaver) {
+    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, MavenCommandExecutor mavenCommandExecutor, FileAutoSaver fileAutoSaver) {
         this.javaRunCommandBuilder = javaRunCommandBuilder;
         this.threadExecutor = threadExecutor;
-        this.processOutputReader = processOutputReader;
         this.uiEventsQueue = uiEventsQueue;
         this.mavenCommandExecutor = mavenCommandExecutor;
         this.fileAutoSaver = fileAutoSaver;
@@ -63,17 +66,34 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
         try {
             Process process = processBuilder.start();
-            InputStream inputStream = process.getInputStream();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            processOutputReader.setBufferedReader(bufferedReader);
-            threadExecutor.scheduleIndependentTask(processOutputReader);
+            addStreamReader(process.getInputStream());
+            addStreamReader(process.getErrorStream());
+
+            process.onExit().whenComplete((res, ex)->{
+                if (res.exitValue() !=0){
+                    uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", new IllegalArgumentException("Wrong argument to process builder")));
+                }
+            });
         } catch (IOException  e) {
-            throw new RuntimeException(e);
+            uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", e));
+
         }
+    }
+
+    private void addStreamReader(InputStream inputStream) {
+        BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(inputStream));
+        ProcessOutputReader outputReader = applicationContext.getBean(ProcessOutputReader.class);
+        outputReader.setBufferedReader(bufferedInputReader);
+        threadExecutor.scheduleIndependentTask(outputReader);
     }
 
     @Override
     public void setContext(ProjectStructureSelectionContextDTO context) {
         this.context = context;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
