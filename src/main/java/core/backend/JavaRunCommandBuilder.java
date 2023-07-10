@@ -18,7 +18,6 @@ public class JavaRunCommandBuilder {
     public String[] build (String className){
         String classPath = applicatonState.getClassPath();
         List<String> commands = new ArrayList<>();
-
         commands.add("java");
         commands.add("-classpath");
         commands.add(classPath);

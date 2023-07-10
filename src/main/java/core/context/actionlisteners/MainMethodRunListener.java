@@ -43,8 +43,7 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
     public void actionPerformed(ActionEvent e) {
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
         fileAutoSaver.save();
-        CompletableFuture<Void> mavenTask = threadExecutor.thenTask(this::executeMavenCleanInstall);
-        mavenTask.thenRun(this::executeJavaRunCommand);
+        threadExecutor.runTasksSequentially(this::executeMavenCleanInstall, this::executeJavaRunCommand);
     }
 
     private void executeMavenCleanInstall() {
@@ -53,6 +52,7 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         if (!result.isSuccess()){
             JOptionPane.showMessageDialog(Main.FRAME, "Failed to run maven, check console");
             uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, result.getOutput());
+            throw new RuntimeException("Maven command failed");
         }
     }
 

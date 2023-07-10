@@ -19,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 @Component
@@ -66,7 +67,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             directoriesWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
-            threadExecutor.scheduleFirstTask(this::readClassPath);
+            threadExecutor.addReadClassPathMaventask(this::readClassPath);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
@@ -77,12 +78,14 @@ public class OpenProjectActionListener implements MenuItemListener {
         if (!firstResult.isSuccess()){
             JOptionPane.showMessageDialog(Main.FRAME, "Failed to run mvn command. Check console");
             uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, firstResult.getOutput());
+            throw new RuntimeException("Failed to run maven read class path command");
         }
-        //TODO error handling: it does not show any error if the maven command is wrong, e.g. project.build.outputDirecto
         MavenCommandResultDTO commandResult = mavenCommandExecutor.runCommandInConsole("help:evaluate", "-Dexpression=project.build.outputDirectory", "-q", "-DforceStdout");
-        if (!commandResult.isSuccess()){
+        boolean fileExists = Path.of(commandResult.getOutput().replace("\n", "")).toFile().exists();
+        if (!fileExists || !commandResult.isSuccess()){
             JOptionPane.showMessageDialog(Main.FRAME, "Failed to run mvn command. Check console");
-            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, commandResult.getOutput());
+            String message = "Failed to run help:evaluate, message: "+commandResult.getOutput();
+            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, message);
         }
         try {
             List<String> classPathValues = Files.readAllLines(firstResult.getOutputFile().toPath());
