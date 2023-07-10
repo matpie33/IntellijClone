@@ -18,6 +18,9 @@ public class MainMethodSeeker {
     public boolean findMainMethod (File file){
         try {
             CompilationUnit compilationUnit = StaticJavaParser.parse(file);
+            if (!(compilationUnit.getTypes().iterator().next() instanceof ClassOrInterfaceDeclaration)){
+                return false;
+            }
             ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) compilationUnit.getTypes().iterator().next();
             for (MethodDeclaration method : classDeclaration.getMethods()) {
                 if (isMethodSignatureMatchingMain(method)){

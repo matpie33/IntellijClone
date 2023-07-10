@@ -61,7 +61,7 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
 
     private void executeJavaRunCommand()  {
         File selectedFile = context.getSelectedFile();
-        String[] commands = javaRunCommandBuilder.build(selectedFile.getName());
+        String[] commands = javaRunCommandBuilder.build(selectedFile);
 
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
         try {
