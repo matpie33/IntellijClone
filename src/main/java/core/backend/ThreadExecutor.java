@@ -18,7 +18,8 @@ public class ThreadExecutor {
 
     public void runTasksSequentially (Runnable... tasks){
         Iterator<Runnable> tasksIterator = Arrays.stream(tasks).iterator();
-        CompletableFuture<Void> nextTask = mavenReadClassPathTask.thenRun(tasksIterator.next());
+        Runnable firstTask = tasksIterator.next();
+        CompletableFuture<Void> nextTask = mavenReadClassPathTask.isDone()? CompletableFuture.runAsync(firstTask): mavenReadClassPathTask.thenRun(firstTask);
         while (tasksIterator.hasNext()){
             nextTask = nextTask.thenRun(tasksIterator.next());
         }
