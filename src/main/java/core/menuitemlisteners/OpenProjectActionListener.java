@@ -67,7 +67,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             directoriesWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
-            threadExecutor.addReadClassPathMaventask(this::readClassPath);
+            threadExecutor.addReadClassPathMavenTask(this::readClassPath);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }
@@ -89,7 +89,9 @@ public class OpenProjectActionListener implements MenuItemListener {
         }
         try {
             List<String> classPathValues = Files.readAllLines(firstResult.getOutputFile().toPath());
-            classPathValues.add(";"+commandResult.getOutput().trim());
+            String outputDirectory = commandResult.getOutput().trim();
+            applicatonState.setOutputDirectory(outputDirectory);
+            classPathValues.add(";"+ outputDirectory);
             String fullClasspath = String.join("", classPathValues);
             applicatonState.setClassPath(fullClasspath);
             boolean isDeleted = firstResult.getOutputFile().delete();

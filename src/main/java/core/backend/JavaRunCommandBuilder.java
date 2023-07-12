@@ -1,19 +1,18 @@
 package core.backend;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
-import com.github.javaparser.ast.expr.Name;
 import core.dto.ApplicatonState;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class JavaRunCommandBuilder {
@@ -24,28 +23,59 @@ public class JavaRunCommandBuilder {
         this.applicatonState = applicatonState;
     }
 
-    public String[] build (File mainClass){
-        try {
-            String pathToMainClass = getFullPathToMainClass(mainClass);
-            String classPath = applicatonState.getClassPath();
-            List<String> commands = new ArrayList<>();
-            commands.add("java");
-            commands.add("-classpath");
-            commands.add(classPath);
-            commands.add( pathToMainClass);
-            return commands.toArray(new String[]{});
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    public String[] createCommandForRunningMainClass(File mainClass){
+        Path projectDirectory = getProjectDirectory();
+        Path srcRootRelative = Path.of("src", "main", "java");
+        Path sourcesRootDirectory = projectDirectory.resolve(srcRootRelative);
+        String pathToMainClass = sourcesRootDirectory.relativize(mainClass.toPath()).toString()
+                .replace(".java", "");
+
+        String classPath = applicatonState.getClassPath();
+        List<String> commands = new ArrayList<>();
+        commands.add("java");
+        commands.add("-classpath");
+        commands.add(classPath);
+        commands.add(pathToMainClass);
+        return commands.toArray(new String[]{});
 
     }
 
-    private String getFullPathToMainClass(File mainClass) throws FileNotFoundException {
-        CompilationUnit result = StaticJavaParser.parse(mainClass);
-        ClassOrInterfaceDeclaration classType = (ClassOrInterfaceDeclaration) result.getType(0);
-        String className = classType.getFullyQualifiedName().orElseThrow();
-        className = className.replace(".", "/");
-        return className;
+    public String[] createCommandForCompilingClass(Set<File> classes){
+        Path projectDirectory = getProjectDirectory();
+        String pathsToClasses = getPathsToFiles(classes, projectDirectory);
+        String classPath = applicatonState.getClassPath();
+        List<String> commands = new ArrayList<>();
+        String outputDirectory = getOutputDirectory(projectDirectory);
+        commands.add("javac");
+        commands.add("-classpath");
+        commands.add(classPath);
+        commands.add( "-d");
+        commands.add( outputDirectory);
+
+        String[] pathsToClassesByWords = pathsToClasses.split(" ");
+        commands.addAll(Arrays.asList(pathsToClassesByWords));
+        return commands.toArray(new String[]{});
+
+    }
+
+    private Path getProjectDirectory() {
+        return Path.of(applicatonState.getProjectPath() + File.separator + applicatonState.getProjectRootDirectoryName());
+    }
+
+    private String getOutputDirectory(Path projectDirectory) {
+        Path outputDirectory = Path.of(applicatonState.getOutputDirectory());
+        Path outputDirectoryRelativeToProjectDirectory = projectDirectory.relativize(outputDirectory);
+        return outputDirectoryRelativeToProjectDirectory.toString();
+    }
+
+    private String getPathsToFiles(Set<File> classes, Path projectDirectory) {
+        StringBuilder paths = new StringBuilder();
+        for (File aClass : classes) {
+            String relativePathToFile = projectDirectory.relativize(aClass.toPath()).toString();
+            paths.append(relativePathToFile);
+            paths.append(" ");
+        }
+        return paths.toString().trim();
     }
 
 }

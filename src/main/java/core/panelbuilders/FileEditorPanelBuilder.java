@@ -3,8 +3,8 @@ package core.panelbuilders;
 import com.github.javaparser.Position;
 import core.backend.FileAutoSaver;
 import core.context.ContextConfiguration;
-import core.contextMenu.ContextMenuValues;
 import core.contextMenu.ContextType;
+import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.uievents.UIEventObserver;
@@ -31,9 +31,12 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private FileAutoSaver fileAutoSaver;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver) {
+    private ApplicatonState applicatonState;
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
+        this.applicatonState = applicatonState;
     }
 
     @PostConstruct
@@ -44,6 +47,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             @Override
             public void keyReleased(KeyEvent e) {
                 fileAutoSaver.recordKeyRelease(editorText.getText());
+                applicatonState.addCurrentFileToClassesToRecompile();
             }
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));

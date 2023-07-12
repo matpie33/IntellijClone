@@ -11,7 +11,7 @@ public class ThreadExecutor {
 
     private CompletableFuture<Void> mavenReadClassPathTask;
 
-    public void addReadClassPathMaventask(Runnable task){
+    public void addReadClassPathMavenTask(Runnable task){
         mavenReadClassPathTask = CompletableFuture.runAsync(task);
         mavenReadClassPathTask.exceptionally(this::printStackTrace);
     }

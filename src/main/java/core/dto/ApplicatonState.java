@@ -4,15 +4,15 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.WatchService;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class ApplicatonState {
 
 
     private List<File> classesWithMainMethod = new ArrayList<>();
+
+    private Set<File> classesToRecompile = new HashSet<>();
 
     private WatchService fileWatcher;
 
@@ -23,6 +23,24 @@ public class ApplicatonState {
     private File openedFile;
 
     private String classPath;
+
+    private String outputDirectory;
+
+    public String getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setOutputDirectory(String outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
+
+    public Set<File> getClassesToRecompile() {
+        return classesToRecompile;
+    }
+
+    public void clearClassesToRecompile (){
+        classesToRecompile.clear();
+    }
 
     public String getClassPath() {
         return classPath;
@@ -85,5 +103,9 @@ public class ApplicatonState {
             classesWithMainMethod.remove(replacement.getKey());
             classesWithMainMethod.add(replacement.getValue());
         }
+    }
+
+    public void addCurrentFileToClassesToRecompile() {
+        classesToRecompile.add(openedFile);
     }
 }

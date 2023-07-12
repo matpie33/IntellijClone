@@ -2,7 +2,7 @@ package core.context.actionlisteners;
 
 import core.Main;
 import core.backend.*;
-import core.dto.ErrorDTO;
+import core.dto.ApplicatonState;
 import core.dto.MavenCommandResultDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.uievents.UIEventType;
@@ -15,7 +15,11 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.*;
-import java.util.concurrent.CompletableFuture;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 @Component
 public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO> implements ApplicationContextAware {
@@ -34,19 +38,40 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
     private FileAutoSaver fileAutoSaver;
     private ApplicationContext applicationContext;
 
-    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, MavenCommandExecutor mavenCommandExecutor, FileAutoSaver fileAutoSaver) {
+    private ApplicatonState applicatonState;
+
+    private ProcessExecutor processExecutor;
+
+    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, MavenCommandExecutor mavenCommandExecutor, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, ProcessExecutor processExecutor) {
         this.javaRunCommandBuilder = javaRunCommandBuilder;
         this.threadExecutor = threadExecutor;
         this.uiEventsQueue = uiEventsQueue;
         this.mavenCommandExecutor = mavenCommandExecutor;
         this.fileAutoSaver = fileAutoSaver;
+        this.applicatonState = applicatonState;
+        this.processExecutor = processExecutor;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
         fileAutoSaver.save();
-        threadExecutor.runTasksSequentially(this::executeMavenCleanInstall, this::executeJavaRunCommand);
+        Set<File> classesToRecompile = applicatonState.getClassesToRecompile();
+        List<String [] > commands = new ArrayList<>();
+        threadExecutor.runTasksSequentially(()->getCommandsToCompileClasses(classesToRecompile, commands), ()->getCommandsToRunApplication(commands),
+                processExecutor.executeCommands(commands)
+                );
+
+    }
+
+    private void getCommandsToCompileClasses(Set<File> classes, List<String[]> commandsList){
+        if (classes.isEmpty()){
+            return;
+        }
+
+        String[] commands = javaRunCommandBuilder.createCommandForCompilingClass(classes);
+        applicatonState.clearClassesToRecompile();
+        commandsList.add(commands);
     }
 
     private void executeMavenCleanInstall() {
@@ -59,33 +84,12 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         }
     }
 
-    private void executeJavaRunCommand()  {
+    private void getCommandsToRunApplication(List<String[]> commands)  {
         File selectedFile = context.getSelectedFile();
-        String[] commands = javaRunCommandBuilder.build(selectedFile);
-
-        ProcessBuilder processBuilder = new ProcessBuilder(commands);
-        try {
-            Process process = processBuilder.start();
-            addStreamReader(process.getInputStream());
-            addStreamReader(process.getErrorStream());
-
-            process.onExit().whenComplete((res, ex)->{
-                if (res.exitValue() !=0){
-                    uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", new IllegalArgumentException("Wrong argument to process builder")));
-                }
-            });
-        } catch (IOException  e) {
-            uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", e));
-
-        }
+        String[] commandsToRunMainClass = javaRunCommandBuilder.createCommandForRunningMainClass(selectedFile);
+        commands.add(commandsToRunMainClass);
     }
 
-    private void addStreamReader(InputStream inputStream) {
-        BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(inputStream));
-        ProcessOutputReader outputReader = applicationContext.getBean(ProcessOutputReader.class);
-        outputReader.setBufferedReader(bufferedInputReader);
-        threadExecutor.scheduleIndependentTask(outputReader);
-    }
 
     @Override
     public void setContext(ProjectStructureSelectionContextDTO context) {
