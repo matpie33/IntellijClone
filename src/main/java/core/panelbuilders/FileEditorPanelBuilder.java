@@ -2,6 +2,7 @@ package core.panelbuilders;
 
 import com.github.javaparser.Position;
 import core.backend.FileAutoSaver;
+import core.constants.FontsConstants;
 import core.context.ContextConfiguration;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
@@ -43,6 +44,8 @@ public class FileEditorPanelBuilder implements UIEventObserver {
     public void init (){
         panel = new JPanel(new BorderLayout());
         editorText = new JTextArea("code here");
+        JScrollPane editorScrollPane = new JScrollPane(editorText);
+        editorText.setFont(editorText.getFont().deriveFont(FontsConstants.FONT_SIZE));
         editorText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -51,7 +54,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             }
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
-        panel.add(editorText, BorderLayout.CENTER);
+        panel.add(editorScrollPane, BorderLayout.CENTER);
     }
 
     public JPanel getPanel() {

@@ -1,5 +1,6 @@
 package core.panelbuilders;
 
+import core.constants.FontsConstants;
 import core.context.ContextConfiguration;
 import core.contextMenu.ContextType;
 import core.dto.ErrorDTO;
@@ -30,6 +31,7 @@ public class ConsolePanelBuilder implements UIEventObserver {
     public void init (){
         panel = new JPanel(new BorderLayout());
         consoleOutput = new JTextArea();
+        consoleOutput.setFont(consoleOutput.getFont().deriveFont(FontsConstants.FONT_SIZE));
         consoleOutput.setEditable(false);
         outputScrollPane = new JScrollPane(consoleOutput);
         panel.add(outputScrollPane, BorderLayout.CENTER);
