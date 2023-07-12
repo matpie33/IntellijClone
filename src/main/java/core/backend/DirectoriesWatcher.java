@@ -20,7 +20,7 @@ public class DirectoriesWatcher {
         this.applicatonState = applicatonState;
     }
 
-    public void watchProjectDirectory (){
+    public void watchProjectDirectoryForChanges(){
         File rootDirectory = applicatonState.getProjectPath();
         monitorPathsChanges(rootDirectory);
     }

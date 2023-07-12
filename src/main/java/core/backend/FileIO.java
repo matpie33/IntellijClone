@@ -86,7 +86,7 @@ public class FileIO {
             applicatonState.updatePathsToClassesWithMainMethods(replacements);
             applicatonState.renameFileIfContainsMainMethod(file, newFile);
         }
-        directoriesWatcher.watchProjectDirectory();
+        directoriesWatcher.watchProjectDirectoryForChanges();
         return new RenameResult(newFile, isRenamed);
     }
 

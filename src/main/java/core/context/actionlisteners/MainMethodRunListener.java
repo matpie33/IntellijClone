@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO> implements ApplicationContextAware {
+public class MainMethodRunListener extends ContextAction<ProjectStructureSelectionContextDTO>  {
 
     private ProjectStructureSelectionContextDTO context;
 
@@ -33,20 +33,16 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
 
     private UIEventsQueue uiEventsQueue;
 
-    private MavenCommandExecutor mavenCommandExecutor;
-
     private FileAutoSaver fileAutoSaver;
-    private ApplicationContext applicationContext;
 
     private ApplicatonState applicatonState;
 
     private ProcessExecutor processExecutor;
 
-    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, MavenCommandExecutor mavenCommandExecutor, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, ProcessExecutor processExecutor) {
+    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, ProcessExecutor processExecutor) {
         this.javaRunCommandBuilder = javaRunCommandBuilder;
         this.threadExecutor = threadExecutor;
         this.uiEventsQueue = uiEventsQueue;
-        this.mavenCommandExecutor = mavenCommandExecutor;
         this.fileAutoSaver = fileAutoSaver;
         this.applicatonState = applicatonState;
         this.processExecutor = processExecutor;
@@ -74,16 +70,6 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         commandsList.add(commands);
     }
 
-    private void executeMavenCleanInstall() {
-        uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Executing maven clean install");
-        MavenCommandResultDTO result = mavenCommandExecutor.runCommandInConsole("clean install");
-        if (!result.isSuccess()){
-            JOptionPane.showMessageDialog(Main.FRAME, "Failed to run maven, check console");
-            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, result.getOutput());
-            throw new RuntimeException("Maven command failed");
-        }
-    }
-
     private void getCommandsToRunApplication(List<String[]> commands)  {
         File selectedFile = context.getSelectedFile();
         String[] commandsToRunMainClass = javaRunCommandBuilder.createCommandForRunningMainClass(selectedFile);
@@ -96,8 +82,4 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         this.context = context;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

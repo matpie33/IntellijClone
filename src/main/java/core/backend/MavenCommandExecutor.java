@@ -29,7 +29,7 @@ public class MavenCommandExecutor {
 
     public MavenCommandResultDTO runCommandWithFileOutput(String command, String... args) {
 
-        InvocationRequest request = createInvocationRequest(command, args);
+        InvocationRequest request = createInvocationRequest(new String[]{command}, args);
         request.setQuiet(true);
 
         DefaultInvoker defaultInvoker = new DefaultInvoker();
@@ -59,10 +59,10 @@ public class MavenCommandExecutor {
         return builder;
     }
 
-    private InvocationRequest createInvocationRequest(String command, String[] arguments) {
+    private InvocationRequest createInvocationRequest(String[] goals, String[] arguments) {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setInputStream(InputStream.nullInputStream());
-        request.setGoals(List.of(command));
+        request.setGoals(List.of(goals));
         request.setPomFile(pomFile);
         for (String arg : arguments) {
             request.addArg(arg);
@@ -70,8 +70,8 @@ public class MavenCommandExecutor {
         return request;
     }
 
-    public MavenCommandResultDTO runCommandInConsole (String goal, String... arguments){
-        InvocationRequest invocationRequest = createInvocationRequest(goal, arguments);
+    public MavenCommandResultDTO runCommandInConsole (String[] goals, String... arguments){
+        InvocationRequest invocationRequest = createInvocationRequest(goals, arguments);
         DefaultInvoker defaultInvoker = new DefaultInvoker();
         StringBuilder output = addOutputHandler(defaultInvoker);
         try {
