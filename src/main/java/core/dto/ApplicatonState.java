@@ -16,9 +16,7 @@ public class ApplicatonState {
 
     private WatchService fileWatcher;
 
-    private String projectPath;
-
-    private String projectRootDirectoryName;
+    private File projectPath;
 
     private File openedFile;
 
@@ -65,15 +63,6 @@ public class ApplicatonState {
         }
     }
 
-    public String getProjectRootDirectoryName() {
-        return projectRootDirectoryName;
-    }
-
-    public void setProjectRootDirectoryName(String projectRootDirectoryName) {
-        this.projectRootDirectoryName = projectRootDirectoryName;
-    }
-
-
     public File getOpenedFile() {
         return openedFile;
     }
@@ -82,11 +71,11 @@ public class ApplicatonState {
         this.openedFile = openedFile;
     }
 
-    public String getProjectPath() {
+    public File getProjectPath() {
         return projectPath;
     }
 
-    public void setProjectPath(String projectPath) {
+    public void setProjectPath(File projectPath) {
         this.projectPath = projectPath;
     }
 

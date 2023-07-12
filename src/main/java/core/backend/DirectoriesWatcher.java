@@ -21,8 +21,7 @@ public class DirectoriesWatcher {
     }
 
     public void watchProjectDirectory (){
-        String projectPath = applicatonState.getProjectPath();
-        File rootDirectory = Path.of(projectPath, applicatonState.getProjectRootDirectoryName()).toFile();
+        File rootDirectory = applicatonState.getProjectPath();
         monitorPathsChanges(rootDirectory);
     }
 

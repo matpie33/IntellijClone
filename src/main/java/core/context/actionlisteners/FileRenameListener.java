@@ -37,7 +37,7 @@ public class FileRenameListener extends ContextAction<ProjectStructureSelectionC
             return;
         }
         TreePath selectedPath = selectedPaths[0];
-        String projectPath = applicatonState.getProjectPath();
+        String projectPath = applicatonState.getProjectPath().getParent();
         Path path = Path.of(projectPath, nodes);
         File file = path.toFile();
         Point position = context.getPosition();

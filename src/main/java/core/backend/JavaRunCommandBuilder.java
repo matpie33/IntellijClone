@@ -24,7 +24,7 @@ public class JavaRunCommandBuilder {
     }
 
     public String[] createCommandForRunningMainClass(File mainClass){
-        Path projectDirectory = getProjectDirectory();
+        Path projectDirectory = applicatonState.getProjectPath().toPath();
         Path srcRootRelative = Path.of("src", "main", "java");
         Path sourcesRootDirectory = projectDirectory.resolve(srcRootRelative);
         String pathToMainClass = sourcesRootDirectory.relativize(mainClass.toPath()).toString()
@@ -41,7 +41,7 @@ public class JavaRunCommandBuilder {
     }
 
     public String[] createCommandForCompilingClass(Set<File> classes){
-        Path projectDirectory = getProjectDirectory();
+        Path projectDirectory = applicatonState.getProjectPath().toPath();
         String pathsToClasses = getPathsToFiles(classes, projectDirectory);
         String classPath = applicatonState.getClassPath();
         List<String> commands = new ArrayList<>();
@@ -56,10 +56,6 @@ public class JavaRunCommandBuilder {
         commands.addAll(Arrays.asList(pathsToClassesByWords));
         return commands.toArray(new String[]{});
 
-    }
-
-    private Path getProjectDirectory() {
-        return Path.of(applicatonState.getProjectPath() + File.separator + applicatonState.getProjectRootDirectoryName());
     }
 
     private String getOutputDirectory(Path projectDirectory) {

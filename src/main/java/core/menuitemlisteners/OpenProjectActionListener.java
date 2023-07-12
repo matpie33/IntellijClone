@@ -62,8 +62,7 @@ public class OpenProjectActionListener implements MenuItemListener {
         if (action == JFileChooser.APPROVE_OPTION){
             File rootDirectory = jFileChooser.getSelectedFile();
             cacheClassesWithMainMethods(rootDirectory);
-            applicatonState.setProjectRootDirectoryName(rootDirectory.getName());
-            applicatonState.setProjectPath(rootDirectory.getParent());
+            applicatonState.setProjectPath(rootDirectory);
             directoriesWatcher.watchProjectDirectory();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);

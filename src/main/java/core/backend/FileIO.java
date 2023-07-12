@@ -26,13 +26,13 @@ public class FileIO {
     }
 
     public File getFile(String[] directories ){
-        String projectPath = applicatonState.getProjectPath();
+        String projectPath = applicatonState.getProjectPath().getParent();
         Path path = Path.of(projectPath, directories);
         return path.toFile();
     }
 
     public FileReadResultDTO read(String[] directories){
-        String projectPath = applicatonState.getProjectPath();
+        String projectPath = applicatonState.getProjectPath().getParent();
         try {
             Path path = Path.of(projectPath, directories);
             File file = path.toFile();
@@ -53,7 +53,7 @@ public class FileIO {
     }
 
     public void removeFile(String [] paths){
-        String projectPath = applicatonState.getProjectPath();
+        String projectPath = applicatonState.getProjectPath().getParent();
         Path path = Path.of(projectPath, paths);
         File file = path.toFile();
         boolean isDeleted = file.delete();

@@ -23,9 +23,8 @@ public class MavenCommandExecutor {
 
     public void initialize (){
         System.setProperty("maven.home", System.getenv("maven.home"));
-        String projectPath = applicatonState.getProjectPath();
-        Path projectPathObject = Path.of(projectPath, applicatonState.getProjectRootDirectoryName());
-        pomFile = new File(projectPathObject + "/pom.xml");
+        String projectPath = applicatonState.getProjectPath().toString();
+        pomFile = new File(projectPath + "/pom.xml");
     }
 
     public MavenCommandResultDTO runCommandWithFileOutput(String command, String... args) {

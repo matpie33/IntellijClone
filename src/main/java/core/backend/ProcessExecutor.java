@@ -32,8 +32,7 @@ public class ProcessExecutor implements ApplicationContextAware {
     }
 
     public Runnable executeCommands(List<String[]> commands){
-        processBuilder.directory(Path.of( applicatonState.getProjectPath() +
-                File.separator + applicatonState.getProjectRootDirectoryName()).toFile());
+        processBuilder.directory( applicatonState.getProjectPath());
 
         return () -> {
             for (String[] command : commands) {
