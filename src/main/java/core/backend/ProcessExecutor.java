@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
@@ -25,11 +26,15 @@ public class ProcessExecutor implements ApplicationContextAware {
 
     private UIEventsQueue uiEventsQueue;
 
+    private ProcessOutputReader inputStreamReader;
+    private ProcessOutputReader errorStreamReader;
+
     public ProcessExecutor(ThreadExecutor threadExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue) {
         this.threadExecutor = threadExecutor;
         this.applicatonState = applicatonState;
         this.uiEventsQueue = uiEventsQueue;
     }
+
 
     public Runnable executeCommands(List<String[]> commands){
         processBuilder.directory( applicatonState.getProjectPath());
@@ -42,8 +47,8 @@ public class ProcessExecutor implements ApplicationContextAware {
                 processBuilder.command(command);
                 try {
                     Process process = processBuilder.start();
-                    addStreamReader(process.getInputStream());
-                    addStreamReader(process.getErrorStream());
+                    addStreamReader(process.getInputStream(), inputStreamReader);
+                    addStreamReader(process.getErrorStream(), errorStreamReader);
 
                     process.onExit().whenComplete((res, ex)->{
                         if (res.exitValue() !=0){
@@ -60,15 +65,16 @@ public class ProcessExecutor implements ApplicationContextAware {
 
     }
 
-        private void addStreamReader(InputStream inputStream) {
+        private void addStreamReader(InputStream inputStream, ProcessOutputReader processOutputReader) {
             BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(inputStream));
-            ProcessOutputReader outputReader = applicationContext.getBean(ProcessOutputReader.class);
-            outputReader.setBufferedReader(bufferedInputReader);
-            threadExecutor.scheduleIndependentTask(outputReader);
+            processOutputReader.setBufferedReader(bufferedInputReader);
+            threadExecutor.scheduleIndependentTask(processOutputReader);
         }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+        inputStreamReader = applicationContext.getBean(ProcessOutputReader.class);
+        errorStreamReader = applicationContext.getBean(ProcessOutputReader.class);
     }
 }
