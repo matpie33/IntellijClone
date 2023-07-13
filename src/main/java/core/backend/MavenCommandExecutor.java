@@ -17,6 +17,8 @@ public class MavenCommandExecutor {
     private String createdFileName = "cp.txt";
     private File pomFile;
 
+    private boolean interrupted;
+
     public MavenCommandExecutor(ApplicatonState applicatonState) {
         this.applicatonState = applicatonState;
     }
@@ -25,6 +27,7 @@ public class MavenCommandExecutor {
         System.setProperty("maven.home", System.getenv("maven.home"));
         String projectPath = applicatonState.getProjectPath().toString();
         pomFile = new File(projectPath + "/pom.xml");
+        interrupted = false;
     }
 
     public MavenCommandResultDTO runCommandWithFileOutput(String command, String... args) {
@@ -37,6 +40,10 @@ public class MavenCommandExecutor {
 
         try {
             InvocationResult result = defaultInvoker.execute(request);
+            if (interrupted){
+                interrupted= false;
+                throw new RuntimeException("Interrupted");
+            }
             Path createdFile = pomFile.getParentFile().toPath().resolve(createdFileName);
             MavenCommandResultDTO mavenCommandResultDTO = new MavenCommandResultDTO(result.getExitCode() == 0, builder.toString());
             mavenCommandResultDTO.setOutputFile(createdFile.toFile());
@@ -76,12 +83,21 @@ public class MavenCommandExecutor {
         StringBuilder output = addOutputHandler(defaultInvoker);
         try {
             InvocationResult result = defaultInvoker.execute(invocationRequest);
+            if (interrupted){
+                interrupted= false;
+                throw new RuntimeException("Interrupted");
+            }
             return new MavenCommandResultDTO(result.getExitCode()==0, output.toString());
         } catch (MavenInvocationException e) {
             throw new RuntimeException(e);
         }
 
     }
+
+    public void interrupt (){
+        interrupted = true;
+    }
+
 
 
 }

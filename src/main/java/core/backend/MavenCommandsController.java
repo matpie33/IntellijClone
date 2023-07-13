@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -32,41 +33,20 @@ public class MavenCommandsController {
     public void executeMavenCommands() {
         mavenCommandExecutor.initialize();
         String dialogErrorMessage = "Failed to run maven command. Check console";
-        MavenCommandResultDTO buildClassPathResult = runMvnCommandGetClasspath(dialogErrorMessage);
-        MavenCommandResultDTO evaluateBuildDirectoryResult = runMvnCommand(dialogErrorMessage, new String[]{"help:evaluate"}, new String[]{"-Dexpression=project.build.outputDirectory","-q", "-DforceStdout"},
-                getEvaluateParameterResultValidation());
-        runMvnCommand(dialogErrorMessage, new String[]{"clean","install"}, new String[]{"-Dmaven.test.skip"}, null);
-        try {
-            List<String> classPathValues = Files.readAllLines(buildClassPathResult.getOutputFile().toPath());
-            String outputDirectory = evaluateBuildDirectoryResult.getOutput().trim();
-            applicatonState.setOutputDirectory(outputDirectory);
-            classPathValues.add(";"+ outputDirectory);
-            String fullClasspath = String.join("", classPathValues);
-            applicatonState.setClassPath(fullClasspath);
-            boolean isDeleted = buildClassPathResult.getOutputFile().delete();
-            if (!isDeleted){
-                System.err.println("file is not deleted");
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        MavenCommandResultDTO readClasspathResult = runMvnCommand(dialogErrorMessage, new String[]{"exec:exec"}, new String[]{"-Dexec.executable=cmd","-q", "-Dexec.args='/c echo %classpath'"});
+        runMvnCommand(dialogErrorMessage, new String[]{"clean","install"}, new String[]{"-Dmaven.test.skip"});
+
+        String classPath = readClasspathResult.getOutput().replace("\"", ";");
+        int outputDirectoryIndex = classPath.indexOf(applicatonState.getProjectPath().toString());
+        String outputDirectory = classPath.substring(outputDirectoryIndex, classPath.indexOf(";", outputDirectoryIndex));
+        applicatonState.setOutputDirectory(outputDirectory);
+        applicatonState.setClassPath(classPath);
     }
 
-    private Function<MavenCommandResultDTO, Boolean> getEvaluateParameterResultValidation() {
-        return result -> Path.of(result.getOutput().replace("\n", "")).toFile().exists();
-    }
-
-    private MavenCommandResultDTO runMvnCommand(String dialogMessage, String[] goal, String[] args, Function<MavenCommandResultDTO, Boolean> customValidation) {
+    private MavenCommandResultDTO runMvnCommand(String dialogMessage, String[] goal, String[] args) {
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, String.format("Executing maven command: %s with args %s", Arrays.toString(goal), Arrays.toString(args)));
         MavenCommandResultDTO evaluateBuildDirectoryResult = mavenCommandExecutor.runCommandInConsole(goal, args);
-        boolean isSuccess;
-        if (customValidation != null){
-            isSuccess = customValidation.apply(evaluateBuildDirectoryResult);
-        }
-        else{
-            isSuccess = evaluateBuildDirectoryResult.isSuccess();
-        }
-        if (!isSuccess){
+        if (!evaluateBuildDirectoryResult.isSuccess()){
             String errorMessage = String.format("Failed to run %s, %s: ", Arrays.toString(goal), evaluateBuildDirectoryResult.getOutput());
             RuntimeException exception = new RuntimeException(errorMessage);
             uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO(dialogMessage, exception));
@@ -86,5 +66,9 @@ public class MavenCommandsController {
             throw exception;
         }
         return buildClassPathResult;
+    }
+
+    public void interrupt() {
+        mavenCommandExecutor.interrupt();
     }
 }

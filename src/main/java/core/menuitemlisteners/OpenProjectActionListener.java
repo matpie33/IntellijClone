@@ -59,6 +59,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             directoriesWatcher.watchProjectDirectoryForChanges();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
+            mavenCommandsController.interrupt();
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
