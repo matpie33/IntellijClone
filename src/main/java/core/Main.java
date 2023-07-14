@@ -2,6 +2,7 @@ package core;
 
 import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
 import core.backend.DirectoryChangesDetector;
+import core.dto.ApplicatonState;
 import core.uibuilders.MenuBuilderUI;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
@@ -17,7 +18,7 @@ public class Main implements UIEventObserver {
 
     public static final JFrame FRAME = new JFrame();
 
-    private DirectoryChangesDetector directoryChangesDetector;
+
 
     public static void main(String[] args) {
         FlatNordIJTheme.setup();
@@ -27,8 +28,7 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector) throws IOException {
-        this.directoryChangesDetector = directoryChangesDetector;
+    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState) throws IOException {
 
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
@@ -37,6 +37,12 @@ public class Main implements UIEventObserver {
         FRAME.setVisible(true);
         FRAME.addWindowFocusListener(directoryChangesDetector);
         FRAME.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(()->{
+            for (Process runningProcess : applicatonState.getRunningProcesses()) {
+                runningProcess.destroy();
+            }
+        }));
 
 
     }

@@ -24,6 +24,20 @@ public class ApplicatonState {
 
     private String outputDirectory;
 
+    private Set<Process> runningProcesses = new HashSet<>();
+
+    public void addRunningProcess (Process process){
+        runningProcesses.add(process);
+    }
+
+    public void removeRunningProcess (Process process){
+        runningProcesses.remove(process);
+    }
+
+    public Set<Process> getRunningProcesses() {
+        return runningProcesses;
+    }
+
     public String getOutputDirectory() {
         return outputDirectory;
     }

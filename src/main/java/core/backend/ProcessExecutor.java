@@ -47,11 +47,13 @@ public class ProcessExecutor implements ApplicationContextAware {
                 processBuilder.command(command);
                 try {
                     Process process = processBuilder.start();
+                    applicatonState.addRunningProcess(process);
                     addStreamReader(process.getInputStream(), inputStreamReader);
                     addStreamReader(process.getErrorStream(), errorStreamReader);
 
-                    process.onExit().whenComplete((res, ex)->{
-                        if (res.exitValue() !=0){
+                    process.onExit().whenComplete((processLocal, ex)->{
+                        applicatonState.removeRunningProcess(processLocal);
+                        if (processLocal.exitValue() !=0){
                             uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", new IllegalArgumentException("Wrong argument to process builder")));
                         }
                     });
