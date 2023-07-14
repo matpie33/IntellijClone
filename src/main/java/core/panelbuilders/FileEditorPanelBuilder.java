@@ -8,6 +8,7 @@ import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.mouselisteners.PopupMenuRequestListener;
+import core.ui.components.SyntaxColorStyledDocument;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -27,7 +29,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private ContextConfiguration contextConfiguration;
 
-    private JTextArea editorText;
+    private JTextPane editorText;
 
 
     private FileAutoSaver fileAutoSaver;
@@ -43,7 +45,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
     @PostConstruct
     public void init (){
         panel = new JPanel(new BorderLayout());
-        editorText = new JTextArea("code here");
+        editorText = new JTextPane(new SyntaxColorStyledDocument());
         JScrollPane editorScrollPane = new JScrollPane(editorText);
         editorText.setFont(editorText.getFont().deriveFont(FontsConstants.FONT_SIZE));
         editorText.addKeyListener(new KeyAdapter() {
@@ -72,9 +74,10 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             case CLASS_STRUCTURE_NODE_CLICKED:
                 try {
                     Position lineStart = (Position)data;
-                    editorText.setCaretPosition(editorText.getLineStartOffset(lineStart.line - 1) + lineStart.column-1);
+                    Element element = editorText.getDocument().getDefaultRootElement();
+                    editorText.setCaretPosition(element.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
                     editorText.requestFocus();
-                } catch (BadLocationException ex) {
+                } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
                 break;
