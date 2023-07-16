@@ -2,6 +2,7 @@ package core.ui.components;
 
 import core.constants.SyntaxModifiers;
 
+import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.util.regex.Matcher;
@@ -9,6 +10,8 @@ import java.util.regex.Pattern;
 
 public class SyntaxColorStyledDocument extends DefaultStyledDocument {
 
+    public static final int SUPPORTED_TABS_AMOUNT = 200;
+    public static final int TAB_SIZE = 4;
     private final StyleContext context = StyleContext.getDefaultStyleContext();
     private final AttributeSet keywordColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(161, 74, 44));
     private final AttributeSet defaultColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(169, 183, 198));
@@ -21,7 +24,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
             return;
         }
         if (textToAdd.length()==1){
-            String result = findWordEndingAtOffset(offset, textToAdd);
+            String result = findWordEndingAtOffset(offset, textToAdd).stripTrailing();
             if ((result).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
                 setCharacterAttributes(offset+1-result.length(),result.length(), keywordColorAttribute, false);
             }
@@ -61,7 +64,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
         StringBuilder word = new StringBuilder();
         String text = getText(0, offset);
         int currentIndex = offset -1;
-        while (currentIndex>0 && (Character.isLetter(text.charAt(currentIndex)) || text.charAt(currentIndex)=='_')){
+        while (currentIndex>=0 && (Character.isLetter(text.charAt(currentIndex)) || text.charAt(currentIndex)=='_')){
             word.append(text.charAt(currentIndex));
             currentIndex--;
         }
@@ -84,4 +87,16 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
     }
 
 
+    public void initialize(Font font, JTextPane editorText) {
+        TabStop[] tabs = new TabStop[SUPPORTED_TABS_AMOUNT];
+        FontMetrics fontMetrics = editorText.getFontMetrics(font);
+
+        int width = fontMetrics.charWidth(' ');
+        for (int i=0; i<SUPPORTED_TABS_AMOUNT; i++){
+            tabs[i] = new TabStop(width *(TAB_SIZE *(i+1)), TabStop.ALIGN_LEFT, TabStop.LEAD_NONE);
+        }
+        TabSet tabSet = new TabSet(tabs);
+        AttributeSet attributeSet = context.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabSet);
+        setParagraphAttributes(0, 0, attributeSet, false);
+    }
 }

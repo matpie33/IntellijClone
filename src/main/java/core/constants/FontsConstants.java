@@ -2,6 +2,6 @@ package core.constants;
 
 public class FontsConstants {
 
-    public static final float FONT_SIZE = 18f;
+    public static final int FONT_SIZE = 20;
 
 }

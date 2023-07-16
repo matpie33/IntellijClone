@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -36,6 +35,10 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private ApplicatonState applicatonState;
 
+    private Font editorFont = new Font("DejaVu Sans Mono", Font.PLAIN, FontsConstants.FONT_SIZE);
+
+    private SyntaxColorStyledDocument syntaxColoringDocument = new SyntaxColorStyledDocument();
+
     public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
@@ -45,9 +48,10 @@ public class FileEditorPanelBuilder implements UIEventObserver {
     @PostConstruct
     public void init (){
         panel = new JPanel(new BorderLayout());
-        editorText = new JTextPane(new SyntaxColorStyledDocument());
+        editorText = new JTextPane(syntaxColoringDocument);
+        syntaxColoringDocument.initialize(editorFont, editorText);
         JScrollPane editorScrollPane = new JScrollPane(editorText);
-        editorText.setFont(editorText.getFont().deriveFont(FontsConstants.FONT_SIZE));
+        editorText.setFont(editorFont);
         editorText.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
