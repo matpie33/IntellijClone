@@ -17,8 +17,7 @@ import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.text.Element;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 
 @Component
 public class FileEditorPanelBuilder implements UIEventObserver {
@@ -49,6 +48,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
     public void init (){
         panel = new JPanel(new BorderLayout());
         editorText = new JTextPane(syntaxColoringDocument);
+        editorText.setCaret(new ImprovedCaret());
         syntaxColoringDocument.initialize(editorFont, editorText);
         JScrollPane editorScrollPane = new JScrollPane(editorText);
         editorText.setFont(editorFont);
