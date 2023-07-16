@@ -1,5 +1,7 @@
 package core.ui.components;
 
+import core.constants.SyntaxModifiers;
+
 import javax.swing.text.*;
 import java.awt.*;
 import java.util.regex.Matcher;
@@ -7,21 +9,20 @@ import java.util.regex.Pattern;
 
 public class SyntaxColorStyledDocument extends DefaultStyledDocument {
 
-    public static final String KEYWORDS_REGEXP = "(\\W)+(private|public|protected|class|false|true|int|if|else|while|for)";
     private final StyleContext context = StyleContext.getDefaultStyleContext();
-    private final AttributeSet keywordColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, Color.RED);
-    private final AttributeSet defaultColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, Color.WHITE);
-    private Pattern keywordsPattern = Pattern.compile(KEYWORDS_REGEXP);
+    private final AttributeSet keywordColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(161, 74, 44));
+    private final AttributeSet defaultColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(169, 183, 198));
+    private Pattern keywordsPattern = Pattern.compile(SyntaxModifiers.KEYWORDS_REGEXP);
 
     @Override
     public void insertString (int offset, String textToAdd, AttributeSet attributeSet) throws BadLocationException {
-        super.insertString(offset, textToAdd, attributeSet);
+        super.insertString(offset, textToAdd, defaultColorAttribute);
         if (textToAdd.equals("\n")){
             return;
         }
         if (textToAdd.length()==1){
             String result = findWordEndingAtOffset(offset, textToAdd);
-            if ((" "+result).matches(KEYWORDS_REGEXP)){
+            if ((result).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
                 setCharacterAttributes(offset+1-result.length(),result.length(), keywordColorAttribute, false);
             }
             else{
@@ -72,7 +73,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
     public void remove (int offset, int length) throws BadLocationException {
         super.remove(offset, length);
         String word = findWordEndingAtOffset(offset, "");
-        Matcher matcher = keywordsPattern.matcher(" "+word);
+        Matcher matcher = keywordsPattern.matcher(word);
         if (matcher.matches()){
             setCharacterAttributes(offset -word.length(), word.length(), keywordColorAttribute, false);
         }
