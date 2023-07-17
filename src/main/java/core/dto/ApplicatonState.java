@@ -26,6 +26,8 @@ public class ApplicatonState {
 
     private Set<Process> runningProcesses = new HashSet<>();
 
+    private Set<File> classesWithCompilationErrors = new HashSet<>();
+
     public void addRunningProcess (Process process){
         runningProcesses.add(process);
     }
@@ -110,5 +112,17 @@ public class ApplicatonState {
 
     public void addCurrentFileToClassesToRecompile() {
         classesToRecompile.add(openedFile);
+    }
+
+    public void addClassWithCompilationError (File file){
+        classesWithCompilationErrors.add(file);
+    }
+
+    public void removeClassWithCompilationError (File file){
+        classesWithCompilationErrors.remove(file);
+    }
+
+    public Set<File> getClassesWithCompilationErrors() {
+        return classesWithCompilationErrors;
     }
 }

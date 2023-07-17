@@ -3,6 +3,8 @@ package core.backend;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.dto.RenamedFileDTO;
+import core.uievents.UIEventType;
+import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -20,9 +22,15 @@ public class FileIO {
 
     private DirectoriesWatcher directoriesWatcher;
 
-    public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher) {
+    private MainMethodSeeker mainMethodSeeker;
+
+    private UIEventsQueue uiEventsQueue;
+
+    public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker, UIEventsQueue uiEventsQueue) {
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
+        this.mainMethodSeeker = mainMethodSeeker;
+        this.uiEventsQueue = uiEventsQueue;
     }
 
     public File getFile(String[] directories ){
@@ -74,6 +82,14 @@ public class FileIO {
         }
         try {
             Files.writeString(openedFile.toPath(), text);
+            if (applicatonState.getClassesWithCompilationErrors().contains(openedFile)){
+                boolean isMain = mainMethodSeeker.findMainMethod(openedFile);
+                if (isMain){
+                    applicatonState.addClassWithMainMethod(openedFile);
+                    applicatonState.removeClassWithCompilationError(openedFile);
+                    uiEventsQueue.dispatchEvent(UIEventType.COMPILATION_ERROR_FIXED_IN_OPENED_FILE, new Object());
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,5 +1,6 @@
 package core.panelbuilders;
 
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -77,6 +78,9 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
                     structureModel.setRoot(new DefaultMutableTreeNode("N/a"));
                 }
                 break;
+            case COMPILATION_ERROR_FIXED_IN_OPENED_FILE:
+                displayJavaFileStructure();
+                break;
         }
     }
 
@@ -88,8 +92,9 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
             DefaultMutableTreeNode tree = classStructureBuilderUI.build(classDeclaration);
             structureModel.setRoot(tree);
             classStructurePanel.revalidate();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+        } catch (FileNotFoundException|ParseProblemException e) {
+            applicatonState.addClassWithCompilationError(applicatonState.getOpenedFile());
+            e.printStackTrace();
         }
     }
 

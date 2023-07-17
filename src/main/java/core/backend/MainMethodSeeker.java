@@ -1,5 +1,6 @@
 package core.backend;
 
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
@@ -14,6 +15,12 @@ import java.io.FileNotFoundException;
 
 @Component
 public class MainMethodSeeker {
+
+    private ApplicatonState applicatonState;
+
+    public MainMethodSeeker(ApplicatonState applicatonState) {
+        this.applicatonState = applicatonState;
+    }
 
     public boolean findMainMethod (File file){
         try {
@@ -32,6 +39,9 @@ public class MainMethodSeeker {
             }
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
+        }
+        catch (ParseProblemException ex){
+            applicatonState.addClassWithCompilationError(file);
         }
         return false;
     }

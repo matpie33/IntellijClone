@@ -34,13 +34,14 @@ public class MavenCommandsController {
         mavenCommandExecutor.initialize();
         String dialogErrorMessage = "Failed to run maven command. Check console";
         MavenCommandResultDTO readClasspathResult = runMvnCommand(dialogErrorMessage, new String[]{"exec:exec"}, new String[]{"-Dexec.executable=cmd","-q", "-Dexec.args='/c echo %classpath'"});
-        runMvnCommand(dialogErrorMessage, new String[]{"clean","install"}, new String[]{"-Dmaven.test.skip"});
 
         String classPath = readClasspathResult.getOutput().replace("\"", ";");
         int outputDirectoryIndex = classPath.indexOf(applicatonState.getProjectPath().toString());
         String outputDirectory = classPath.substring(outputDirectoryIndex, classPath.indexOf(";", outputDirectoryIndex));
         applicatonState.setOutputDirectory(outputDirectory);
         applicatonState.setClassPath(classPath);
+
+        runMvnCommand(dialogErrorMessage, new String[]{"clean","install"}, new String[]{"-Dmaven.test.skip"});
     }
 
     private MavenCommandResultDTO runMvnCommand(String dialogMessage, String[] goal, String[] args) {
