@@ -5,11 +5,21 @@ import java.util.List;
 
 public class FileReadResultDTO {
 
+    private String pathFromRoot;
+
     private List<String> lines =new ArrayList<>();
 
     private boolean isJavaFile;
 
     private boolean isReaded;
+
+    public String getPathFromRoot() {
+        return pathFromRoot;
+    }
+
+    public void setPathFromRoot(String pathFromRoot) {
+        this.pathFromRoot = pathFromRoot;
+    }
 
     public boolean isReaded() {
         return isReaded;

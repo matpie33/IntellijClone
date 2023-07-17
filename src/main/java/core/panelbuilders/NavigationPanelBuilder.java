@@ -1,15 +1,20 @@
 package core.panelbuilders;
 
+import core.dto.FileReadResultDTO;
+import core.uievents.UIEventObserver;
+import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
+import java.io.File;
 
 @Component
-public class NavigationPanelBuilder {
+public class NavigationPanelBuilder implements UIEventObserver {
 
     private IconsPanelBuilder iconsPanelBuilder;
+    private JLabel navigation;
 
     public NavigationPanelBuilder(IconsPanelBuilder iconsPanelBuilder) {
         this.iconsPanelBuilder = iconsPanelBuilder;
@@ -19,12 +24,23 @@ public class NavigationPanelBuilder {
         JPanel navigationPanel = new JPanel(new BorderLayout(5, 2));
         navigationPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 
-        JLabel navigation = new JLabel("src>main>java>core>MainUI>createNavigationPanel");
+        navigation = new JLabel("src>main>java>core>MainUI>createNavigationPanel");
         navigationPanel.add(navigation, BorderLayout.WEST);
         JPanel iconsPanel = iconsPanelBuilder.createIconsPanel();
         navigationPanel.add(iconsPanel, BorderLayout.EAST);
 
         return navigationPanel;
 
+    }
+
+    @Override
+    public void handleEvent(UIEventType eventType, Object data) {
+        switch (eventType){
+            case FILE_OPENED_FOR_EDIT:
+                FileReadResultDTO resultDTO = (FileReadResultDTO)data;
+                String pathFromRoot = resultDTO.getPathFromRoot();
+                navigation.setText(pathFromRoot.replace(File.separator, ">"));
+                break;
+        }
     }
 }

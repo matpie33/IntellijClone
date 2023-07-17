@@ -54,6 +54,7 @@ public class FileIO {
             fileReadResultDTO.setLines(lines);
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
             fileReadResultDTO.setReaded(true);
+            fileReadResultDTO.setPathFromRoot(Path.of(projectPath).relativize(path).toString());
             return fileReadResultDTO;
         } catch (IOException e) {
             throw new RuntimeException(e);
