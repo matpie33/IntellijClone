@@ -57,6 +57,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
         panel = new JPanel(new BorderLayout());
         editorText = new JTextPane(syntaxColoringDocument);
         editorText.setCaret(new ImprovedCaret());
+        editorText.getCaret().setBlinkRate(500);
         syntaxColoringDocument.initialize(editorFont, editorText);
         JScrollPane editorScrollPane = new JScrollPane(editorText);
         editorText.setFont(editorFont);
