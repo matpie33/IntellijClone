@@ -2,11 +2,13 @@ package core.panelbuilders;
 
 import com.github.javaparser.Position;
 import core.backend.FileAutoSaver;
+import core.backend.FileIO;
 import core.constants.FontsConstants;
 import core.context.ContextConfiguration;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
+import core.dto.FileSystemChangeDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.ui.components.SyntaxColorStyledDocument;
 import core.uievents.UIEventObserver;
@@ -18,6 +20,9 @@ import javax.swing.*;
 import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 
 @Component
 public class FileEditorPanelBuilder implements UIEventObserver {
@@ -38,10 +43,13 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private SyntaxColorStyledDocument syntaxColoringDocument = new SyntaxColorStyledDocument();
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState) {
+    private FileIO fileIO;
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicatonState = applicatonState;
+        this.fileIO = fileIO;
     }
 
     @PostConstruct
@@ -73,7 +81,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                editorText.setText(String.join(System.lineSeparator(), resultDTO.getLines()));
+                setFileContent(resultDTO.getLines());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 try {
@@ -85,6 +93,23 @@ public class FileEditorPanelBuilder implements UIEventObserver {
                     throw new RuntimeException(ex);
                 }
                 break;
+            case PROJECT_STRUCTURE_CHANGED:
+                FileSystemChangeDTO fileSystemChange = (FileSystemChangeDTO) data;
+                List<Path> modifiedFiles = fileSystemChange.getModifiedFiles();
+                Path openedFile = applicatonState.getOpenedFile().toPath();
+                if (modifiedFiles.contains(openedFile)){
+                    try {
+                        List<String> content = fileIO.getContent(openedFile);
+                        setFileContent(content);
+                        applicatonState.addCurrentFileToClassesToRecompile();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
         }
+    }
+
+    private void setFileContent(List<String> lines) {
+        editorText.setText(String.join(System.lineSeparator(), lines));
     }
 }

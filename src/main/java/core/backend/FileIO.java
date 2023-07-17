@@ -52,6 +52,10 @@ public class FileIO {
         }
     }
 
+    public List<String> getContent (Path path) throws IOException {
+        return Files.readAllLines(path);
+    }
+
     public void removeFile(String [] paths){
         String projectPath = applicatonState.getProjectPath().getParent();
         Path path = Path.of(projectPath, paths);
