@@ -22,14 +22,14 @@ public class FileIO {
 
     private DirectoriesWatcher directoriesWatcher;
 
-    private MainMethodSeeker mainMethodSeeker;
+    private ClassStructureParser classStructureParser;
 
     private UIEventsQueue uiEventsQueue;
 
-    public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker, UIEventsQueue uiEventsQueue) {
+    public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, UIEventsQueue uiEventsQueue) {
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
-        this.mainMethodSeeker = mainMethodSeeker;
+        this.classStructureParser = classStructureParser;
         this.uiEventsQueue = uiEventsQueue;
     }
 
@@ -84,7 +84,7 @@ public class FileIO {
         try {
             Files.writeString(openedFile.toPath(), text);
             if (applicatonState.getClassesWithCompilationErrors().contains(openedFile)){
-                boolean isMain = mainMethodSeeker.findMainMethod(openedFile);
+                boolean isMain = classStructureParser.parseClassStructure(openedFile);
                 if (isMain){
                     applicatonState.addClassWithMainMethod(openedFile);
                     applicatonState.removeClassWithCompilationError(openedFile);

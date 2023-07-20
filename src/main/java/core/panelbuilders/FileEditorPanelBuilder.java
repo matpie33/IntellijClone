@@ -41,14 +41,15 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private Font editorFont = new Font("DejaVu Sans Mono", Font.PLAIN, FontsConstants.FONT_SIZE);
 
-    private SyntaxColorStyledDocument syntaxColoringDocument = new SyntaxColorStyledDocument();
+    private SyntaxColorStyledDocument syntaxColoringDocument;
 
     private FileIO fileIO;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO) {
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, SyntaxColorStyledDocument syntaxColoringDocument, FileIO fileIO) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicatonState = applicatonState;
+        this.syntaxColoringDocument = syntaxColoringDocument;
         this.fileIO = fileIO;
     }
 
@@ -87,8 +88,8 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             case CLASS_STRUCTURE_NODE_CLICKED:
                 try {
                     Position lineStart = (Position)data;
-                    Element element = editorText.getDocument().getDefaultRootElement();
-                    editorText.setCaretPosition(element.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
+                    Element rootElement = editorText.getDocument().getDefaultRootElement();
+                    editorText.setCaretPosition(rootElement.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
                     editorText.requestFocus();
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);

@@ -30,19 +30,19 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private DirectoriesWatcher directoriesWatcher;
 
-    private MainMethodSeeker mainMethodSeeker;
+    private ClassStructureParser classStructureParser;
 
     private ThreadExecutor threadExecutor;
 
     private MavenCommandsController mavenCommandsController;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, MainMethodSeeker mainMethodSeeker, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController) {
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController) {
         this.projectStructureReader = projectStructureReader;
         this.projectStructureBuilderUI = projectStructureBuilderUI;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
-        this.mainMethodSeeker = mainMethodSeeker;
+        this.classStructureParser = classStructureParser;
         this.threadExecutor = threadExecutor;
         this.mavenCommandsController = mavenCommandsController;
         jFileChooser = new JFileChooser();
@@ -72,7 +72,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             }
             else{
                 if (file.getName().endsWith(".java")){
-                    boolean isMain = mainMethodSeeker.findMainMethod(file);
+                    boolean isMain = classStructureParser.parseClassStructure(file);
                     if (isMain){
                         applicatonState.addClassWithMainMethod(file);
                     }

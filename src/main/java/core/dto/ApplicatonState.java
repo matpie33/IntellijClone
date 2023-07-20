@@ -1,5 +1,6 @@
 package core.dto;
 
+import core.panelbuilders.ClassStructurePanelBuilder;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -9,6 +10,8 @@ import java.util.*;
 @Component
 public class ApplicatonState {
 
+
+    private Map<File, ClassStructureDTO> classStructureDTOs = new HashMap<>();
 
     private List<File> classesWithMainMethod = new ArrayList<>();
 
@@ -27,6 +30,14 @@ public class ApplicatonState {
     private Set<Process> runningProcesses = new HashSet<>();
 
     private Set<File> classesWithCompilationErrors = new HashSet<>();
+
+    public ClassStructureDTO getClassStructureOfOpenedFile(){
+        return classStructureDTOs.get(getOpenedFile());
+    }
+
+    public void putClassStructure (File file, ClassStructureDTO classStructure){
+        classStructureDTOs.put(file, classStructure);
+    }
 
     public void addRunningProcess (Process process){
         runningProcesses.add(process);

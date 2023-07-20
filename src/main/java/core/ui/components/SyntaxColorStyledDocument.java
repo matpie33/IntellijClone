@@ -1,25 +1,51 @@
 package core.ui.components;
 
+import com.github.javaparser.Range;
 import core.constants.SyntaxModifiers;
+import core.dto.ApplicatonState;
+import core.dto.ClassStructureDTO;
+import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 public class SyntaxColorStyledDocument extends DefaultStyledDocument {
 
     public static final int SUPPORTED_TABS_AMOUNT = 200;
     public static final int TAB_SIZE = 4;
     private final StyleContext context = StyleContext.getDefaultStyleContext();
     private final AttributeSet keywordColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(161, 74, 44));
+    private final AttributeSet fieldColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(101, 63, 226));
     private final AttributeSet defaultColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(169, 183, 198));
     private Pattern keywordsPattern = Pattern.compile(SyntaxModifiers.KEYWORDS_REGEXP);
+
+    private ApplicatonState applicatonState;
+
+    public SyntaxColorStyledDocument(ApplicatonState applicatonState) {
+        this.applicatonState = applicatonState;
+    }
 
     @Override
     public void insertString (int offset, String textToAdd, AttributeSet attributeSet) throws BadLocationException {
         super.insertString(offset, textToAdd, defaultColorAttribute);
+        Element rootElement = getDefaultRootElement();
+        int lineNumber = rootElement.getElementIndex(offset);
+        ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
+        List<Range> fieldAccessPositions = classStructure.getFieldAccessPositionsAtLine(lineNumber);
+        if (!fieldAccessPositions.isEmpty()){
+            for (Range fieldAccessPosition : fieldAccessPositions) {
+                int startOffset = rootElement.getElement(lineNumber).getStartOffset() + fieldAccessPosition.begin.column;
+                int length = fieldAccessPosition.end.column - fieldAccessPosition.begin.column + 1;
+                setCharacterAttributes(startOffset,length, fieldColorAttribute, false);
+
+            }
+        }
+
         if (textToAdd.equals("\n")){
             return;
         }
