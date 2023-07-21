@@ -12,9 +12,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.*;
 import core.dto.ApplicatonState;
 import core.dto.ClassStructureDTO;
 import org.springframework.stereotype.Component;
@@ -132,15 +130,13 @@ public class ClassStructureParser {
     private Range getVariableScope(VariableDeclarationExpr variableDeclaration) {
         Range variableScope;
         Node parentNode = variableDeclaration.getParentNode().get();
-        if (parentNode instanceof ForStmt){
-            ForStmt forStatement = (ForStmt) parentNode;
-            variableScope = forStatement.getRange().get();
+        if (parentNode instanceof ForStmt || parentNode instanceof ForEachStmt){
+            variableScope = parentNode.getRange().get();
         }
         else if (parentNode instanceof ExpressionStmt){
             Node node = parentNode.getParentNode().get();
-            if (node instanceof BlockStmt){
-                BlockStmt blockStmt = (BlockStmt) node;
-                variableScope = blockStmt.getRange().get();
+            if (node instanceof BlockStmt || node instanceof SwitchEntry){
+                variableScope = node.getRange().get();
             }
             else{
                 throw new UnsupportedOperationException();
