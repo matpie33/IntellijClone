@@ -166,7 +166,7 @@ public class ClassStructureParser {
         Set<String> fieldNames = new HashSet<>();
         for (FieldDeclaration fieldDeclaration : cu.findAll(FieldDeclaration.class, treeTraversal)) {
             for (VariableDeclarator variableDeclarator : fieldDeclaration.getVariables()) {
-                Range range = variableDeclarator.getRange().get();
+                Range range = variableDeclarator.getName().getRange().get();
                 String variableName = variableDeclarator.getNameAsString();
                 fieldNames.add(variableName);
                 classStructureDTO.addFieldAccess(range);
