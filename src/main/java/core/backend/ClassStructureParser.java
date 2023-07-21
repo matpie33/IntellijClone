@@ -6,11 +6,10 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
 import core.dto.ApplicatonState;
@@ -92,6 +91,10 @@ public class ClassStructureParser {
                 classStructureDTO.addFieldAccess(nameExpr.getRange().get());
             }
         }
+        for (FieldAccessExpr fieldAccessExpr : cu.findAll(FieldAccessExpr.class)) {
+            SimpleName simpleName = fieldAccessExpr.getChildNodes().stream().filter(SimpleName.class::isInstance).map(SimpleName.class::cast).findFirst().orElseThrow();
+            classStructureDTO.addFieldAccess(simpleName.getRange().get());
+        }
     }
 
     private Map<String, List<Range>> getVariablesHidingFields(CompilationUnit cu, Set<String> fieldNames) {
@@ -101,6 +104,14 @@ public class ClassStructureParser {
             Range variableScope = getVariableScope(variableDeclaration);
             NodeList<VariableDeclarator> variables = variableDeclaration.getVariables();
             checkForVariablesHidingFields(fieldNames, variablesHidingFields, variableScope, variables);
+        }
+        for (Parameter parameter : cu.findAll(Parameter.class)) {
+            Node parentNode = parameter.getParentNode().get();
+            if (parentNode instanceof ConstructorDeclaration || parentNode instanceof MethodDeclaration){
+                Range parameterRange = parentNode.getRange().get();
+                String name = parameter.getNameAsString();
+                checkIfVariableHidesField(fieldNames, variablesHidingFields, parameterRange, name);
+            }
         }
         return variablesHidingFields;
     }
@@ -119,11 +130,14 @@ public class ClassStructureParser {
 
     private void checkForVariablesHidingFields(Set<String> fieldNames, Map<String, List<Range>> variablesHidingFields, Range variableScope, NodeList<VariableDeclarator> variables) {
         for (VariableDeclarator variable : variables) {
-            String name = variable.getNameAsString();
-            if (fieldNames.contains(name)){
-                variablesHidingFields.putIfAbsent(name, new ArrayList<>());
-                variablesHidingFields.get(name).add(variableScope);
-            }
+            checkIfVariableHidesField(fieldNames, variablesHidingFields, variableScope, variable.getNameAsString());
+        }
+    }
+
+    private void checkIfVariableHidesField(Set<String> fieldNames, Map<String, List<Range>> variablesHidingFields, Range variableScope, String name) {
+        if (fieldNames.contains(name)){
+            variablesHidingFields.putIfAbsent(name, new ArrayList<>());
+            variablesHidingFields.get(name).add(variableScope);
         }
     }
 
