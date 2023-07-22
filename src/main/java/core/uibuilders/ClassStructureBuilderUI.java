@@ -36,7 +36,7 @@ public class ClassStructureBuilderUI {
     private void addFieldNode(DefaultMutableTreeNode parentNode, FieldDeclaration fieldDeclaration) {
 
         NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
-        navigableTreeElementDTO.setStartingPosition(fieldDeclaration.getRange().orElseThrow().begin);
+        navigableTreeElementDTO.setStartingPosition(fieldDeclaration.getVariable(0).getName().getRange().orElseThrow().begin);
         String displayName = String.format("%s %s:%s", getModifiers(fieldDeclaration),
                 getFieldNames(fieldDeclaration), getType(fieldDeclaration));
         navigableTreeElementDTO.setDisplayName(displayName);
@@ -62,7 +62,7 @@ public class ClassStructureBuilderUI {
         String displayName = String.format("%s %s(%s):%s", getModifiers(methodDeclaration), methodDeclaration.getName(),
                 getParameters(methodDeclaration), methodDeclaration.getType());
         navigableTreeElementDTO.setDisplayName(displayName);
-        navigableTreeElementDTO.setStartingPosition(methodDeclaration.getRange().orElseThrow().begin);
+        navigableTreeElementDTO.setStartingPosition(methodDeclaration.getName().getRange().orElseThrow().begin);
         DefaultMutableTreeNode methodNode = new DefaultMutableTreeNode(navigableTreeElementDTO);
         parentNode.add(methodNode);
     }
