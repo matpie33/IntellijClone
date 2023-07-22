@@ -32,7 +32,8 @@ public class EditorScrollPane extends JScrollPane {
         StyleConstants.setAlignment(alignmentAttribute, StyleConstants.ALIGN_RIGHT);
         StyleConstants.setRightIndent(alignmentAttribute, 5);
         lineNumbersPane.setParagraphAttributes(alignmentAttribute, true);
-        lineNumbersPane.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 3, new Color(100, 112, 140)));
+        //border top has to be 2, otherwise the line numbers are not synchronized with text correctly
+        lineNumbersPane.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 3, new Color(100, 112, 140)));
 
         document.addDocumentListener(new DocumentListener() {
             @Override
