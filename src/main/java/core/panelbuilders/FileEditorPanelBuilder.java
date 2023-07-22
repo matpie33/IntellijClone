@@ -10,6 +10,7 @@ import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.dto.FileSystemChangeDTO;
 import core.mouselisteners.PopupMenuRequestListener;
+import core.ui.components.EditorScrollPane;
 import core.ui.components.SyntaxColorStyledDocument;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
@@ -43,7 +44,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
     private SyntaxColorStyledDocument syntaxColoringDocument;
 
     private FileIO fileIO;
-    private JScrollPane editorScrollPane;
+    private EditorScrollPane editorScrollPane;
 
     public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, SyntaxColorStyledDocument syntaxColoringDocument, FileIO fileIO) {
         this.fileAutoSaver = fileAutoSaver;
@@ -59,10 +60,6 @@ public class FileEditorPanelBuilder implements UIEventObserver {
         editorText = new JTextPane(syntaxColoringDocument);
         editorText.setCaret(new ImprovedCaret());
         editorText.getCaret().setBlinkRate(500);
-        syntaxColoringDocument.initialize(editorFont, editorText);
-        editorScrollPane = new JScrollPane(panel);
-        editorScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-        editorScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
         editorText.setFont(editorFont);
         editorText.addKeyListener(new KeyAdapter() {
             @Override
@@ -72,7 +69,12 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             }
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
-        panel.add(editorText, BorderLayout.CENTER);
+
+        syntaxColoringDocument.initialize(editorFont, editorText);
+        editorScrollPane = new EditorScrollPane(editorText);
+        editorScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        editorScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+        panel.add(editorScrollPane, BorderLayout.CENTER);
     }
 
     public JScrollPane getRootScrollPane() {
