@@ -2,9 +2,12 @@ package core.uibuilders;
 
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.type.Type;
-import core.dto.*;
+import core.dto.NavigableTreeElementDTO;
 import org.springframework.stereotype.Component;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -13,7 +16,7 @@ import java.util.stream.Collectors;
 @Component
 public class ClassStructureBuilderUI {
 
-    public DefaultMutableTreeNode build (ClassOrInterfaceDeclaration classOrInterfaceDeclaration){
+    public DefaultMutableTreeNode build (TypeDeclaration<?> classOrInterfaceDeclaration){
         NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
         Position position = classOrInterfaceDeclaration.getRange().orElseThrow().begin;
         navigableTreeElementDTO.setStartingPosition(position);

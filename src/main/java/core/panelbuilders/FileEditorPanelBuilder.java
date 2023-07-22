@@ -19,7 +19,8 @@ import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.text.Element;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -96,6 +97,9 @@ public class FileEditorPanelBuilder implements UIEventObserver {
                 }
                 break;
             case PROJECT_STRUCTURE_CHANGED:
+                if (applicatonState.getOpenedFile()== null){
+                    return;
+                }
                 FileSystemChangeDTO fileSystemChange = (FileSystemChangeDTO) data;
                 List<Path> modifiedFiles = fileSystemChange.getModifiedFiles();
                 Path openedFile = applicatonState.getOpenedFile().toPath();

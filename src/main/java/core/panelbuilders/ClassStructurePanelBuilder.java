@@ -3,9 +3,7 @@ package core.panelbuilders;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import core.context.ContextConfiguration;
-import core.contextMenu.ContextMenuValues;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
@@ -88,8 +86,7 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
         try {
             DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
             CompilationUnit compilationUnit = StaticJavaParser.parse(applicatonState.getOpenedFile());
-            ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) compilationUnit.getTypes().iterator().next();
-            DefaultMutableTreeNode tree = classStructureBuilderUI.build(classDeclaration);
+            DefaultMutableTreeNode tree = classStructureBuilderUI.build(compilationUnit.getType(0));
             structureModel.setRoot(tree);
             classStructurePanel.revalidate();
         } catch (FileNotFoundException|ParseProblemException e) {
