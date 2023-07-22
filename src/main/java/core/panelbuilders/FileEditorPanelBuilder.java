@@ -87,14 +87,10 @@ public class FileEditorPanelBuilder implements UIEventObserver {
                 setFileContent(resultDTO.getLines());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
-                try {
-                    Position lineStart = (Position)data;
-                    Element rootElement = editorText.getDocument().getDefaultRootElement();
-                    editorText.setCaretPosition(rootElement.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
-                    editorText.requestFocus();
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
+                Position lineStart = (Position)data;
+                Element rootElement = editorText.getDocument().getDefaultRootElement();
+                editorText.setCaretPosition(rootElement.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
+                editorText.requestFocus();
                 break;
             case PROJECT_STRUCTURE_CHANGED:
                 if (applicatonState.getOpenedFile()== null){
