@@ -28,11 +28,11 @@ public class SplitPanesBuilder {
         JPanel rootPanel = new JPanel(new BorderLayout());
 
         JPanel classStructurePanel = classStructurePanelBuilder.getPanel();
-        JPanel fileEditorPanel = fileEditorPanelBuilder.getPanel();
+        JScrollPane fileEditorScrollPane = fileEditorPanelBuilder.getRootScrollPane();
         JPanel projectStructurePanel = projectStructurePanelBuilder.getPanel();
         JPanel consolePanel = consolePanelBuilder.getPanel();
 
-        JSplitPane horizontalLeftPart = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectStructurePanel, fileEditorPanel);
+        JSplitPane horizontalLeftPart = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectStructurePanel, fileEditorScrollPane);
         JSplitPane horizontalRightPart = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, horizontalLeftPart, classStructurePanel);
         JSplitPane rootSplitpane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, horizontalRightPart, consolePanel);
 

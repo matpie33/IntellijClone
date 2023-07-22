@@ -29,8 +29,6 @@ import java.util.List;
 public class FileEditorPanelBuilder implements UIEventObserver {
 
 
-    private JPanel panel;
-
     private ContextConfiguration contextConfiguration;
 
     private JTextPane editorText;
@@ -45,6 +43,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
     private SyntaxColorStyledDocument syntaxColoringDocument;
 
     private FileIO fileIO;
+    private JScrollPane editorScrollPane;
 
     public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, SyntaxColorStyledDocument syntaxColoringDocument, FileIO fileIO) {
         this.fileAutoSaver = fileAutoSaver;
@@ -56,12 +55,14 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     @PostConstruct
     public void init (){
-        panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
         editorText = new JTextPane(syntaxColoringDocument);
         editorText.setCaret(new ImprovedCaret());
         editorText.getCaret().setBlinkRate(500);
         syntaxColoringDocument.initialize(editorFont, editorText);
-        JScrollPane editorScrollPane = new JScrollPane(editorText);
+        editorScrollPane = new JScrollPane(panel);
+        editorScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        editorScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
         editorText.setFont(editorFont);
         editorText.addKeyListener(new KeyAdapter() {
             @Override
@@ -71,11 +72,11 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             }
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
-        panel.add(editorScrollPane, BorderLayout.CENTER);
+        panel.add(editorText, BorderLayout.CENTER);
     }
 
-    public JPanel getPanel() {
-        return panel;
+    public JScrollPane getRootScrollPane() {
+        return editorScrollPane;
     }
 
     @Override
