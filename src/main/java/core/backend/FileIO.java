@@ -41,18 +41,24 @@ public class FileIO {
 
     public FileReadResultDTO read(String[] directories){
         String projectPath = applicatonState.getProjectPath().getParent();
+        Path path = Path.of(projectPath, directories);
+        return readFile(path);
+    }
+
+    public FileReadResultDTO readFile(Path path){
+
         try {
-            Path path = Path.of(projectPath, directories);
+            String projectPath = applicatonState.getProjectPath().getParent();
+
             File file = path.toFile();
             if (file.isDirectory()){
-                FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
-                return fileReadResultDTO;
+                return new FileReadResultDTO();
             }
             applicatonState.setOpenedFile(file);
             List<String> lines = Files.readAllLines(path);
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
             fileReadResultDTO.setLines(lines);
-            fileReadResultDTO.setFileName(file.getName());
+            fileReadResultDTO.setFile(file);
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
             fileReadResultDTO.setReaded(true);
             fileReadResultDTO.setPathFromRoot(Path.of(projectPath).relativize(path).toString());
@@ -60,6 +66,7 @@ public class FileIO {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public List<String> getContent (Path path) throws IOException {

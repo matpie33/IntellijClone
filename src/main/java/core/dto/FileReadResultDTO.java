@@ -1,5 +1,6 @@
 package core.dto;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +10,7 @@ public class FileReadResultDTO {
 
     private List<String> lines =new ArrayList<>();
 
-    private String fileName;
+    private File file;
 
     private boolean isJavaFile;
 
@@ -47,11 +48,11 @@ public class FileReadResultDTO {
         this.lines = lines;
     }
 
-    public String getFileName() {
-        return fileName;
+    public File getFile() {
+        return file;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setFile(File file) {
+        this.file = file;
     }
 }
