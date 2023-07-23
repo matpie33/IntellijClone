@@ -52,6 +52,7 @@ public class FileIO {
             List<String> lines = Files.readAllLines(path);
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
             fileReadResultDTO.setLines(lines);
+            fileReadResultDTO.setFileName(file.getName());
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
             fileReadResultDTO.setReaded(true);
             fileReadResultDTO.setPathFromRoot(Path.of(projectPath).relativize(path).toString());

@@ -11,6 +11,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
 import java.io.IOException;
 
 @SpringBootApplication
@@ -22,6 +23,7 @@ public class Main implements UIEventObserver {
 
     public static void main(String[] args) {
         FlatNordIJTheme.setup();
+        UIManager.put("TabbedPane.selectedBackground", new Color(71, 73, 99));
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Main.class);
         builder.headless(false);
         builder.run(args);

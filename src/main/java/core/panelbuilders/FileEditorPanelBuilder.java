@@ -12,8 +12,12 @@ import core.dto.FileSystemChangeDTO;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.ui.components.EditorScrollPane;
 import core.ui.components.SyntaxColorStyledDocument;
+import core.uibuilders.TabPaneBuilderUI;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -27,13 +31,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Component
-public class FileEditorPanelBuilder implements UIEventObserver {
+public class FileEditorPanelBuilder implements UIEventObserver, ApplicationContextAware {
 
 
     private ContextConfiguration contextConfiguration;
-
-    private JTextPane editorText;
-
 
     private FileAutoSaver fileAutoSaver;
 
@@ -41,23 +42,33 @@ public class FileEditorPanelBuilder implements UIEventObserver {
 
     private Font editorFont = new Font("DejaVu Sans Mono", Font.PLAIN, FontsConstants.FONT_SIZE);
 
-    private SyntaxColorStyledDocument syntaxColoringDocument;
 
     private FileIO fileIO;
-    private EditorScrollPane editorScrollPane;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, SyntaxColorStyledDocument syntaxColoringDocument, FileIO fileIO) {
+    private JPanel rootPanel;
+    private TabPaneBuilderUI tabPaneBuilderUI;
+    private ApplicationContext applicationContext;
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicatonState = applicatonState;
-        this.syntaxColoringDocument = syntaxColoringDocument;
         this.fileIO = fileIO;
+        this.tabPaneBuilderUI = tabPaneBuilderUI;
     }
 
     @PostConstruct
     public void init (){
-        JPanel panel = new JPanel(new BorderLayout());
-        editorText = new JTextPane(syntaxColoringDocument) {
+        rootPanel = new JPanel(new BorderLayout());
+
+        JScrollPane scrollPane = createScrollableTextEditor("");
+        tabPaneBuilderUI.addTab( scrollPane, "untitled");
+        rootPanel.add(tabPaneBuilderUI.getTabbedPane(), BorderLayout.CENTER);
+    }
+
+    private JScrollPane createScrollableTextEditor(String text) {
+        SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
+        JTextPane editorText = new JTextPane(document) {
             @Override
             public boolean getScrollableTracksViewportWidth() {
                 return getUI().getPreferredSize(this).width
@@ -76,15 +87,16 @@ public class FileEditorPanelBuilder implements UIEventObserver {
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
 
-        syntaxColoringDocument.initialize(editorFont, editorText);
-        editorScrollPane = new EditorScrollPane(editorText);
+        document.initialize(editorFont, editorText);
+        EditorScrollPane editorScrollPane = new EditorScrollPane(editorText);
         editorScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         editorScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-        panel.add(editorScrollPane, BorderLayout.CENTER);
+        editorText.setText(text);
+        return editorScrollPane;
     }
 
-    public JScrollPane getRootScrollPane() {
-        return editorScrollPane;
+    public JPanel getPanel() {
+        return rootPanel;
     }
 
     @Override
@@ -93,10 +105,12 @@ public class FileEditorPanelBuilder implements UIEventObserver {
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                setFileContent(resultDTO.getLines());
+                setFileContent(resultDTO.getLines(), resultDTO.getFileName());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 Position lineStart = (Position)data;
+                EditorScrollPane editorScrollPane = (EditorScrollPane) tabPaneBuilderUI.getActiveTabContent();
+                JTextPane editorText = editorScrollPane.getTextEditor();
                 Element rootElement = editorText.getDocument().getDefaultRootElement();
                 editorText.setCaretPosition(rootElement.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
                 editorText.requestFocus();
@@ -111,7 +125,7 @@ public class FileEditorPanelBuilder implements UIEventObserver {
                 if (modifiedFiles.contains(openedFile)){
                     try {
                         List<String> content = fileIO.getContent(openedFile);
-                        setFileContent(content);
+                        setFileContent(content, openedFile.getFileName().toString());
                         applicatonState.addCurrentFileToClassesToRecompile();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -120,7 +134,20 @@ public class FileEditorPanelBuilder implements UIEventObserver {
         }
     }
 
-    private void setFileContent(List<String> lines) {
-        editorText.setText(String.join(System.lineSeparator(), lines));
+    private void setFileContent(List<String> lines, String fileName) {
+        String text = String.join(System.lineSeparator(), lines);
+        if (tabPaneBuilderUI.containsTab(fileName)){
+            tabPaneBuilderUI.selectTab(fileName);
+        }
+        else{
+            JScrollPane scrollPane = createScrollableTextEditor(text);
+            tabPaneBuilderUI.addTab(scrollPane, fileName);
+
+        }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

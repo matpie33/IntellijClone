@@ -9,6 +9,8 @@ public class FileReadResultDTO {
 
     private List<String> lines =new ArrayList<>();
 
+    private String fileName;
+
     private boolean isJavaFile;
 
     private boolean isReaded;
@@ -43,5 +45,13 @@ public class FileReadResultDTO {
 
     public void setLines(List<String> lines) {
         this.lines = lines;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }

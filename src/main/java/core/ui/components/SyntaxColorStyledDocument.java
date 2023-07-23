@@ -4,6 +4,7 @@ import com.github.javaparser.Range;
 import core.constants.SyntaxModifiers;
 import core.dto.ApplicatonState;
 import core.dto.ClassStructureDTO;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@Scope("prototype")
 public class SyntaxColorStyledDocument extends DefaultStyledDocument {
 
     public static final int SUPPORTED_TABS_AMOUNT = 200;
@@ -36,6 +38,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
         Element rootElement = getDefaultRootElement();
         int lineNumber = rootElement.getElementIndex(offset);
         ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
+        if (classStructure == null){
+            return;
+        }
         List<Range> fieldAccessPositions = classStructure.getFieldAccessPositionsAtLine(lineNumber);
         if (!fieldAccessPositions.isEmpty()){
             for (Range fieldAccessPosition : fieldAccessPositions) {

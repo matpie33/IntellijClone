@@ -18,13 +18,15 @@ public class EditorScrollPane extends JScrollPane {
     private final String fontFamily;
     private final int fontSize;
     private final SimpleAttributeSet fontAttributeSet;
+    private final JTextPane textEditor;
 
     private JTextPane lineNumbersPane;
     private int currentLinesCount = 0;
 
-    public EditorScrollPane(JTextPane editorPane) {
-        fontFamily = editorPane.getFont().getFamily();
-        fontSize = editorPane.getFont().getSize();
+    public EditorScrollPane(JTextPane textEditor) {
+        this.textEditor = textEditor;
+        fontFamily = textEditor.getFont().getFamily();
+        fontSize = textEditor.getFont().getSize();
 
         lineNumbersPane = new JTextPane();
         lineNumbersPane.setBackground(new Color(92, 103, 129));
@@ -34,7 +36,7 @@ public class EditorScrollPane extends JScrollPane {
         StyleConstants.setFontFamily(fontAttributeSet, fontFamily);
         lineNumbersPane.setCharacterAttributes(fontAttributeSet, true);
 
-        editorPane.getDocument().addDocumentListener(new DocumentListener() {
+        textEditor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                     try {
@@ -84,12 +86,13 @@ public class EditorScrollPane extends JScrollPane {
         //border top has to be 2, otherwise the line numbers are not synchronized with text correctly
         lineNumbersPane.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 3, new Color(100, 112, 140)));
 
-        this.setFont(editorPane.getFont());
-        this.getViewport().add(editorPane);
+        this.setFont(textEditor.getFont());
+        this.getViewport().add(textEditor);
 
         this.setRowHeaderView(lineNumbersPane);
     }
 
-
-
+    public JTextPane getTextEditor() {
+        return textEditor;
+    }
 }
