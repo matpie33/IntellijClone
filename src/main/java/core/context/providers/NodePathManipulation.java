@@ -88,9 +88,8 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
     }
 
     private Path getFilePathFromNode(DefaultMutableTreeNode iteratedNode) {
-        Object[] nodesPath  = iteratedNode.getUserObjectPath();
-        String[] nodesPathStrings = Arrays.copyOf(nodesPath, nodesPath.length, String[].class);
-        return Path.of(applicatonState.getProjectPath().getParent(), nodesPathStrings);
+        String[] nodesPath  = Arrays.stream(iteratedNode.getUserObjectPath()).map(TreeNodeFileDTO.class::cast).map(TreeNodeFileDTO::getDisplayName).toArray(String[]::new);
+        return Path.of(applicatonState.getProjectPath().getParent(), nodesPath);
     }
 
     private void handleRemoveNode(List<Path> deletedFiles, List<DefaultMutableTreeNode> nodesToDelete, DefaultMutableTreeNode iteratedNode, Path iteratedNodeFilePath) {

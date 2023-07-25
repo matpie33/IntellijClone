@@ -42,7 +42,7 @@ public class TabPaneBuilderUI {
 
     public void addTab(JComponent content, File file) {
         tabbedPane.add(content);
-        JPanel tabHeaderPanel = createTabHeader( content, file.getName());
+        JPanel tabHeaderPanel = createTabHeader( content, file);
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -64,15 +64,15 @@ public class TabPaneBuilderUI {
         return tabbedPane;
     }
 
-    private JPanel createTabHeader(final JComponent tabContentPanel, String title)
+    private JPanel createTabHeader(final JComponent tabContentPanel, File file)
     {
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titlePanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel(title);
+        JLabel titleLabel = new JLabel(file.getName());
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
 
-        JButton closeButton = createCloseButton(tabbedPane, tabContentPanel, title);
+        JButton closeButton = createCloseButton(tabbedPane, tabContentPanel, file);
 
         titlePanel.add(titleLabel);
         titlePanel.add(closeButton);
@@ -80,7 +80,7 @@ public class TabPaneBuilderUI {
         return titlePanel;
     }
 
-    private JButton createCloseButton(JTabbedPane tabbedPane, JComponent tabContentPanel, String tabName) {
+    private JButton createCloseButton(JTabbedPane tabbedPane, JComponent tabContentPanel, File file) {
         JButton closeButton = new JButton("x");
         closeButton.setBorderPainted(false);
         closeButton.setContentAreaFilled(false);
@@ -104,7 +104,7 @@ public class TabPaneBuilderUI {
             public void mouseClicked(MouseEvent e)
             {
                 tabbedPane.remove(tabContentPanel);
-                openedTabs.remove(tabName);
+                openedTabs.remove(file);
             }
         });
         return closeButton;

@@ -106,7 +106,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                setFileContent(resultDTO.getLines(), resultDTO.getFile());
+                openFile(resultDTO.getLines(), resultDTO.getFile());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 Position lineStart = (Position)data;
@@ -126,7 +126,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 if (modifiedFiles.contains(openedFile)){
                     try {
                         List<String> content = fileIO.getContent(openedFile);
-                        setFileContent(content, openedFile.toFile());
+                        openFile(content, openedFile.toFile());
                         applicatonState.addCurrentFileToClassesToRecompile();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -135,7 +135,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         }
     }
 
-    private void setFileContent(List<String> lines, File file) {
+    private void openFile(List<String> lines, File file) {
         String text = String.join(System.lineSeparator(), lines);
         if (tabPaneBuilderUI.containsTab(file)){
             tabPaneBuilderUI.selectTab(file);
