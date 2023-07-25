@@ -5,6 +5,7 @@ import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileSystemChangeDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
+import core.dto.TreeNodeFileDTO;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -42,17 +43,17 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
         Point point = e.getLocationOnScreen();
         if (tree.getSelectionPaths()==null || tree.getSelectionPaths().length==1){
             tree.setSelectionPath(path);
-            String[] paths = extractPaths(path);
-            ArrayList<String[]> pathsList = new ArrayList<>();
+            TreeNodeFileDTO[] paths = extractPaths(path);
+            List<TreeNodeFileDTO[]> pathsList = new ArrayList<>();
             pathsList.add(paths);
             File file = fileIO.getFile(paths);
             return new ProjectStructureSelectionContextDTO(new TreePath[]{path}, pathsList, point, file);
         }
         else{
             TreePath[] selectionPaths = tree.getSelectionPaths();
-            List<String[]> nodeNamesList = new ArrayList<>();
+            List<TreeNodeFileDTO[]> nodeNamesList = new ArrayList<>();
             for (TreePath selectionPath : selectionPaths) {
-                String[] paths = extractPaths(selectionPath);
+                TreeNodeFileDTO[] paths = extractPaths(selectionPath);
                 nodeNamesList.add(paths);
             }
             return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point, null);
@@ -61,11 +62,11 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
 
     }
 
-    private String[] extractPaths(TreePath path) {
-        String [] paths = new String [path.getPathCount()];
+    private TreeNodeFileDTO[] extractPaths(TreePath path) {
+        TreeNodeFileDTO [] paths = new TreeNodeFileDTO [path.getPathCount()];
         for (int i=0; i<paths.length; i++){
             DefaultMutableTreeNode pathComponent = (DefaultMutableTreeNode) path.getPathComponent(i);
-            paths[i] =(String) pathComponent.getUserObject();
+            paths[i] =(TreeNodeFileDTO) pathComponent.getUserObject();
         }
         return paths;
     }
@@ -114,7 +115,7 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
 
     private DefaultMutableTreeNode addNodeWithAllChildren(Path filePath) {
         File file = filePath.toFile();
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(filePath.getFileName().toString());
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  filePath.getFileName().toString()));
         if (file.isDirectory()){
             extractNodes(file, node);
         }
@@ -123,7 +124,7 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
 
     private void extractNodes(File directory, DefaultMutableTreeNode parent) {
         for (File childFile : directory.listFiles()) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(childFile.getName());
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  childFile.getName()));
             parent.add(childNode);
             if (childFile.isDirectory()){
                 extractNodes(childFile, childNode);
@@ -138,11 +139,11 @@ public class NodePathManipulation implements ContextProvider<ProjectStructureSel
         if (selectionPaths == null){
             return new ProjectStructureSelectionContextDTO(new TreePath[]{}, new ArrayList<>(), null, null);
         }
-        List<String[]> nodeNamesList = new ArrayList<>();
+        List<TreeNodeFileDTO[]> nodeNamesList = new ArrayList<>();
         Point point = null;
         for (TreePath selectionPath : selectionPaths) {
             point = tree.getPathBounds(selectionPath).getLocation();
-            String[] nodeNames = extractPaths(selectionPath);
+            TreeNodeFileDTO[] nodeNames = extractPaths(selectionPath);
             nodeNamesList.add(nodeNames);
         }
         return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point, null);

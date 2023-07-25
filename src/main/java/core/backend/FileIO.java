@@ -3,6 +3,7 @@ package core.backend;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.dto.RenamedFileDTO;
+import core.dto.TreeNodeFileDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +35,10 @@ public class FileIO {
         this.uiEventsQueue = uiEventsQueue;
     }
 
-    public File getFile(String[] directories ){
+    public File getFile(TreeNodeFileDTO[] directories ){
         String projectPath = applicatonState.getProjectPath().getParent();
-        Path path = Path.of(projectPath, directories);
+        String [] paths = Arrays.stream(directories).map(TreeNodeFileDTO::getDisplayName).toArray(String[]::new);
+        Path path = Path.of(projectPath, paths);
         return path.toFile();
     }
 
@@ -51,7 +54,7 @@ public class FileIO {
             String projectPath = applicatonState.getProjectPath().getParent();
 
             File file = path.toFile();
-            if (file.isDirectory()){
+            if (!file.exists() || file.isDirectory()){
                 return new FileReadResultDTO();
             }
             applicatonState.setOpenedFile(file);
@@ -73,9 +76,10 @@ public class FileIO {
         return Files.readAllLines(path);
     }
 
-    public void removeFile(String [] paths){
+    public void removeFile(TreeNodeFileDTO [] nodePaths){
+        String[] nodeNames = Arrays.stream(nodePaths).map(TreeNodeFileDTO::getDisplayName).toArray(String[] ::new);
         String projectPath = applicatonState.getProjectPath().getParent();
-        Path path = Path.of(projectPath, paths);
+        Path path = Path.of(projectPath, nodeNames);
         File file = path.toFile();
         boolean isDeleted = file.delete();
         if (!isDeleted){

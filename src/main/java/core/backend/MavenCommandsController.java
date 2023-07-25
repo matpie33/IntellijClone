@@ -7,13 +7,10 @@ import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
 
 @Component
 public class MavenCommandsController {
@@ -24,10 +21,13 @@ public class MavenCommandsController {
 
     private UIEventsQueue uiEventsQueue;
 
-    public MavenCommandsController(MavenCommandExecutor mavenCommandExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue) {
+    private ClassesFromJarsExtractor classesFromJarsExtractor;
+
+    public MavenCommandsController(MavenCommandExecutor mavenCommandExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue, ClassesFromJarsExtractor classesFromJarsExtractor) {
         this.mavenCommandExecutor = mavenCommandExecutor;
         this.applicatonState = applicatonState;
         this.uiEventsQueue = uiEventsQueue;
+        this.classesFromJarsExtractor = classesFromJarsExtractor;
     }
 
     public void executeMavenCommands() {
@@ -40,6 +40,12 @@ public class MavenCommandsController {
         String outputDirectory = classPath.substring(outputDirectoryIndex, classPath.indexOf(";", outputDirectoryIndex));
         applicatonState.setOutputDirectory(outputDirectory);
         applicatonState.setClassPath(classPath);
+
+        Map<String, List<File>> jarToClassesMap = classesFromJarsExtractor.extractClassesFromJars(classPath);
+
+        MavenCommandResultDTO localRepositoryResult = runMvnCommand(dialogErrorMessage, new String[]{"help:evaluate"}, new String[]{"-Dexpression=settings.localRepository", "-q", "-DforceStdout"});
+        applicatonState.setLocalRepositoryPath(localRepositoryResult.getOutput().trim());
+        uiEventsQueue.dispatchEvent(UIEventType.MAVEN_CLASSPATH_READED, jarToClassesMap);
 
         runMvnCommand(dialogErrorMessage, new String[]{"clean","install"}, new String[]{"-Dmaven.test.skip"});
     }

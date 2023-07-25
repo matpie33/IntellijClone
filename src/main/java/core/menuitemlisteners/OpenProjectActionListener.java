@@ -1,13 +1,17 @@
 package core.menuitemlisteners;
 
-import core.*;
-import core.backend.*;
+import core.Main;
+import core.ProjectStructureReader;
+import core.backend.ClassStructureParser;
+import core.backend.DirectoriesWatcher;
+import core.backend.MavenCommandsController;
+import core.backend.ThreadExecutor;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
+import core.uibuilders.ProjectStructureBuilderUI;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
-import core.uibuilders.ProjectStructureBuilderUI;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -58,9 +62,10 @@ public class OpenProjectActionListener implements MenuItemListener {
             applicatonState.setProjectPath(rootDirectory);
             directoriesWatcher.watchProjectDirectoryForChanges();
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
-            DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
             mavenCommandsController.interrupt();
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
+            DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
+
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
     }

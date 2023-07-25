@@ -1,9 +1,9 @@
 package core.context.actionlisteners;
 
-import core.context.providers.NodePathManipulation;
 import core.dialogbuilders.RenameFileDialogBuilder;
 import core.dto.ApplicatonState;
 import core.dto.ProjectStructureSelectionContextDTO;
+import core.dto.TreeNodeFileDTO;
 import org.springframework.stereotype.Component;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -30,15 +31,16 @@ public class FileRenameListener extends ContextAction<ProjectStructureSelectionC
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<String[]> nodesPaths = context.getNodesPaths();
-        String[] nodes = nodesPaths.iterator().next();
+        List<TreeNodeFileDTO[]> nodesSelections = context.getNodesPaths();
+        TreeNodeFileDTO[] firstSelection = nodesSelections.get(0);
         TreePath[] selectedPaths = context.getSelectedPaths();
         if (selectedPaths.length==0){
             return;
         }
         TreePath selectedPath = selectedPaths[0];
         String projectPath = applicatonState.getProjectPath().getParent();
-        Path path = Path.of(projectPath, nodes);
+        String[] paths = Arrays.stream(firstSelection).map(TreeNodeFileDTO::getDisplayName).toArray(String [] :: new);
+        Path path = Path.of(projectPath, paths);
         File file = path.toFile();
         Point position = context.getPosition();
         renameFileDialogBuilder.showDialog(position, file, (DefaultMutableTreeNode)selectedPath.getLastPathComponent());

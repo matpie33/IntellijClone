@@ -5,10 +5,7 @@ import core.backend.FileIO;
 import core.context.ContextConfiguration;
 import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
-import core.dto.ApplicatonState;
-import core.dto.FileSystemChangeDTO;
-import core.dto.ProjectStructureSelectionContextDTO;
-import core.dto.RenamedFileDTO;
+import core.dto.*;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.mouselisteners.TreeNodeDoubleClickListener;
 import core.shortcuts.ProjectStructureTreeShortcuts;
@@ -25,11 +22,10 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.File;
-import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 @Component
 public class ProjectStructurePanelBuilder implements UIEventObserver {
 
@@ -70,7 +66,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     @PostConstruct
     public void init (){
         projectStructurePanel = new JPanel(new BorderLayout());
-        projectStructureTree = new JTree(new DefaultMutableTreeNode("Empty"));
+        projectStructureTree = new JTree(new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  "No projects loaded")));
         projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextConfiguration));
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
         projectStructureTree.addMouseListener(directoryChangesDetector);
@@ -87,6 +83,11 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
         DefaultMutableTreeNode rootNode;
         switch (eventType) {
+            case MAVEN_CLASSPATH_READED:
+                DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+                Map<String, List<File>> jarToClassesMap = (Map<String, List<File>>) data;
+                projectStructureBuilderUI.addExternalDependencies(model, jarToClassesMap, root);
+                break;
             case PROJECT_OPENED:
                 rootNode = (DefaultMutableTreeNode) data;
                 model.setRoot(rootNode);

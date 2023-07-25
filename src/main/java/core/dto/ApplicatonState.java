@@ -1,6 +1,5 @@
 package core.dto;
 
-import core.panelbuilders.ClassStructurePanelBuilder;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -30,6 +29,17 @@ public class ApplicatonState {
     private Set<Process> runningProcesses = new HashSet<>();
 
     private Set<File> classesWithCompilationErrors = new HashSet<>();
+
+    private String localRepositoryPath;
+
+    public String getLocalRepositoryPath() {
+        return localRepositoryPath;
+    }
+
+    public void setLocalRepositoryPath(String localRepositoryPath) {
+        this.localRepositoryPath = localRepositoryPath;
+    }
+
 
     public ClassStructureDTO getClassStructureOfOpenedFile(){
         return classStructureDTOs.get(getOpenedFile());
