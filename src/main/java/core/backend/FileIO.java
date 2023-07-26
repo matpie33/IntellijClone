@@ -57,7 +57,6 @@ public class FileIO {
             if (!file.exists() || file.isDirectory()){
                 return new FileReadResultDTO();
             }
-            applicatonState.setOpenedFile(file);
             List<String> lines = Files.readAllLines(path);
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
             fileReadResultDTO.setLines(lines);

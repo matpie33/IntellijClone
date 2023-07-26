@@ -29,6 +29,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -63,7 +64,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         rootPanel = new JPanel(new BorderLayout());
 
         JScrollPane scrollPane = createScrollableTextEditor("");
-        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"));
+        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>());
         rootPanel.add(tabPaneBuilderUI.getTabbedPane(), BorderLayout.CENTER);
     }
 
@@ -142,7 +143,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         }
         else{
             JScrollPane scrollPane = createScrollableTextEditor(text);
-            tabPaneBuilderUI.addTab(scrollPane, file);
+            tabPaneBuilderUI.addTab(scrollPane, file, lines);
 
         }
     }

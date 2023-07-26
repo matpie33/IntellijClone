@@ -1,6 +1,6 @@
 package core.uibuilders;
 
-import core.backend.FileIO;
+import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -23,11 +24,11 @@ public class TabPaneBuilderUI {
 
     private UIEventsQueue uiEventsQueue;
 
-    private FileIO fileIO;
+    private ApplicatonState applicatonState;
 
-    public TabPaneBuilderUI(UIEventsQueue uiEventsQueue, FileIO fileIO) {
+    public TabPaneBuilderUI(UIEventsQueue uiEventsQueue, ApplicatonState applicatonState) {
         this.uiEventsQueue = uiEventsQueue;
-        this.fileIO = fileIO;
+        this.applicatonState = applicatonState;
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     }
@@ -40,14 +41,20 @@ public class TabPaneBuilderUI {
         return tabbedPane.getSelectedComponent();
     }
 
-    public void addTab(JComponent content, File file) {
+    public void addTab(JComponent content, File file, List<String> lines) {
         tabbedPane.add(content);
         JPanel tabHeaderPanel = createTabHeader( content, file);
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                FileReadResultDTO fileReadResultDTO = fileIO.readFile(file.toPath());
-                uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, fileReadResultDTO);
+                FileReadResultDTO readResult = new FileReadResultDTO();
+                readResult.setFile(file);
+                readResult.setLines(lines);
+                readResult.setJavaFile(file.getName().endsWith(".java"));
+                readResult.setReaded(true);
+                readResult.setPathFromRoot(file.toString());
+                applicatonState.setOpenedFile(file);
+                uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, readResult);
             }
         });
         int index = tabbedPane.indexOfComponent(content);
