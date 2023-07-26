@@ -61,6 +61,7 @@ public class FileIO {
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
             fileReadResultDTO.setLines(lines);
             fileReadResultDTO.setFile(file);
+            fileReadResultDTO.setEditable(true);
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
             fileReadResultDTO.setReaded(true);
             fileReadResultDTO.setPathFromRoot(Path.of(projectPath).relativize(path).toString());

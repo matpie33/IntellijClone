@@ -53,6 +53,7 @@ public class TabPaneBuilderUI {
                 readResult.setJavaFile(file.getName().endsWith(".java"));
                 readResult.setReaded(true);
                 readResult.setPathFromRoot(file.toString());
+                readResult.setEditable(!file.getName().endsWith(".class"));
                 applicatonState.setOpenedFile(file);
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, readResult);
             }

@@ -52,6 +52,7 @@ public class ClassDecompiler {
         fileReadResultDTO.setFile(pathToFile.toFile());
         fileReadResultDTO.setPathFromRoot(pathFromRoot);
         fileReadResultDTO.setLines(decompilationResult);
+        fileReadResultDTO.setEditable(false);
         return fileReadResultDTO;
     }
 

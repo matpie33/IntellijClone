@@ -16,6 +16,16 @@ public class FileReadResultDTO {
 
     private boolean isReaded;
 
+    private boolean isEditable;
+
+    public boolean isEditable() {
+        return isEditable;
+    }
+
+    public void setEditable(boolean editable) {
+        isEditable = editable;
+    }
+
     public String getPathFromRoot() {
         return pathFromRoot;
     }

@@ -63,12 +63,12 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
     public void init (){
         rootPanel = new JPanel(new BorderLayout());
 
-        JScrollPane scrollPane = createScrollableTextEditor("");
+        JScrollPane scrollPane = createScrollableTextEditor("", true);
         tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>());
         rootPanel.add(tabPaneBuilderUI.getTabbedPane(), BorderLayout.CENTER);
     }
 
-    private JScrollPane createScrollableTextEditor(String text) {
+    private JScrollPane createScrollableTextEditor(String text, boolean editable) {
         SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
         JTextPane editorText = new JTextPane(document) {
             @Override
@@ -77,6 +77,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                         <= getParent().getSize().width;
             }
         };
+        editorText.setEditable(editable);
         editorText.setCaret(new ImprovedCaret());
         editorText.getCaret().setBlinkRate(500);
         editorText.setFont(editorFont);
@@ -107,7 +108,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                openFile(resultDTO.getLines(), resultDTO.getFile());
+                openFile(resultDTO.getLines(), resultDTO.getFile(), resultDTO.isEditable());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 Position lineStart = (Position)data;
@@ -127,7 +128,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 if (modifiedFiles.contains(openedFile)){
                     try {
                         List<String> content = fileIO.getContent(openedFile);
-                        openFile(content, openedFile.toFile());
+                        openFile(content, openedFile.toFile(), true);
                         applicatonState.addCurrentFileToClassesToRecompile();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -136,13 +137,13 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         }
     }
 
-    private void openFile(List<String> lines, File file) {
+    private void openFile(List<String> lines, File file, boolean editable) {
         String text = String.join(System.lineSeparator(), lines);
         if (tabPaneBuilderUI.containsTab(file)){
             tabPaneBuilderUI.selectTab(file);
         }
         else{
-            JScrollPane scrollPane = createScrollableTextEditor(text);
+            JScrollPane scrollPane = createScrollableTextEditor(text, editable);
             tabPaneBuilderUI.addTab(scrollPane, file, lines);
 
         }
