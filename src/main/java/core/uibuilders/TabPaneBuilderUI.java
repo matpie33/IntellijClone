@@ -62,8 +62,7 @@ public class TabPaneBuilderUI {
         tabbedPane.setSelectedIndex(index);
         String tooltip = file.toString();
         tabHeaderPanel.setToolTipText(tooltip);
-        Container parent = tabHeaderPanel.getParent();
-        ((JComponent) parent).setToolTipText(tooltip);
+        tabbedPane.setToolTipTextAt(index, tooltip);
         openedTabs.put(file, content);
     }
 
