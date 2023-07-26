@@ -4,6 +4,7 @@ import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
 import core.backend.DirectoryChangesDetector;
 import core.dto.ApplicatonState;
 import core.uibuilders.MenuBuilderUI;
+import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,6 +20,7 @@ public class Main implements UIEventObserver {
 
     public static final JFrame FRAME = new JFrame();
 
+    private ProjectStructureNodesHandler projectStructureNodesHandler;
 
 
     public static void main(String[] args) {
@@ -30,7 +32,8 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState) throws IOException {
+    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler) throws IOException {
+        this.projectStructureNodesHandler = projectStructureNodesHandler;
 
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
@@ -54,7 +57,8 @@ public class Main implements UIEventObserver {
     public void handleEvent(UIEventType eventType, Object data) {
         if (eventType.equals(UIEventType.PROJECT_OPENED)){
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) data;
-            FRAME.setTitle(node.getUserObject().toString());
+            String title = projectStructureNodesHandler.getText(node);
+            FRAME.setTitle(title);
         }
     }
 }

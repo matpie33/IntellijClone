@@ -1,6 +1,7 @@
 package core.panelbuilders;
 
 import core.dto.FileReadResultDTO;
+import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -17,8 +18,11 @@ public class NavigationPanelBuilder implements UIEventObserver {
     private IconsPanelBuilder iconsPanelBuilder;
     private JLabel navigation;
 
-    public NavigationPanelBuilder(IconsPanelBuilder iconsPanelBuilder) {
+    private ProjectStructureNodesHandler projectStructureNodesHandler;
+
+    public NavigationPanelBuilder(IconsPanelBuilder iconsPanelBuilder, ProjectStructureNodesHandler projectStructureNodesHandler) {
         this.iconsPanelBuilder = iconsPanelBuilder;
+        this.projectStructureNodesHandler = projectStructureNodesHandler;
     }
 
     public JPanel createNavigationPanel() {
@@ -44,7 +48,7 @@ public class NavigationPanelBuilder implements UIEventObserver {
                 break;
             case PROJECT_OPENED:
                 DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) data;
-                navigation.setText(rootNode.getUserObject().toString());
+                navigation.setText(projectStructureNodesHandler.getText(rootNode));
                 break;
         }
     }

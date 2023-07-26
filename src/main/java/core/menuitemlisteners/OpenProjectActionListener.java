@@ -8,7 +8,7 @@ import core.backend.MavenCommandsController;
 import core.backend.ThreadExecutor;
 import core.dto.ApplicatonState;
 import core.dto.FileDTO;
-import core.uibuilders.ProjectStructureBuilderUI;
+import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private ProjectStructureReader projectStructureReader;
 
-    private ProjectStructureBuilderUI projectStructureBuilderUI;
+    private ProjectStructureNodesHandler projectStructureNodesHandler;
 
     private UIEventsQueue uiEventsQueue;
 
@@ -40,9 +40,9 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private MavenCommandsController mavenCommandsController;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureBuilderUI projectStructureBuilderUI, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController) {
+    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureNodesHandler projectStructureNodesHandler, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController) {
         this.projectStructureReader = projectStructureReader;
-        this.projectStructureBuilderUI = projectStructureBuilderUI;
+        this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
         this.directoriesWatcher = directoriesWatcher;
@@ -64,7 +64,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             mavenCommandsController.interrupt();
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
-            DefaultMutableTreeNode rootNode = projectStructureBuilderUI.build(rootDirectory, files);
+            DefaultMutableTreeNode rootNode = projectStructureNodesHandler.build(rootDirectory, files);
 
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }

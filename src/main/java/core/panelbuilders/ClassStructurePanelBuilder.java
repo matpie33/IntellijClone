@@ -7,9 +7,9 @@ import core.context.ContextConfiguration;
 import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
-import core.mouselisteners.ClassStructureNodeClickListener;
 import core.mouselisteners.PopupMenuRequestListener;
-import core.uibuilders.ClassStructureBuilderUI;
+import core.nodehandling.ClassStructureNodeClickListener;
+import core.uibuilders.ClassStructureNodesHandler;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -31,15 +31,15 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
 
     private ClassStructureNodeClickListener classStructureNodeClickListener;
 
-    private ClassStructureBuilderUI classStructureBuilderUI;
+    private ClassStructureNodesHandler classStructureNodesHandler;
 
     private ApplicatonState applicatonState;
 
     private ContextConfiguration contextConfiguration;
 
-    public ClassStructurePanelBuilder(ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureBuilderUI classStructureBuilderUI, ApplicatonState applicatonState, ContextConfiguration contextConfiguration) {
+    public ClassStructurePanelBuilder(ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureNodesHandler classStructureNodesHandler, ApplicatonState applicatonState, ContextConfiguration contextConfiguration) {
         this.classStructureNodeClickListener = classStructureNodeClickListener;
-        this.classStructureBuilderUI = classStructureBuilderUI;
+        this.classStructureNodesHandler = classStructureNodesHandler;
         this.applicatonState = applicatonState;
         this.contextConfiguration = contextConfiguration;
     }
@@ -51,7 +51,7 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
     @PostConstruct
     public void init (){
         classStructurePanel = new JPanel(new BorderLayout());
-        classStructureTree = new JTree(new DefaultMutableTreeNode("")){
+        classStructureTree = new JTree(classStructureNodesHandler.createEmptyRootNode()){
             @Override
             protected void setExpandedState(TreePath path, boolean state) {
 
@@ -73,7 +73,7 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
                 }
                 else{
                     DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
-                    structureModel.setRoot(new DefaultMutableTreeNode("N/a"));
+                    structureModel.setRoot(classStructureNodesHandler.createEmptyRootNode());
                 }
                 break;
             case COMPILATION_ERROR_FIXED_IN_OPENED_FILE:
@@ -86,8 +86,8 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
         try {
             DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
             CompilationUnit compilationUnit = StaticJavaParser.parse(applicatonState.getOpenedFile());
-            DefaultMutableTreeNode tree = classStructureBuilderUI.build(compilationUnit.getType(0));
-            structureModel.setRoot(tree);
+            DefaultMutableTreeNode rootNode = classStructureNodesHandler.build(compilationUnit.getType(0));
+            structureModel.setRoot(rootNode);
             classStructurePanel.revalidate();
         } catch (FileNotFoundException|ParseProblemException e) {
             applicatonState.addClassWithCompilationError(applicatonState.getOpenedFile());

@@ -3,7 +3,7 @@ package core.dto;
 public class TreeNodeFileDTO {
 
     public enum Type {
-        CLASS_FROM_JAR, SOURCE_CLASS, DIRECTORY
+        CLASS_FROM_JAR, SOURCE_CLASS, DIRECTORY, EMPTY
     }
 
     private Type type;

@@ -1,7 +1,7 @@
-package core.mouselisteners;
+package core.nodehandling;
 
 import com.github.javaparser.Position;
-import core.dto.NavigableTreeElementDTO;
+import core.uibuilders.ClassStructureNodesHandler;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -18,8 +18,11 @@ public class ClassStructureNodeClickListener extends MouseAdapter {
 
     private UIEventsQueue uiEventsQueue;
 
-    public ClassStructureNodeClickListener(UIEventsQueue uiEventsQueue) {
+    private ClassStructureNodesHandler classStructureNodesHandler;
+
+    public ClassStructureNodeClickListener(UIEventsQueue uiEventsQueue, ClassStructureNodesHandler classStructureNodesHandler) {
         this.uiEventsQueue = uiEventsQueue;
+        this.classStructureNodesHandler = classStructureNodesHandler;
     }
 
     @Override
@@ -31,10 +34,8 @@ public class ClassStructureNodeClickListener extends MouseAdapter {
             String [] paths = new String [path.getPathCount()];
             for (int i=0; i<paths.length; i++){
                 DefaultMutableTreeNode pathComponent = (DefaultMutableTreeNode) path.getPathComponent(i);
-                NavigableTreeElementDTO navigableElement = (NavigableTreeElementDTO) pathComponent.getUserObject();
-                Position positionInClassFile = navigableElement.getStartingPosition();
-                uiEventsQueue.dispatchEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, positionInClassFile);
-
+                Position position = classStructureNodesHandler.getPositionInTextEditorForClassNode(pathComponent);
+                uiEventsQueue.dispatchEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, position);
             }
         }
     }

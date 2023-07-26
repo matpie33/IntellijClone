@@ -1,12 +1,11 @@
-package core.mouselisteners;
+package core.nodehandling;
 
 import core.backend.FileAutoSaver;
-import core.backend.FileIO;
 import core.backend.ProjectNodeOpener;
-import core.context.providers.NodePathManipulation;
 import core.dto.FileReadResultDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
 import core.dto.TreeNodeFileDTO;
+import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -18,20 +17,18 @@ import java.util.List;
 @Component
 public class TreeNodeDoubleClickListener extends MouseAdapter {
 
-    private FileIO fileIO;
 
     private UIEventsQueue uiEventsQueue;
 
-    private NodePathManipulation nodePathManipulation;
+    private ProjectStructureNodesHandler projectStructureNodesHandler;
 
     private FileAutoSaver fileAutoSaver;
 
     private ProjectNodeOpener projectNodeOpener;
 
-    public TreeNodeDoubleClickListener(FileIO fileIO, UIEventsQueue uiEventsQueue, NodePathManipulation nodePathManipulation, FileAutoSaver fileAutoSaver, ProjectNodeOpener projectNodeOpener) {
-        this.fileIO = fileIO;
+    public TreeNodeDoubleClickListener(UIEventsQueue uiEventsQueue, ProjectStructureNodesHandler projectStructureNodesHandler, FileAutoSaver fileAutoSaver, ProjectNodeOpener projectNodeOpener) {
         this.uiEventsQueue = uiEventsQueue;
-        this.nodePathManipulation = nodePathManipulation;
+        this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.fileAutoSaver = fileAutoSaver;
         this.projectNodeOpener = projectNodeOpener;
     }
@@ -41,7 +38,7 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
         super.mouseClicked(e);
         if (e.getClickCount() == 2) {
 
-            ProjectStructureSelectionContextDTO context = nodePathManipulation.getContext(e);
+            ProjectStructureSelectionContextDTO context = projectStructureNodesHandler.getContext(e);
             List<TreeNodeFileDTO[]> nodeNames = context.getNodesPaths();
             FileReadResultDTO resultDTO = projectNodeOpener.openNode(nodeNames.get(0));
             if (resultDTO.isReaded()){

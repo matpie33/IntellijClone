@@ -1,9 +1,11 @@
 package core.shortcuts;
 
 import core.backend.ShortcutAssigner;
-import core.context.actionlisteners.*;
-import core.context.providers.NodePathManipulation;
+import core.context.actionlisteners.FileDeleteRequestListener;
+import core.context.actionlisteners.FileRenameListener;
+import core.context.actionlisteners.KeyPressListener;
 import core.dto.ShortcutDTO;
+import core.uibuilders.ProjectStructureNodesHandler;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -21,21 +23,21 @@ public class ProjectStructureTreeShortcuts {
 
     private FileRenameListener fileRenameListener;
 
-    private NodePathManipulation nodePathManipulation;
+    private ProjectStructureNodesHandler projectStructureNodesHandler;
 
     private ShortcutAssigner shortcutAssigner;
 
-    public ProjectStructureTreeShortcuts(FileDeleteRequestListener fileDeleteRequestListener, FileRenameListener fileRenameListener, NodePathManipulation nodePathManipulation, ShortcutAssigner shortcutAssigner) {
+    public ProjectStructureTreeShortcuts(FileDeleteRequestListener fileDeleteRequestListener, FileRenameListener fileRenameListener, ProjectStructureNodesHandler projectStructureNodesHandler, ShortcutAssigner shortcutAssigner) {
         this.fileDeleteRequestListener = fileDeleteRequestListener;
         this.fileRenameListener = fileRenameListener;
-        this.nodePathManipulation = nodePathManipulation;
         this.shortcutAssigner = shortcutAssigner;
+        this.projectStructureNodesHandler = projectStructureNodesHandler;
     }
 
     @PostConstruct
     public void init (){
-        shortcutsList.add(new ShortcutDTO(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete",new KeyPressListener<>(fileDeleteRequestListener, nodePathManipulation)));
-        shortcutsList.add(new ShortcutDTO(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "rename",new KeyPressListener<> (fileRenameListener, nodePathManipulation )));
+        shortcutsList.add(new ShortcutDTO(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete",new KeyPressListener<>(fileDeleteRequestListener, projectStructureNodesHandler)));
+        shortcutsList.add(new ShortcutDTO(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "rename",new KeyPressListener<> (fileRenameListener, projectStructureNodesHandler)));
     }
 
     public void assignShortcuts(JComponent component){

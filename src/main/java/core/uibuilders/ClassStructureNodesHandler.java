@@ -14,7 +14,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.stream.Collectors;
 
 @Component
-public class ClassStructureBuilderUI {
+public class ClassStructureNodesHandler {
+
+    public Position getPositionInTextEditorForClassNode (DefaultMutableTreeNode defaultMutableTreeNode){
+        return ((NavigableTreeElementDTO) defaultMutableTreeNode.getUserObject()).getStartingPosition();
+    }
+
+    public DefaultMutableTreeNode createEmptyRootNode (){
+        return new DefaultMutableTreeNode(new NavigableTreeElementDTO());
+    }
 
     public DefaultMutableTreeNode build (TypeDeclaration<?> classOrInterfaceDeclaration){
         NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();

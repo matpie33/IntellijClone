@@ -3,13 +3,14 @@ package core.panelbuilders;
 import core.backend.DirectoryChangesDetector;
 import core.backend.FileIO;
 import core.context.ContextConfiguration;
-import core.context.providers.NodePathManipulation;
 import core.contextMenu.ContextType;
-import core.dto.*;
+import core.dto.FileSystemChangeDTO;
+import core.dto.ProjectStructureSelectionContextDTO;
+import core.dto.RenamedFileDTO;
 import core.mouselisteners.PopupMenuRequestListener;
-import core.mouselisteners.TreeNodeDoubleClickListener;
+import core.nodehandling.TreeNodeDoubleClickListener;
 import core.shortcuts.ProjectStructureTreeShortcuts;
-import core.uibuilders.ProjectStructureBuilderUI;
+import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventObserver;
 import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
@@ -41,32 +42,26 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private DirectoryChangesDetector directoryChangesDetector;
 
-    private NodePathManipulation nodePathManipulation;
-
     private ProjectStructureTreeShortcuts projectStructureTreeShortcuts;
 
 
-    private ProjectStructureBuilderUI projectStructureBuilderUI;
+    private ProjectStructureNodesHandler projectStructureNodesHandler;
 
     private FileIO fileIO;
 
-    private ApplicatonState applicatonState;
-
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, DirectoryChangesDetector directoryChangesDetector, NodePathManipulation nodePathManipulation, ProjectStructureTreeShortcuts projectStructureTreeShortcuts, ProjectStructureBuilderUI projectStructureBuilderUI, FileIO fileIO, ApplicatonState applicatonState) {
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, DirectoryChangesDetector directoryChangesDetector, ProjectStructureTreeShortcuts projectStructureTreeShortcuts, ProjectStructureNodesHandler projectStructureNodesHandler, FileIO fileIO) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
         this.directoryChangesDetector = directoryChangesDetector;
-        this.nodePathManipulation = nodePathManipulation;
         this.projectStructureTreeShortcuts = projectStructureTreeShortcuts;
-        this.projectStructureBuilderUI = projectStructureBuilderUI;
+        this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.fileIO = fileIO;
-        this.applicatonState = applicatonState;
     }
 
     @PostConstruct
     public void init (){
         projectStructurePanel = new JPanel(new BorderLayout());
-        projectStructureTree = new JTree(new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  "No projects loaded")));
+        projectStructureTree = new JTree(projectStructureNodesHandler.createEmptyRootNode());
         projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextConfiguration));
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
         projectStructureTree.addMouseListener(directoryChangesDetector);
@@ -81,12 +76,11 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
         DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
-        DefaultMutableTreeNode rootNode;
+        DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) model.getRoot();
         switch (eventType) {
             case MAVEN_CLASSPATH_READED:
-                DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
                 Map<String, List<File>> jarToClassesMap = (Map<String, List<File>>) data;
-                projectStructureBuilderUI.addExternalDependencies(model, jarToClassesMap, root);
+                projectStructureNodesHandler.addExternalDependencies(model, jarToClassesMap, rootNode);
                 break;
             case PROJECT_OPENED:
                 rootNode = (DefaultMutableTreeNode) data;
@@ -103,8 +97,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 break;
             case PROJECT_STRUCTURE_CHANGED:
                 FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
-                rootNode = (DefaultMutableTreeNode) projectStructureTree.getModel().getRoot();
-                nodePathManipulation.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
+                projectStructureNodesHandler.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
                 break;
             case FILENAME_CHANGED:
                 RenamedFileDTO renamedFileDTO = (RenamedFileDTO) data;
@@ -113,7 +106,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                     System.err.println("Failed to rename file");
                 }
                 else{
-                    projectStructureBuilderUI.renameNode(renamedFileDTO.getNode(), renamedFileDTO.getNewName());
+                    projectStructureNodesHandler.renameNode(renamedFileDTO.getNode(), renamedFileDTO.getNewName());
                     model.nodeChanged(renamedFileDTO.getNode());
                 }
         }

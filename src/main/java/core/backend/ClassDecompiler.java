@@ -83,8 +83,7 @@ public class ClassDecompiler {
             }
 
         }
-        String pathFromJarToClass = pathFromJarToClassBuilder.toString();
-        return pathFromJarToClass;
+        return pathFromJarToClassBuilder.toString();
     }
 
     private String getPathToJarFile(TreeNodeFileDTO[] nodesPath, Iterator<TreeNodeFileDTO> nodesIterator) {
@@ -94,8 +93,7 @@ public class ClassDecompiler {
                 break;
             }
         }
-        String pathToJarFile = nodesPath[nodesPath.length - 1].getJarPath();
-        return pathToJarFile;
+        return nodesPath[nodesPath.length - 1].getJarPath();
     }
 
 }
