@@ -3,6 +3,7 @@ package core;
 import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
 import core.backend.DirectoryChangesDetector;
 import core.dto.ApplicatonState;
+import core.shortcuts.ApplicationShortcuts;
 import core.uibuilders.MenuBuilderUI;
 import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventObserver;
@@ -32,16 +33,18 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler) throws IOException {
+    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts) throws IOException {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
 
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
         FRAME.setExtendedState( FRAME.getExtendedState()|JFrame.MAXIMIZED_BOTH );
-        FRAME.setContentPane(editorPanels.getMainPanel());
+        JPanel mainPanel = editorPanels.getMainPanel();
+        FRAME.setContentPane(mainPanel);
         FRAME.setVisible(true);
         FRAME.addWindowFocusListener(directoryChangesDetector);
         FRAME.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        applicationShortcuts.assignShortcuts(mainPanel);
 
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
             for (Process runningProcess : applicatonState.getRunningProcesses()) {
