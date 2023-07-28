@@ -1,8 +1,9 @@
 package core.backend;
 
+import core.uievents.UIEventType;
+import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,10 +18,16 @@ public class ConfigurationHolder {
     public static final String JDK_PATH_KEY = "jdkPath: ";
     public static final String CONFIG_FILENAME = "config.txt";
     public static final String CONFIG_DIRECTORY_NAME = "intellijClone";
+    public static final String JDK_PATH_NOT_SET_MESSAGE = "JDK path not set. Open settings to set the path.";
     private File configFile;
     private String pathToJDK;
 
-    @PostConstruct
+    private UIEventsQueue uiEventsQueue;
+
+    public ConfigurationHolder(UIEventsQueue uiEventsQueue) {
+        this.uiEventsQueue = uiEventsQueue;
+    }
+
     public void init () throws IOException {
         File configFile = createConfigFile();
         List<String> contentLines = Files.readAllLines(configFile.toPath());
@@ -28,6 +35,9 @@ public class ConfigurationHolder {
         if (jdkPathLine.isPresent()){
             String jdkPathKeyValue = jdkPathLine.get();
             pathToJDK = jdkPathKeyValue.replace(JDK_PATH_KEY, "");
+        }
+        else{
+            uiEventsQueue.dispatchEvent(UIEventType.APPLICATION_MESSAGE_ARRIVED, JDK_PATH_NOT_SET_MESSAGE);
         }
 
     }
@@ -45,6 +55,8 @@ public class ConfigurationHolder {
                 String jdkEntry =(addNewLine? "\n" : "") + createJdkEntry(path);
                 Files.write(configFile.toPath(), jdkEntry.getBytes(), StandardOpenOption.APPEND);
                 pathToJDK = path;
+                uiEventsQueue.dispatchEvent(UIEventType.APPLICATION_MESSAGE_ARRIVED, "");
+
             }
             else{
                 String jdkLine = contentLines.stream().filter(line -> line.contains(pathToJDK)).findFirst().orElseThrow();

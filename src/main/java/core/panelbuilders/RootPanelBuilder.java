@@ -1,7 +1,5 @@
-package core;
+package core.panelbuilders;
 
-import core.panelbuilders.NavigationPanelBuilder;
-import core.panelbuilders.SplitPanesBuilder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -9,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 
 @Component
-public class EditorPanels {
+public class RootPanelBuilder {
 
     private JPanel mainPanel;
 
@@ -17,10 +15,13 @@ public class EditorPanels {
 
     private NavigationPanelBuilder navigationPanelBuilder;
 
+    private BottomPanelBuilder bottomPanelBuilder;
 
-    public EditorPanels(SplitPanesBuilder splitPanesBuilder, NavigationPanelBuilder navigationPanelBuilder) {
+
+    public RootPanelBuilder(SplitPanesBuilder splitPanesBuilder, NavigationPanelBuilder navigationPanelBuilder, BottomPanelBuilder bottomPanelBuilder) {
         this.splitPanesBuilder = splitPanesBuilder;
         this.navigationPanelBuilder = navigationPanelBuilder;
+        this.bottomPanelBuilder = bottomPanelBuilder;
     }
 
     @PostConstruct
@@ -28,8 +29,11 @@ public class EditorPanels {
         createMainPanel();
         JPanel navigationPanel = navigationPanelBuilder.createNavigationPanel();
         JPanel splitPanes = splitPanesBuilder.createSplitPanesRootPanel();
+        JPanel bottomPanel = bottomPanelBuilder.getMainPanel();
+
         mainPanel.add(navigationPanel, BorderLayout.PAGE_START);
         mainPanel.add(splitPanes, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.PAGE_END);
     }
 
     private void createMainPanel() {

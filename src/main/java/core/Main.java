@@ -3,6 +3,7 @@ package core;
 import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
 import core.backend.DirectoryChangesDetector;
 import core.dto.ApplicatonState;
+import core.panelbuilders.RootPanelBuilder;
 import core.shortcuts.ApplicationShortcuts;
 import core.uibuilders.MenuBuilderUI;
 import core.uibuilders.ProjectStructureNodesHandler;
@@ -33,13 +34,13 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, EditorPanels editorPanels, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts) throws IOException {
+    public Main (MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts) throws IOException {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
 
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
         FRAME.setExtendedState( FRAME.getExtendedState()|JFrame.MAXIMIZED_BOTH );
-        JPanel mainPanel = editorPanels.getMainPanel();
+        JPanel mainPanel = rootPanelBuilder.getMainPanel();
         FRAME.setContentPane(mainPanel);
         FRAME.setVisible(true);
         FRAME.addWindowFocusListener(directoryChangesDetector);
