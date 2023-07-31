@@ -1,32 +1,40 @@
 package core.dialogbuilders;
 
+import core.actionlisteners.JDKPathBrowseActionListener;
 import core.backend.ConfigurationHolder;
+import core.dto.JDKPathValidationDTO;
+import core.uievents.UIViewUpdater;
+import core.utilities.UIUtilities;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
-import java.io.File;
 
 @Component
-public class SettingsDialogBuilder {
+public class SettingsDialogBuilder implements UIViewUpdater {
 
     public static final String TITLE = "Settings";
     private JDialog dialog;
-    private JFileChooser jdkPathChooser;
     private JTextField jdkInputField;
 
     private ConfigurationHolder configurationHolder;
 
-    public SettingsDialogBuilder(ConfigurationHolder configurationHolder) {
+    private JLabel errorLabel;
+
+    private JDKPathBrowseActionListener jdkPathBrowseActionListener;
+
+
+    public SettingsDialogBuilder(ConfigurationHolder configurationHolder, JDKPathBrowseActionListener jdkPathBrowseActionListener) {
         this.configurationHolder = configurationHolder;
+        this.jdkPathBrowseActionListener = jdkPathBrowseActionListener;
+        jdkPathBrowseActionListener.setViewUpdater(this);
     }
 
     @PostConstruct
     private void init() {
-        jdkPathChooser = new JFileChooser();
-        jdkPathChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
         initDialog();
         JPanel panel = initContentPane();
         dialog.setContentPane(panel);
@@ -34,6 +42,21 @@ public class SettingsDialogBuilder {
         dialog.setLocationRelativeTo(null);
     }
 
+    @Override
+    public void updateNeeded(Object data) {
+        JDKPathValidationDTO pathValidationDTO = (JDKPathValidationDTO) data;
+        if (!pathValidationDTO.isPathValid()){
+            errorLabel.setText("Wrong jdk path.");
+            errorLabel.setForeground(Color.RED);
+        }
+        else {
+            jdkInputField.setText(pathValidationDTO.getSelectedFile().toString());
+            errorLabel.setText("JDK path is correct.");
+            errorLabel.setForeground(Color.WHITE);
+        }
+    }
+
+    @Override
     public JDialog getDialog (){
         return dialog;
     }
@@ -75,27 +98,26 @@ public class SettingsDialogBuilder {
     }
 
     private void saveOptions() {
-        configurationHolder.saveConfiguration(jdkInputField.getText());
+        if (jdkPathBrowseActionListener.isCorrectJDK()){
+            configurationHolder.saveConfiguration(jdkInputField.getText());
+        }
         dialog.dispose();
     }
 
     private JPanel getOptionsConfigurationPanel() {
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("JDK path: "));
+        JPanel optionsConfigurationPanel = new JPanel();
+        optionsConfigurationPanel.setLayout(new BoxLayout(optionsConfigurationPanel, BoxLayout.PAGE_AXIS));
+
+        JLabel jdkPathLabel = new JLabel("JDK path: ");
         jdkInputField = new JTextField(configurationHolder.getJdkPath(), 30);
-        panel.add(jdkInputField);
         JButton browseButton = new JButton("browse");
-        panel.add(browseButton);
-        browseButton.addActionListener(e->{
+        browseButton.addActionListener(jdkPathBrowseActionListener);
+        errorLabel = new JLabel("Select jdk path");
 
-            int result = jdkPathChooser.showOpenDialog(dialog);
-            if (result == JFileChooser.APPROVE_OPTION){
-                File selectedFile = jdkPathChooser.getSelectedFile();
-                jdkInputField.setText(selectedFile.toString());
-            }
-
-        });
-        return panel;
+        JPanel jdkPathPanel = UIUtilities.addElementsAsSingleLine(jdkPathLabel, jdkInputField, browseButton);
+        optionsConfigurationPanel.add(jdkPathPanel);
+        optionsConfigurationPanel.add(errorLabel);
+        return optionsConfigurationPanel;
     }
 
     private JPanel getOptionNamesPanel() {
