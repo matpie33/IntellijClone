@@ -3,6 +3,9 @@ package core.dialogbuilders;
 import core.actionlisteners.JDKPathBrowseActionListener;
 import core.backend.ConfigurationHolder;
 import core.dto.JDKPathValidationDTO;
+import core.shortcuts.DialogShortcuts;
+import core.uievents.UIEventObserver;
+import core.uievents.UIEventType;
 import core.uievents.UIViewUpdater;
 import core.utilities.UIUtilities;
 import org.springframework.stereotype.Component;
@@ -13,7 +16,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 
 @Component
-public class SettingsDialogBuilder implements UIViewUpdater {
+public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
 
     public static final String TITLE = "Settings";
     private JDialog dialog;
@@ -25,10 +28,13 @@ public class SettingsDialogBuilder implements UIViewUpdater {
 
     private JDKPathBrowseActionListener jdkPathBrowseActionListener;
 
+    private DialogShortcuts dialogShortcuts;
 
-    public SettingsDialogBuilder(ConfigurationHolder configurationHolder, JDKPathBrowseActionListener jdkPathBrowseActionListener) {
+
+    public SettingsDialogBuilder(ConfigurationHolder configurationHolder, JDKPathBrowseActionListener jdkPathBrowseActionListener, DialogShortcuts dialogShortcuts) {
         this.configurationHolder = configurationHolder;
         this.jdkPathBrowseActionListener = jdkPathBrowseActionListener;
+        this.dialogShortcuts = dialogShortcuts;
         jdkPathBrowseActionListener.setViewUpdater(this);
     }
 
@@ -40,6 +46,26 @@ public class SettingsDialogBuilder implements UIViewUpdater {
         dialog.setContentPane(panel);
         dialog.pack();
         dialog.setLocationRelativeTo(null);
+        dialogShortcuts.assignShortcuts(panel);
+
+    }
+
+    @Override
+    public void handleEvent(UIEventType eventType, Object data) {
+        switch (eventType){
+            case DIALOG_CLOSE_REQUEST:
+                if (dialog.isVisible()){
+                    jdkInputField.setText("");
+                    dialog.dispose();
+
+                }
+                break;
+            case DIALOG_ACCEPT_REQUEST:
+                if (dialog.isVisible()){
+                    saveOptions();
+                }
+                break;
+        }
     }
 
     @Override

@@ -122,11 +122,16 @@ public class RenameFileDialogBuilder implements UIEventObserver {
     public void handleEvent(UIEventType eventType, Object data) {
         switch (eventType){
             case DIALOG_CLOSE_REQUEST:
-                textInput.setText("");
-                dialog.dispose();
+                if (dialog.isVisible()){
+                    textInput.setText("");
+                    dialog.dispose();
+
+                }
                 break;
             case DIALOG_ACCEPT_REQUEST:
-                acceptFilenameChange();
+                if (dialog.isVisible()){
+                    acceptFilenameChange();
+                }
                 break;
         }
     }
