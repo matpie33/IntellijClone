@@ -24,8 +24,11 @@ public class ConfigurationHolder {
 
     private UIEventsQueue uiEventsQueue;
 
-    public ConfigurationHolder(UIEventsQueue uiEventsQueue) {
+    private JavaSourcesExtractor javaSourcesExtractor;
+
+    public ConfigurationHolder(UIEventsQueue uiEventsQueue, JavaSourcesExtractor javaSourcesExtractor) {
         this.uiEventsQueue = uiEventsQueue;
+        this.javaSourcesExtractor = javaSourcesExtractor;
     }
 
     public void init () throws IOException {
@@ -35,6 +38,7 @@ public class ConfigurationHolder {
         if (jdkPathLine.isPresent()){
             String jdkPathKeyValue = jdkPathLine.get();
             pathToJDK = jdkPathKeyValue.replace(JDK_PATH_KEY, "");
+            javaSourcesExtractor.extractSources(pathToJDK);
         }
         else{
             uiEventsQueue.dispatchEvent(UIEventType.APPLICATION_MESSAGE_ARRIVED, JDK_PATH_NOT_SET_MESSAGE);
@@ -68,6 +72,7 @@ public class ConfigurationHolder {
                 Files.write(configFile.toPath(), String.join("\n", contentLines).getBytes(),
                         StandardOpenOption.WRITE);
             }
+            javaSourcesExtractor.extractSources(pathToJDK);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

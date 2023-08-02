@@ -26,6 +26,8 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     private FileIO fileIO;
 
+    private List<String> directoriesThatShouldMergeNodes = Arrays.asList("java", "JDK");
+
     public ProjectStructureNodesHandler(ApplicatonState applicatonState, FileIO fileIO) {
         this.applicatonState = applicatonState;
         this.fileIO = fileIO;
@@ -36,34 +38,76 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         userObject.setDisplayName(newFileName);
     }
 
-    public DefaultMutableTreeNode build (File root, List<FileDTO> children){
+    public DefaultMutableTreeNode addNodesForSources(File root, boolean mergeNodes){
         DefaultMutableTreeNode top =
-                new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  root.getName()));
-        for (FileDTO child : children) {
-            addNode(top, child);
+                new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  root.getName(), root.getAbsolutePath()));
+        File[] children = root.listFiles();
+        if (children.length==0){
+            return top;
+        }
+        List<String> nodesToMerge = new ArrayList<>();
+        if (directoriesThatShouldMergeNodes.contains(root.getName())){
+            mergeNodes  = true;
+        }
+        if (children.length==1 && children[0].isDirectory()){
+            nodesToMerge.add(root.getName());
+            addNode(Optional.empty(), children[0], nodesToMerge, mergeNodes);
+        }
+        else{
+            for (File file : children) {
+                nodesToMerge.clear();
+                addNode(Optional.of(top), file, nodesToMerge, mergeNodes);
+            }
         }
         return top;
 
     }
 
-    private void addNode(DefaultMutableTreeNode parentNode, FileDTO child) {
-        DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  child.getName()));
-        parentNode.add(fileNode);
-        if (child instanceof DirectoryDTO){
-            extractChildren(fileNode, (DirectoryDTO)child);
+    public DefaultMutableTreeNode addNodesForJDKSources(DefaultMutableTreeNode rootNode, File root){
+        DefaultMutableTreeNode jdkNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.EMPTY, "JDK", "JDK"));
+        File[] files = root.listFiles();
+        if (files==null){
+            throw new RuntimeException("JDK sources directory is empty");
         }
+        for (File file : files) {
+            DefaultMutableTreeNode node = addNodesForSources(file, true);
+            jdkNode.add(node);
+        }
+        rootNode.add(jdkNode);
+        return jdkNode;
     }
 
-    private void extractChildren(DefaultMutableTreeNode parentNode, DirectoryDTO directoryDTO) {
-        for (FileDTO child : directoryDTO.getFiles()) {
-            addNode(parentNode, child);
+    private void addNode(Optional<DefaultMutableTreeNode> parentNode, File file, List<String> nodesToMerge, boolean mergeNodes) {
+        if (directoriesThatShouldMergeNodes.contains(file.getName())){
+            mergeNodes = true;
+        }
+        if (file.isDirectory()){
+            File[] children = file.listFiles();
+            nodesToMerge.add(file.getName());
+            if (mergeNodes && children.length==1 && children[0].isDirectory()){
+                addNode(parentNode, children[0], nodesToMerge, mergeNodes);
+            }
+            else {
+                String mergedNodes = String.join(".", nodesToMerge);
+                DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  mergedNodes, mergedNodes.replace(".", "/")));
+                nodesToMerge.clear();
+                parentNode.ifPresent(parent->parent.add(fileNode));
+                for (File child : children) {
+                    addNode(Optional.of(fileNode), child, nodesToMerge, mergeNodes);
+                }
+            }
+        }
+        else{
+            assert(parentNode.isPresent());
+            DefaultMutableTreeNode fileNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.SOURCE_CLASS,  file.getName(), file.getName()));
+            parentNode.get().add(fileNode);
         }
     }
 
 
     public void addExternalDependencies(DefaultTreeModel model, Map<String, List<File>> jarToClassesMap, DefaultMutableTreeNode root) {
 
-        DefaultMutableTreeNode mavenNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  "maven"));
+        DefaultMutableTreeNode mavenNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  "maven", "maven"));
         model.insertNodeInto(mavenNode, root, root.getChildCount());
         for (Map.Entry<String, List<File>> jarToClassesEntry : jarToClassesMap.entrySet()) {
             String fullPathToJar = jarToClassesEntry.getKey();
@@ -102,7 +146,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     private DefaultMutableTreeNode createJarNode(String fullPathToJar) {
         String pathFromRepoToJar = fullPathToJar.replace(applicatonState.getLocalRepositoryPath(), "").replace("\\", ".").replaceFirst(".", "");
-        TreeNodeFileDTO jarNodeDTO = new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY, pathFromRepoToJar);
+        TreeNodeFileDTO jarNodeDTO = new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY, pathFromRepoToJar, fullPathToJar);
         return new DefaultMutableTreeNode(jarNodeDTO);
     }
 
@@ -119,13 +163,13 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                 nodesToMerge.add(node.getKey());
                 String mergedValue = String.join(".", nodesToMerge);
                 nodesToMerge.clear();
-                TreeNodeFileDTO treeNodeFileDTO = new TreeNodeFileDTO(node.getKey().contains(".class") ? TreeNodeFileDTO.Type.CLASS_FROM_JAR : TreeNodeFileDTO.Type.DIRECTORY, mergedValue);
+                TreeNodeFileDTO treeNodeFileDTO = new TreeNodeFileDTO(node.getKey().contains(".class") ? TreeNodeFileDTO.Type.CLASS_FROM_JAR : TreeNodeFileDTO.Type.DIRECTORY, mergedValue, mergedValue.replace(".", "/"));
                 DefaultMutableTreeNode currentNode = new DefaultMutableTreeNode(treeNodeFileDTO);
                 model.insertNodeInto(currentNode, parentNode, parentNode.getChildCount());
                 localParent = currentNode;
             }
             else{
-                TreeNodeFileDTO treeNodeFileDTO = new TreeNodeFileDTO(node.getKey().contains(".class") ? TreeNodeFileDTO.Type.CLASS_FROM_JAR : TreeNodeFileDTO.Type.DIRECTORY, node.getValue().getPathTojar(), node.getKey());
+                TreeNodeFileDTO treeNodeFileDTO = new TreeNodeFileDTO(node.getKey().contains(".class") ? TreeNodeFileDTO.Type.CLASS_FROM_JAR : TreeNodeFileDTO.Type.DIRECTORY, node.getKey(), node.getKey() );
                 DefaultMutableTreeNode currentNode = new DefaultMutableTreeNode(treeNodeFileDTO);
                 model.insertNodeInto(currentNode, parentNode, parentNode.getChildCount());
                 if (!childNodes.isEmpty()){
@@ -176,6 +220,9 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                                     DefaultTreeModel model){
         List<Path> createdFiles = fileSystemChangeDTO.getCreatedFiles();
         List<Path> deletedFiles = fileSystemChangeDTO.getDeletedFiles();
+        if (createdFiles.isEmpty() && deletedFiles.isEmpty()){
+            return;
+        }
 
         Enumeration<TreeNode> enumeration = rootNode.depthFirstEnumeration();
         List<DefaultMutableTreeNode> nodesToDelete = new ArrayList<>();
@@ -215,7 +262,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     private DefaultMutableTreeNode addNodeWithAllChildren(Path filePath) {
         File file = filePath.toFile();
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  filePath.getFileName().toString()));
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  filePath.getFileName().toString(), filePath.getFileName().toString()));
         if (file.isDirectory()){
             extractNodes(file, node);
         }
@@ -224,7 +271,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     private void extractNodes(File directory, DefaultMutableTreeNode parent) {
         for (File childFile : directory.listFiles()) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  childFile.getName()));
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  childFile.getName(), childFile.getName()));
             parent.add(childNode);
             if (childFile.isDirectory()){
                 extractNodes(childFile, childNode);
@@ -261,6 +308,6 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
     }
 
     public DefaultMutableTreeNode createEmptyRootNode() {
-        return new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.EMPTY, "No projects loaded"));
+        return new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.EMPTY, "No projects loaded", ""));
     }
 }

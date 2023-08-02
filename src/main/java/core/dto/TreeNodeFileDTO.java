@@ -8,31 +8,26 @@ public class TreeNodeFileDTO {
 
     private Type type;
 
-    private String jarPath;
-
     private String displayName;
+
+    private String path;
+
+    public String getPath() {
+        return path;
+    }
 
     public Type getType() {
         return type;
-    }
-
-    public String getJarPath() {
-        return jarPath;
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public TreeNodeFileDTO(Type type, String displayName) {
+    public TreeNodeFileDTO(Type type, String displayName, String path) {
         this.type = type;
         this.displayName = displayName;
-    }
-
-    public TreeNodeFileDTO(Type type, String jarPath, String displayName) {
-        this.type = type;
-        this.jarPath = jarPath;
-        this.displayName = displayName;
+        this.path = path;
     }
 
     public void setDisplayName(String displayName) {

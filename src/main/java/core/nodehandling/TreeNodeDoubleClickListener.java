@@ -1,7 +1,7 @@
 package core.nodehandling;
 
 import core.backend.FileAutoSaver;
-import core.backend.ProjectNodeOpener;
+import core.backend.ProjectFileOpener;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.dto.ProjectStructureSelectionContextDTO;
@@ -25,15 +25,15 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
 
     private FileAutoSaver fileAutoSaver;
 
-    private ProjectNodeOpener projectNodeOpener;
+    private ProjectFileOpener projectFileOpener;
 
     private ApplicatonState applicatonState;
 
-    public TreeNodeDoubleClickListener(UIEventsQueue uiEventsQueue, ProjectStructureNodesHandler projectStructureNodesHandler, FileAutoSaver fileAutoSaver, ProjectNodeOpener projectNodeOpener, ApplicatonState applicatonState) {
+    public TreeNodeDoubleClickListener(UIEventsQueue uiEventsQueue, ProjectStructureNodesHandler projectStructureNodesHandler, FileAutoSaver fileAutoSaver, ProjectFileOpener projectFileOpener, ApplicatonState applicatonState) {
         this.uiEventsQueue = uiEventsQueue;
         this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.fileAutoSaver = fileAutoSaver;
-        this.projectNodeOpener = projectNodeOpener;
+        this.projectFileOpener = projectFileOpener;
         this.applicatonState = applicatonState;
     }
 
@@ -44,7 +44,7 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
 
             ProjectStructureSelectionContextDTO context = projectStructureNodesHandler.getContext(e);
             List<TreeNodeFileDTO[]> nodeNames = context.getNodesPaths();
-            FileReadResultDTO resultDTO = projectNodeOpener.openNode(nodeNames.get(0));
+            FileReadResultDTO resultDTO = projectFileOpener.openNode(nodeNames.get(0));
             if (resultDTO.isReaded()){
                 fileAutoSaver.save();
                 applicatonState.setOpenedFile(resultDTO.getFile());

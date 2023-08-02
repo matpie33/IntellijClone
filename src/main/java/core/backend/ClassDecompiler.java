@@ -1,7 +1,6 @@
 package core.backend;
 
 import core.dto.FileReadResultDTO;
-import core.dto.TreeNodeFileDTO;
 import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
 import org.springframework.stereotype.Component;
 
@@ -23,12 +22,11 @@ public class ClassDecompiler {
     public static final String MAVEN_ROOT_NODE_NAME = "maven";
     public static final String CLASS_FILE_EXTENSION = ".class";
 
-    public FileReadResultDTO decompile (TreeNodeFileDTO[] nodesPath){
+    public FileReadResultDTO decompile (String[] nodesPath){
         try {
 
-            Iterator<TreeNodeFileDTO> nodesIterator = Arrays.stream(nodesPath).iterator();
-            String pathToJarFile = getPathToJarFile(nodesPath, nodesIterator);
-            nodesIterator.next(); // ignore node with jar path
+            Iterator<String> nodesIterator = Arrays.stream(nodesPath).iterator();
+            String pathToJarFile = nodesIterator.next();
             String pathFromJarToClass = getPathFromJarToClass(nodesIterator);
             File fileForClassContents = File.createTempFile("File", ".class");
             File tempFileDirectory = fileForClassContents.getParentFile();
@@ -70,15 +68,10 @@ public class ClassDecompiler {
         Files.write(fileForClassContents.toPath(), inputStream.readAllBytes());
     }
 
-    private String getPathFromJarToClass(Iterator<TreeNodeFileDTO> nodesIterator) {
+    private String getPathFromJarToClass(Iterator<String> nodesIterator) {
         StringBuilder pathFromJarToClassBuilder = new StringBuilder();
         while (nodesIterator.hasNext()){
-            TreeNodeFileDTO node = nodesIterator.next();
-            String directoryName = node.getDisplayName();
-            if (!directoryName.endsWith(CLASS_FILE_EXTENSION)){
-                directoryName = directoryName.replace('.', '/');
-            }
-            pathFromJarToClassBuilder.append(directoryName);
+            pathFromJarToClassBuilder.append(nodesIterator.next());
             if (nodesIterator.hasNext()){
                 pathFromJarToClassBuilder.append("/");
             }
@@ -87,14 +80,5 @@ public class ClassDecompiler {
         return pathFromJarToClassBuilder.toString();
     }
 
-    private String getPathToJarFile(TreeNodeFileDTO[] nodesPath, Iterator<TreeNodeFileDTO> nodesIterator) {
-        while (nodesIterator.hasNext()){
-            TreeNodeFileDTO node = nodesIterator.next();
-            if (node.getDisplayName().equals(MAVEN_ROOT_NODE_NAME)){
-                break;
-            }
-        }
-        return nodesPath[nodesPath.length - 1].getJarPath();
-    }
 
 }

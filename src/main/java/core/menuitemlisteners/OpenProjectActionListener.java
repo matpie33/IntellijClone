@@ -1,13 +1,8 @@
 package core.menuitemlisteners;
 
 import core.Main;
-import core.ProjectStructureReader;
-import core.backend.ClassStructureParser;
-import core.backend.DirectoriesWatcher;
-import core.backend.MavenCommandsController;
-import core.backend.ThreadExecutor;
+import core.backend.*;
 import core.dto.ApplicatonState;
-import core.dto.FileDTO;
 import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
@@ -17,14 +12,12 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.List;
 
 @Component
 public class OpenProjectActionListener implements MenuItemListener {
 
     private JFileChooser jFileChooser;
 
-    private ProjectStructureReader projectStructureReader;
 
     private ProjectStructureNodesHandler projectStructureNodesHandler;
 
@@ -40,8 +33,9 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private MavenCommandsController mavenCommandsController;
 
-    public OpenProjectActionListener(ProjectStructureReader projectStructureReader, ProjectStructureNodesHandler projectStructureNodesHandler, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController) {
-        this.projectStructureReader = projectStructureReader;
+    private JavaSourcesExtractor javaSourcesExtractor;
+
+    public OpenProjectActionListener(ProjectStructureNodesHandler projectStructureNodesHandler, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController, JavaSourcesExtractor javaSourcesExtractor) {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
@@ -49,6 +43,7 @@ public class OpenProjectActionListener implements MenuItemListener {
         this.classStructureParser = classStructureParser;
         this.threadExecutor = threadExecutor;
         this.mavenCommandsController = mavenCommandsController;
+        this.javaSourcesExtractor = javaSourcesExtractor;
         jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     }
@@ -61,10 +56,10 @@ public class OpenProjectActionListener implements MenuItemListener {
             cacheClassesWithMainMethods(rootDirectory);
             applicatonState.setProjectPath(rootDirectory);
             directoriesWatcher.watchProjectDirectoryForChanges();
-            List<FileDTO> files = projectStructureReader.readProjectDirectory(rootDirectory);
             mavenCommandsController.interrupt();
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
-            DefaultMutableTreeNode rootNode = projectStructureNodesHandler.build(rootDirectory, files);
+            DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
+            projectStructureNodesHandler.addNodesForJDKSources(rootNode, javaSourcesExtractor.getJavaSourcesDirectory());
 
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }
