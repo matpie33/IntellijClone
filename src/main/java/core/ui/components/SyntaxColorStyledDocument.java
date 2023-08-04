@@ -50,11 +50,11 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         TextChangeDTO undoAction = undoRedoManager.getNextUndoAction();
         if (undoAction instanceof InsertChangeDTO){
             InsertChangeDTO insert = (InsertChangeDTO) undoAction;
-            super.remove(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().length());
+            removeInternal(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().length());
         }
         if (undoAction instanceof RemoveChangeDTO){
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
-            super.insertString(removeAction.getStartingOffset(), removeAction.getTextRemoved().toString(),defaultColorAttribute);
+            insertInternal(removeAction.getStartingOffset(), removeAction.getTextRemoved().toString());
         }
     }
 
@@ -63,21 +63,27 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         TextChangeDTO undoAction = undoRedoManager.getNextRedoAction();
         if (undoAction instanceof InsertChangeDTO){
             InsertChangeDTO insert = (InsertChangeDTO)undoAction;
-            super.insertString(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().toString(), insert.getAttributesForChangedText());
+            insertInternal(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().toString());
         }
         if (undoAction instanceof RemoveChangeDTO){
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
-            super.remove(removeAction.getStartingOffset(), removeAction.getTextRemoved().length());
+            removeInternal(removeAction.getStartingOffset(), removeAction.getTextRemoved().length());
         }
     }
 
     @Override
     public void insertString (int offset, String textToAdd, AttributeSet attributeSet) throws BadLocationException {
-        super.insertString(offset, textToAdd, defaultColorAttribute);
         if (insertChangeDTO == null){
-            insertChangeDTO = new InsertChangeDTO(offset, attributeSet);
+            insertChangeDTO = new InsertChangeDTO(offset);
         }
         insertChangeDTO.appendText(textToAdd);
+        insertInternal(offset, textToAdd);
+
+    }
+
+    private void insertInternal(int offset, String textToAdd) throws BadLocationException {
+        super.insertString(offset, textToAdd, defaultColorAttribute);
+
         Element rootElement = getDefaultRootElement();
         int lineNumber = rootElement.getElementIndex(offset);
         ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
@@ -100,16 +106,15 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (textToAdd.length()==1){
             String result = findWordEndingAtOffset(offset, textToAdd).stripTrailing();
             if ((result).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
-                setCharacterAttributes(offset+1-result.length(),result.length(), keywordColorAttribute, false);
+                setCharacterAttributes(offset +1-result.length(),result.length(), keywordColorAttribute, false);
             }
             else{
-                setCharacterAttributes(offset+1-result.length(),result.length(), defaultColorAttribute, false);
+                setCharacterAttributes(offset +1-result.length(),result.length(), defaultColorAttribute, false);
             }
         }
         else{
             colorWord(offset, textToAdd);
         }
-
     }
 
     private void colorWord(int offset, String str) {
@@ -148,8 +153,6 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     @Override
     public void remove (int offset, int length) throws BadLocationException {
-        String removedText = getText(offset, length);
-        super.remove(offset, length);
         if (insertChangeDTO != null){
             undoRedoManager.addNewChange(insertChangeDTO);
             insertChangeDTO = null;
@@ -157,8 +160,16 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (removeChangeDTO == null){
             removeChangeDTO = new RemoveChangeDTO(offset);
         }
+        String removedText = getText(offset, length);
         removeChangeDTO.appendText(removedText);
         removeChangeDTO.setStartingOffset(offset);
+        removeInternal(offset, length);
+
+    }
+
+    private void removeInternal(int offset, int length) throws BadLocationException {
+
+        super.remove(offset, length);
         String word = findWordEndingAtOffset(offset, "");
         Matcher matcher = keywordsPattern.matcher(word);
         if (matcher.matches()){
@@ -167,7 +178,6 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         else{
             setCharacterAttributes(offset -word.length(), word.length(), defaultColorAttribute, false);
         }
-
     }
 
 
