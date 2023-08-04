@@ -2,6 +2,8 @@ package core.uibuilders;
 
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
+import core.ui.components.EditorScrollPane;
+import core.ui.components.SyntaxColorStyledDocument;
 import core.uievents.UIEventType;
 import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
@@ -20,7 +22,7 @@ public class TabPaneBuilderUI {
 
     private JTabbedPane tabbedPane;
 
-    private Map<File, JComponent> openedTabs = new HashMap<>();
+    private Map<File, JScrollPane> openedTabs = new HashMap<>();
 
     private UIEventsQueue uiEventsQueue;
 
@@ -37,13 +39,13 @@ public class TabPaneBuilderUI {
         return openedTabs.containsKey(file);
     }
 
-    public java.awt.Component getActiveTabContent(){
-        return tabbedPane.getSelectedComponent();
+    public EditorScrollPane getScrollPaneFromActiveTab(){
+        return ((EditorScrollPane) tabbedPane.getSelectedComponent());
     }
 
-    public void addTab(JComponent content, File file, List<String> lines) {
-        tabbedPane.add(content);
-        JPanel tabHeaderPanel = createTabHeader( content, file);
+    public void addTab(JScrollPane scrollPane, File file, List<String> lines) {
+        tabbedPane.add(scrollPane);
+        JPanel tabHeaderPanel = createTabHeader(scrollPane, file);
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -58,13 +60,13 @@ public class TabPaneBuilderUI {
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, readResult);
             }
         });
-        int index = tabbedPane.indexOfComponent(content);
+        int index = tabbedPane.indexOfComponent(scrollPane);
         tabbedPane.setTabComponentAt(index, tabHeaderPanel);
         tabbedPane.setSelectedIndex(index);
         String tooltip = file.toString();
         tabHeaderPanel.setToolTipText(tooltip);
         tabbedPane.setToolTipTextAt(index, tooltip);
-        openedTabs.put(file, content);
+        openedTabs.put(file, scrollPane);
     }
 
     public JTabbedPane getTabbedPane() {
@@ -115,6 +117,11 @@ public class TabPaneBuilderUI {
             }
         });
         return closeButton;
+    }
+
+    public SyntaxColorStyledDocument getDocumentForActiveEditor(){
+        EditorScrollPane selectedComponent = (EditorScrollPane) tabbedPane.getSelectedComponent();
+        return (SyntaxColorStyledDocument) selectedComponent.getTextEditor().getDocument();
     }
 
     public void selectTab(File file) {

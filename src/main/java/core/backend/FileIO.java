@@ -95,6 +95,7 @@ public class FileIO {
         }
         try {
             Files.writeString(openedFile.toPath(), text);
+            uiEventsQueue.dispatchEvent(UIEventType.AUTOSAVE_DONE, new Object());
             if (applicatonState.getClassesWithCompilationErrors().contains(openedFile)){
                 boolean isMain = classStructureParser.parseClassStructure(openedFile);
                 if (isMain){

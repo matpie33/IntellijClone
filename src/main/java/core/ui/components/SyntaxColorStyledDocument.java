@@ -1,9 +1,9 @@
 package core.ui.components;
 
 import com.github.javaparser.Range;
+import core.backend.UndoRedoManager;
 import core.constants.SyntaxModifiers;
-import core.dto.ApplicatonState;
-import core.dto.ClassStructureDTO;
+import core.dto.*;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 @Component
 @Scope("prototype")
-public class SyntaxColorStyledDocument extends DefaultStyledDocument {
+public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     public static final int SUPPORTED_TABS_AMOUNT = 200;
     public static final int TAB_SIZE = 4;
@@ -28,13 +28,56 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
 
     private ApplicatonState applicatonState;
 
-    public SyntaxColorStyledDocument(ApplicatonState applicatonState) {
+    private UndoRedoManager undoRedoManager;
+
+    private InsertChangeDTO insertChangeDTO;
+
+    private RemoveChangeDTO removeChangeDTO;
+
+
+    public SyntaxColorStyledDocument(ApplicatonState applicatonState, UndoRedoManager undoRedoManager) {
         this.applicatonState = applicatonState;
+        this.undoRedoManager = undoRedoManager;
+    }
+
+    public void clearChanges (){
+        insertChangeDTO = null;
+        removeChangeDTO = null;
+    }
+
+    public void undo () throws BadLocationException {
+        checkForTextChanges();
+        TextChangeDTO undoAction = undoRedoManager.getNextUndoAction();
+        if (undoAction instanceof InsertChangeDTO){
+            InsertChangeDTO insert = (InsertChangeDTO) undoAction;
+            super.remove(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().length());
+        }
+        if (undoAction instanceof RemoveChangeDTO){
+            RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
+            super.insertString(removeAction.getStartingOffset(), removeAction.getTextRemoved().toString(),defaultColorAttribute);
+        }
+    }
+
+    public void redo () throws BadLocationException {
+        checkForTextChanges();
+        TextChangeDTO undoAction = undoRedoManager.getNextRedoAction();
+        if (undoAction instanceof InsertChangeDTO){
+            InsertChangeDTO insert = (InsertChangeDTO)undoAction;
+            super.insertString(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().toString(), insert.getAttributesForChangedText());
+        }
+        if (undoAction instanceof RemoveChangeDTO){
+            RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
+            super.remove(removeAction.getStartingOffset(), removeAction.getTextRemoved().length());
+        }
     }
 
     @Override
     public void insertString (int offset, String textToAdd, AttributeSet attributeSet) throws BadLocationException {
         super.insertString(offset, textToAdd, defaultColorAttribute);
+        if (insertChangeDTO == null){
+            insertChangeDTO = new InsertChangeDTO(offset, attributeSet);
+        }
+        insertChangeDTO.appendText(textToAdd);
         Element rootElement = getDefaultRootElement();
         int lineNumber = rootElement.getElementIndex(offset);
         ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
@@ -105,7 +148,17 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
 
     @Override
     public void remove (int offset, int length) throws BadLocationException {
+        String removedText = getText(offset, length);
         super.remove(offset, length);
+        if (insertChangeDTO != null){
+            undoRedoManager.addNewChange(insertChangeDTO);
+            insertChangeDTO = null;
+        }
+        if (removeChangeDTO == null){
+            removeChangeDTO = new RemoveChangeDTO(offset);
+        }
+        removeChangeDTO.appendText(removedText);
+        removeChangeDTO.setStartingOffset(offset);
         String word = findWordEndingAtOffset(offset, "");
         Matcher matcher = keywordsPattern.matcher(word);
         if (matcher.matches()){
@@ -129,5 +182,17 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument {
         TabSet tabSet = new TabSet(tabs);
         AttributeSet attributeSet = context.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabSet);
         setParagraphAttributes(0, 0, attributeSet, false);
+    }
+
+
+    public void checkForTextChanges() {
+        if (insertChangeDTO != null){
+            undoRedoManager.addNewChange(insertChangeDTO);
+            insertChangeDTO = null;
+        }
+        if (removeChangeDTO != null){
+            undoRedoManager.addNewChange(removeChangeDTO);
+            removeChangeDTO = null;
+        }
     }
 }

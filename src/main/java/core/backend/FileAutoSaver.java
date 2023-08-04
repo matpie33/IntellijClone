@@ -1,7 +1,5 @@
 package core.backend;
 
-import core.uievents.UIEventObserver;
-import core.uievents.UIEventType;
 import org.springframework.stereotype.Component;
 
 import java.util.Timer;
@@ -15,7 +13,7 @@ public class FileAutoSaver {
     private final int checkPeriod;
     private final FileIO fileIO;
 
-    private int idleTimeBeforeSave = 5000;
+    private int idleTimeBeforeSave = 2000;
 
     private long lastKeyReleasedTime;
 

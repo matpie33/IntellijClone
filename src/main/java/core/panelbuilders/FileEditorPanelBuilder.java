@@ -10,6 +10,7 @@ import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.dto.FileSystemChangeDTO;
 import core.mouselisteners.PopupMenuRequestListener;
+import core.shortcuts.FileEditorShortcuts;
 import core.ui.components.EditorScrollPane;
 import core.ui.components.SyntaxColorStyledDocument;
 import core.uibuilders.TabPaneBuilderUI;
@@ -51,12 +52,15 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
     private TabPaneBuilderUI tabPaneBuilderUI;
     private ApplicationContext applicationContext;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI) {
+    private FileEditorShortcuts fileEditorShortcuts;
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicatonState = applicatonState;
         this.fileIO = fileIO;
         this.tabPaneBuilderUI = tabPaneBuilderUI;
+        this.fileEditorShortcuts = fileEditorShortcuts;
     }
 
     @PostConstruct
@@ -65,7 +69,9 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
         JScrollPane scrollPane = createScrollableTextEditor("", true);
         tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>());
-        rootPanel.add(tabPaneBuilderUI.getTabbedPane(), BorderLayout.CENTER);
+        JTabbedPane tabbedPane = tabPaneBuilderUI.getTabbedPane();
+        rootPanel.add(tabbedPane, BorderLayout.CENTER);
+        fileEditorShortcuts.assignShortcuts(tabbedPane);
     }
 
     private JScrollPane createScrollableTextEditor(String text, boolean editable) {
@@ -75,6 +81,12 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             public boolean getScrollableTracksViewportWidth() {
                 return getUI().getPreferredSize(this).width
                         <= getParent().getSize().width;
+            }
+
+            @Override
+            public void setText(String t) {
+                super.setText(t);
+                document.clearChanges();
             }
         };
         editorText.setEditable(editable);
@@ -112,7 +124,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 Position lineStart = (Position)data;
-                EditorScrollPane editorScrollPane = (EditorScrollPane) tabPaneBuilderUI.getActiveTabContent();
+                EditorScrollPane editorScrollPane = tabPaneBuilderUI.getScrollPaneFromActiveTab();
                 JTextPane editorText = editorScrollPane.getTextEditor();
                 Element rootElement = editorText.getDocument().getDefaultRootElement();
                 editorText.setCaretPosition(rootElement.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
@@ -134,6 +146,13 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                         throw new RuntimeException(e);
                     }
                 }
+                break;
+            case AUTOSAVE_DONE:
+                EditorScrollPane scrollPane = tabPaneBuilderUI.getScrollPaneFromActiveTab();
+                SyntaxColorStyledDocument syntaxColorDocument = (SyntaxColorStyledDocument) scrollPane.getTextEditor().getDocument();
+                syntaxColorDocument.checkForTextChanges();
+                break;
+
         }
     }
 
