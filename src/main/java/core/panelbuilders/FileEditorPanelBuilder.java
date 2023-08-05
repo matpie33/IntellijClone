@@ -9,9 +9,12 @@ import core.contextMenu.ContextType;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.dto.FileSystemChangeDTO;
+import core.keylisteners.CodeCompletionNavigator;
 import core.mouselisteners.PopupMenuRequestListener;
 import core.shortcuts.FileEditorShortcuts;
+import core.ui.components.CodeCompletionPopup;
 import core.ui.components.EditorScrollPane;
+import core.ui.components.FileEditorComponent;
 import core.ui.components.SyntaxColorStyledDocument;
 import core.uibuilders.TabPaneBuilderUI;
 import core.uievents.UIEventObserver;
@@ -54,13 +57,17 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private FileEditorShortcuts fileEditorShortcuts;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts) {
+    private CodeCompletionPopup codeCompletionPopup;
+
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicatonState = applicatonState;
         this.fileIO = fileIO;
         this.tabPaneBuilderUI = tabPaneBuilderUI;
         this.fileEditorShortcuts = fileEditorShortcuts;
+        this.codeCompletionPopup = codeCompletionPopup;
     }
 
     @PostConstruct
@@ -76,19 +83,8 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private JScrollPane createScrollableTextEditor(String text, boolean editable) {
         SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
-        JTextPane editorText = new JTextPane(document) {
-            @Override
-            public boolean getScrollableTracksViewportWidth() {
-                return getUI().getPreferredSize(this).width
-                        <= getParent().getSize().width;
-            }
-
-            @Override
-            public void setText(String t) {
-                super.setText(t);
-                document.clearChanges();
-            }
-        };
+        CodeCompletionNavigator codeCompletionNavigator = new CodeCompletionNavigator(codeCompletionPopup, document);
+        FileEditorComponent editorText = new FileEditorComponent (document);
         editorText.setEditable(editable);
         editorText.setCaret(new ImprovedCaret());
         editorText.getCaret().setBlinkRate(500);
@@ -98,9 +94,11 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             public void keyReleased(KeyEvent e) {
                 fileAutoSaver.recordKeyRelease(editorText.getText());
                 applicatonState.addCurrentFileToClassesToRecompile();
+                codeCompletionNavigator.handleCodeCompletionNavigation(e);
             }
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
+        editorText.addMouseListener(codeCompletionPopup);
 
         document.initialize(editorFont, editorText);
         EditorScrollPane editorScrollPane = new EditorScrollPane(editorText);

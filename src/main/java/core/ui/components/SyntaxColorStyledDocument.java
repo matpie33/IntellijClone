@@ -34,10 +34,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     private RemoveChangeDTO removeChangeDTO;
 
+    private CodeCompletionPopup codeCompletionPopup;
+    private JTextPane textComponent;
 
-    public SyntaxColorStyledDocument(ApplicatonState applicatonState, UndoRedoManager undoRedoManager) {
+
+    public SyntaxColorStyledDocument(ApplicatonState applicatonState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup) {
         this.applicatonState = applicatonState;
         this.undoRedoManager = undoRedoManager;
+        this.codeCompletionPopup = codeCompletionPopup;
     }
 
     public void clearChanges (){
@@ -76,6 +80,11 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (insertChangeDTO == null){
             insertChangeDTO = new InsertChangeDTO(offset);
         }
+        codeCompletionPopup.addSuggestion("ClassNameForTestSuggestion, entered text: "+textToAdd);
+        if (!textToAdd.equals("\n")){
+            codeCompletionPopup.show(textComponent);
+        }
+
         insertChangeDTO.appendText(textToAdd);
         insertInternal(offset, textToAdd);
 
@@ -99,7 +108,6 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
             }
         }
-
         if (textToAdd.equals("\n")){
             return;
         }
@@ -204,5 +212,24 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             undoRedoManager.addNewChange(removeChangeDTO);
             removeChangeDTO = null;
         }
+    }
+
+    public void setTextComponent(JTextPane textComponent) {
+        this.textComponent = textComponent;
+    }
+
+    public void selectNextSuggestionOptionally() {
+        codeCompletionPopup.selectNextIfVisible();
+
+    }
+
+    public void selectPreviousSuggestionOptionally() {
+        codeCompletionPopup.selectPreviousIfVisible();
+
+    }
+
+
+    public void insertText(int offset, String selectedValue) throws BadLocationException {
+        insertString(offset, selectedValue, defaultColorAttribute);
     }
 }

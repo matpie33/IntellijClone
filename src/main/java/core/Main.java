@@ -5,6 +5,7 @@ import core.backend.DirectoryChangesDetector;
 import core.dto.ApplicatonState;
 import core.panelbuilders.RootPanelBuilder;
 import core.shortcuts.ApplicationShortcuts;
+import core.ui.components.CodeCompletionPopup;
 import core.uibuilders.MenuBuilderUI;
 import core.uibuilders.ProjectStructureNodesHandler;
 import core.uievents.UIEventObserver;
@@ -24,6 +25,9 @@ public class Main implements UIEventObserver {
 
     private ProjectStructureNodesHandler projectStructureNodesHandler;
 
+    private CodeCompletionPopup codeCompletionPopup;
+
+
 
     public static void main(String[] args) {
         FlatNordIJTheme.setup();
@@ -34,8 +38,9 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts) throws IOException {
+    public Main (MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts, CodeCompletionPopup codeCompletionPopup) throws IOException {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
+        this.codeCompletionPopup = codeCompletionPopup;
 
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
@@ -44,6 +49,7 @@ public class Main implements UIEventObserver {
         FRAME.setContentPane(mainPanel);
         FRAME.setVisible(true);
         FRAME.addWindowFocusListener(directoryChangesDetector);
+        FRAME.addWindowFocusListener(codeCompletionPopup);
         FRAME.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         applicationShortcuts.assignShortcuts(mainPanel);
 
