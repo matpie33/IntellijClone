@@ -59,7 +59,12 @@ public class OpenProjectActionListener implements MenuItemListener {
             mavenCommandsController.interrupt();
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
             DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
-            projectStructureNodesHandler.addNodesForJDKSources(rootNode, javaSourcesExtractor.getJavaSourcesDirectory());
+            File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory();
+            threadExecutor.scheduleIndependentTask(()->{
+                cacheClassesWithMainMethods(jdkSourcesRoot);
+            });
+
+            projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
 
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
         }

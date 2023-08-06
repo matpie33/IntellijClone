@@ -1,6 +1,7 @@
 package core.ui.components;
 
 import com.github.javaparser.Range;
+import core.backend.AvailableClassesFilter;
 import core.backend.UndoRedoManager;
 import core.constants.SyntaxModifiers;
 import core.dto.*;
@@ -11,6 +12,7 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,11 +39,20 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private CodeCompletionPopup codeCompletionPopup;
     private JTextPane textComponent;
 
+    private AvailableClassesFilter availableClassesFilter;
 
-    public SyntaxColorStyledDocument(ApplicatonState applicatonState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup) {
+    private StringBuilder wordBeingTyped = new StringBuilder();
+    private boolean showSuggestions;
+
+    public SyntaxColorStyledDocument(ApplicatonState applicatonState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter) {
         this.applicatonState = applicatonState;
         this.undoRedoManager = undoRedoManager;
         this.codeCompletionPopup = codeCompletionPopup;
+        this.availableClassesFilter = availableClassesFilter;
+    }
+
+    public void showSuggestions (boolean show){
+        showSuggestions = show;
     }
 
     public void clearChanges (){
@@ -77,11 +88,18 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     @Override
     public void insertString (int offset, String textToAdd, AttributeSet attributeSet) throws BadLocationException {
+        if (textToAdd.equals("\n") && codeCompletionPopup.isVisible()){
+            return;
+        }
         if (insertChangeDTO == null){
             insertChangeDTO = new InsertChangeDTO(offset);
         }
-        codeCompletionPopup.addSuggestion("ClassNameForTestSuggestion, entered text: "+textToAdd);
-        if (!textToAdd.equals("\n")){
+
+        if (showSuggestions && !textToAdd.equals("\n") && !textToAdd.equals(" ")){
+            wordBeingTyped.append(textToAdd);
+            Set<String> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+            codeCompletionPopup.clear();
+            codeCompletionPopup.addSuggestions(suggestedClasses);
             codeCompletionPopup.show(textComponent);
         }
 
@@ -161,6 +179,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     @Override
     public void remove (int offset, int length) throws BadLocationException {
+        if (wordBeingTyped.length()>0){
+            wordBeingTyped.setLength(wordBeingTyped.length()-length);
+        }
+        if (showSuggestions){
+            Set<String> classesStartingWith = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+            codeCompletionPopup.clear();
+            codeCompletionPopup.addSuggestions(classesStartingWith);
+        }
         if (insertChangeDTO != null){
             undoRedoManager.addNewChange(insertChangeDTO);
             insertChangeDTO = null;
@@ -214,6 +240,10 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
     }
 
+    public void clearWordBeingTyped (){
+        wordBeingTyped.setLength(0);
+    }
+
     public void setTextComponent(JTextPane textComponent) {
         this.textComponent = textComponent;
     }
@@ -229,7 +259,10 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     }
 
 
-    public void insertText(int offset, String selectedValue) throws BadLocationException {
-        insertString(offset, selectedValue, defaultColorAttribute);
+    public void insertSuggestedText(int offset, String text) throws BadLocationException {
+        int deletedCharactersAmount = wordBeingTyped.length();
+        remove(offset - deletedCharactersAmount, deletedCharactersAmount);
+        insertString(offset-deletedCharactersAmount, text, defaultColorAttribute);
+        wordBeingTyped.setLength(0);
     }
 }

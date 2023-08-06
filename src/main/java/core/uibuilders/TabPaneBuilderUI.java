@@ -1,5 +1,6 @@
 package core.uibuilders;
 
+import core.backend.FileAutoSaver;
 import core.dto.ApplicatonState;
 import core.dto.FileReadResultDTO;
 import core.ui.components.EditorScrollPane;
@@ -9,6 +10,7 @@ import core.uievents.UIEventsQueue;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -28,9 +30,12 @@ public class TabPaneBuilderUI {
 
     private ApplicatonState applicatonState;
 
-    public TabPaneBuilderUI(UIEventsQueue uiEventsQueue, ApplicatonState applicatonState) {
+    private FileAutoSaver fileAutoSaver;
+
+    public TabPaneBuilderUI(UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, FileAutoSaver fileAutoSaver) {
         this.uiEventsQueue = uiEventsQueue;
         this.applicatonState = applicatonState;
+        this.fileAutoSaver = fileAutoSaver;
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     }
@@ -49,6 +54,7 @@ public class TabPaneBuilderUI {
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                fileAutoSaver.save();
                 FileReadResultDTO readResult = new FileReadResultDTO();
                 readResult.setFile(file);
                 readResult.setLines(lines);
@@ -124,7 +130,16 @@ public class TabPaneBuilderUI {
         return (SyntaxColorStyledDocument) selectedComponent.getTextEditor().getDocument();
     }
 
+    public JTextPane getTextComponentFromActiveTab (){
+        EditorScrollPane selectedComponent = (EditorScrollPane) tabbedPane.getSelectedComponent();
+        return selectedComponent.getTextEditor();
+    }
+
     public void selectTab(File file) {
         tabbedPane.setSelectedComponent(openedTabs.get(file));
+    }
+
+    public void addTabChangeListener(ChangeListener changeListener) {
+        tabbedPane.addChangeListener(changeListener);
     }
 }

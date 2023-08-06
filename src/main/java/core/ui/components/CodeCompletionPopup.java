@@ -8,6 +8,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
+import java.util.Set;
 
 @Component
 public class CodeCompletionPopup extends MouseAdapter implements WindowFocusListener {
@@ -33,10 +34,11 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
 
     public void hide (){
         popup.setVisible(false);
+        clear();
     }
 
-    public void addSuggestion(String text){
-        listModel.addElement(text);
+    public void addSuggestions(Set<String> text){
+        text.forEach(listModel::addElement);
         if (listModel.getSize()==1){
             list.setSelectedIndex(0);
         }
@@ -60,6 +62,10 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
         }
     }
 
+    public void clear(){
+        listModel.removeAllElements();
+    }
+
     public void requestFocus(KeyEvent e) {
         if (popup.isVisible()){
             list.requestFocusInWindow();
@@ -71,7 +77,7 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
         return popup.isVisible();
     }
 
-    public String getSelectedValue(KeyEvent e) {
+    public String getSelectedValue(InputEvent e) {
 
         if (popup.isVisible()){
             e.consume();
@@ -100,5 +106,9 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     @Override
     public void windowLostFocus(WindowEvent e) {
         hide();;
+    }
+
+    public void addMouseListener(MouseListener mouseListener) {
+        list.addMouseListener(mouseListener);
     }
 }

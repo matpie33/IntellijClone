@@ -30,6 +30,8 @@ import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -83,7 +85,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private JScrollPane createScrollableTextEditor(String text, boolean editable) {
         SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
-        CodeCompletionNavigator codeCompletionNavigator = new CodeCompletionNavigator(codeCompletionPopup, document);
+        CodeCompletionNavigator codeCompletionNavigator = new CodeCompletionNavigator(codeCompletionPopup, document, tabPaneBuilderUI);
         FileEditorComponent editorText = new FileEditorComponent (document);
         editorText.setEditable(editable);
         editorText.setCaret(new ImprovedCaret());
@@ -98,7 +100,13 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             }
         });
         editorText.addMouseListener(new PopupMenuRequestListener(ContextType.FILE_EDITOR, contextConfiguration));
-        editorText.addMouseListener(codeCompletionPopup);
+        editorText.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                codeCompletionPopup.hide();
+                document.clearWordBeingTyped();
+            }
+        });
 
         document.initialize(editorFont, editorText);
         EditorScrollPane editorScrollPane = new EditorScrollPane(editorText);

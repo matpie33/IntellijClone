@@ -16,6 +16,11 @@ public class ApplicatonState {
 
     private Set<File> classesToRecompile = new HashSet<>();
 
+    private List<String> availableClassNames = new ArrayList<>();
+
+    private Map<String, String> classNameToPackageMap = new HashMap<>();
+
+
     private WatchService fileWatcher;
 
     private File projectPath;
@@ -31,6 +36,15 @@ public class ApplicatonState {
     private Set<File> classesWithCompilationErrors = new HashSet<>();
 
     private String localRepositoryPath;
+
+    public void addClassWithPackage (String className, String packageName){
+        availableClassNames.add(className);
+        classNameToPackageMap.put(className, packageName);
+    }
+
+    public Map<String, String> getClassNameToPackageMap() {
+        return classNameToPackageMap;
+    }
 
     public String getLocalRepositoryPath() {
         return localRepositoryPath;
@@ -91,6 +105,10 @@ public class ApplicatonState {
 
     public List<File> getClassesWithMainMethod() {
         return classesWithMainMethod;
+    }
+
+    public List<String> getAvailableClassNames() {
+        return availableClassNames;
     }
 
     public void renameFileIfContainsMainMethod(File oldFile, File newFile ){

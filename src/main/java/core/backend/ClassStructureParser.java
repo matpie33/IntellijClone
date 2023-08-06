@@ -11,6 +11,7 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import com.github.javaparser.ast.stmt.*;
 import core.dto.ApplicatonState;
 import core.dto.ClassStructureDTO;
@@ -34,6 +35,17 @@ public class ClassStructureParser {
     public boolean parseClassStructure(File file){
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
+            NodeList<TypeDeclaration<?>> types = cu.getTypes();
+            if (types.isEmpty()){
+                return false;
+            }
+            TypeDeclaration<?> typeDeclaration = types.get(0);
+            if (typeDeclaration instanceof ClassOrInterfaceDeclaration){
+                ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
+                String name = classOrInterfaceDeclaration.getNameAsString();
+                String packageName = cu.getPackageDeclaration().map(NodeWithName::getNameAsString).orElse("");
+                applicatonState.addClassWithPackage(name, packageName);
+            }
             ClassStructureDTO classStructureDTO = new ClassStructureDTO();
             Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
             Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
@@ -144,7 +156,7 @@ public class ClassStructureParser {
     private Range getVariableScope(VariableDeclarationExpr variableDeclaration) {
         Range variableScope;
         Node parentNode = variableDeclaration.getParentNode().get();
-        if (parentNode instanceof ForStmt || parentNode instanceof ForEachStmt){
+        if (parentNode instanceof ForStmt || parentNode instanceof ForEachStmt || parentNode instanceof TryStmt){
             variableScope = parentNode.getRange().get();
         }
         else if (parentNode instanceof ExpressionStmt){
