@@ -19,21 +19,20 @@ import java.awt.event.MouseEvent;
 public class CodeCompletionNavigator extends MouseAdapter implements ChangeListener {
 
 
-    private final SyntaxColorStyledDocument textDocument;
     private CodeCompletionPopup codeCompletionPopup;
 
     private TabPaneBuilderUI tabPaneBuilderUI;
 
-    public CodeCompletionNavigator(CodeCompletionPopup codeCompletionPopup, SyntaxColorStyledDocument textDocument, TabPaneBuilderUI tabPaneBuilderUI) {
+    public CodeCompletionNavigator(CodeCompletionPopup codeCompletionPopup, TabPaneBuilderUI tabPaneBuilderUI) {
         this.codeCompletionPopup = codeCompletionPopup;
         this.tabPaneBuilderUI = tabPaneBuilderUI;
         codeCompletionPopup.addMouseListener(this);
         tabPaneBuilderUI.addTabChangeListener(this);
-        this.textDocument = textDocument;
     }
 
     public void handleCodeCompletionNavigation(KeyEvent e) {
         JTextComponent editorText = (JTextComponent) e.getSource();
+        SyntaxColorStyledDocument textDocument = tabPaneBuilderUI.getDocumentForActiveEditor();
         switch (e.getKeyCode()){
             case KeyEvent.VK_DOWN:
                 textDocument.selectNextSuggestionOptionally();
@@ -64,6 +63,7 @@ public class CodeCompletionNavigator extends MouseAdapter implements ChangeListe
     public void insertSelectedValue(InputEvent e, JTextComponent editorText) {
         String selectedValue = codeCompletionPopup.getSelectedValue(e);
         int offset = editorText.getCaretPosition();
+        SyntaxColorStyledDocument textDocument = tabPaneBuilderUI.getDocumentForActiveEditor();
         try {
             textDocument.insertSuggestedText(offset, selectedValue);
             codeCompletionPopup.hide();

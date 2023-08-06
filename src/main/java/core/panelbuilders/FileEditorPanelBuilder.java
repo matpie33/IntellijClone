@@ -61,8 +61,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private CodeCompletionPopup codeCompletionPopup;
 
+    private CodeCompletionNavigator codeCompletionNavigator;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup) {
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup, CodeCompletionNavigator codeCompletionNavigator) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicatonState = applicatonState;
@@ -70,6 +72,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         this.tabPaneBuilderUI = tabPaneBuilderUI;
         this.fileEditorShortcuts = fileEditorShortcuts;
         this.codeCompletionPopup = codeCompletionPopup;
+        this.codeCompletionNavigator = codeCompletionNavigator;
     }
 
     @PostConstruct
@@ -85,7 +88,6 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private JScrollPane createScrollableTextEditor(String text, boolean editable) {
         SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
-        CodeCompletionNavigator codeCompletionNavigator = new CodeCompletionNavigator(codeCompletionPopup, document, tabPaneBuilderUI);
         FileEditorComponent editorText = new FileEditorComponent (document);
         editorText.setEditable(editable);
         editorText.setCaret(new ImprovedCaret());
