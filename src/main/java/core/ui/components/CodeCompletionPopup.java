@@ -14,9 +14,12 @@ import java.util.Set;
 public class CodeCompletionPopup extends MouseAdapter implements WindowFocusListener {
 
     public static final int POPUP_OFFSET_Y_FROM_CARET = 20;
+    public static final String CARET_DOWN = "caret-down";
+    public static final String CARET_UP = "caret-up";
     private final JList<String> list;
     private final DefaultListModel<String> listModel;
     private JPopupMenu popup;
+    private ActionMap currentTextFieldActionMap;
 
     public CodeCompletionPopup(){
         popup = new JPopupMenu();
@@ -35,6 +38,12 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     public void hide (){
         popup.setVisible(false);
         clear();
+        if (currentTextFieldActionMap !=null){
+            currentTextFieldActionMap.get(CARET_DOWN).setEnabled(true);
+            currentTextFieldActionMap.get(CARET_UP).setEnabled(true);
+
+        }
+
     }
 
     public void addSuggestions(Set<String> text){
@@ -48,6 +57,10 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
         if (!textComponent.isShowing() || popup.isVisible()){
             return;
         }
+        currentTextFieldActionMap = textComponent.getActionMap();
+
+        currentTextFieldActionMap.get(CARET_DOWN).setEnabled(false);
+        currentTextFieldActionMap.get(CARET_UP).setEnabled(false);
         Rectangle2D caretPositionRelativeToTextPane = textComponent.modelToView2D(textComponent.getCaretPosition());
         Point textPaneLocation = textComponent.getLocationOnScreen();
         popup.setVisible(true);
@@ -64,13 +77,6 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
 
     public void clear(){
         listModel.removeAllElements();
-    }
-
-    public void requestFocus(KeyEvent e) {
-        if (popup.isVisible()){
-            list.requestFocusInWindow();
-            e.consume();
-        }
     }
 
     public  boolean isVisible (){

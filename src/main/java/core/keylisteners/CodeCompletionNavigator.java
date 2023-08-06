@@ -36,14 +36,10 @@ public class CodeCompletionNavigator extends MouseAdapter implements ChangeListe
         JTextComponent editorText = (JTextComponent) e.getSource();
         switch (e.getKeyCode()){
             case KeyEvent.VK_DOWN:
-                codeCompletionPopup.requestFocus(e);
                 textDocument.selectNextSuggestionOptionally();
-                editorText.requestFocusInWindow();
                 break;
             case KeyEvent.VK_UP:
-                codeCompletionPopup.requestFocus(e);
                 textDocument.selectPreviousSuggestionOptionally();
-                editorText.requestFocusInWindow();
                 break;
             case KeyEvent.VK_LEFT:
             case KeyEvent.VK_RIGHT:
