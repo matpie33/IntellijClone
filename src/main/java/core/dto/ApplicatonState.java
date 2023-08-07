@@ -1,5 +1,7 @@
 package core.dto;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -18,7 +20,7 @@ public class ApplicatonState {
 
     private List<String> availableClassNames = new ArrayList<>();
 
-    private Map<String, String> classNameToPackageMap = new HashMap<>();
+    private Multimap<String, String> classNameToPackageMap = ArrayListMultimap.create();
 
 
     private WatchService fileWatcher;
@@ -42,8 +44,8 @@ public class ApplicatonState {
         classNameToPackageMap.put(className, packageName);
     }
 
-    public Map<String, String> getClassNameToPackageMap() {
-        return classNameToPackageMap;
+    public Collection<String> getPackageNamesForClass(String className){
+        return classNameToPackageMap.get(className);
     }
 
     public String getLocalRepositoryPath() {

@@ -1,5 +1,6 @@
 package core.keylisteners;
 
+import core.dto.ClassSugestionDTO;
 import core.ui.components.CodeCompletionPopup;
 import core.ui.components.SyntaxColorStyledDocument;
 import core.uibuilders.TabPaneBuilderUI;
@@ -61,11 +62,11 @@ public class CodeCompletionNavigator extends MouseAdapter implements ChangeListe
     }
 
     public void insertSelectedValue(InputEvent e, JTextComponent editorText) {
-        String selectedValue = codeCompletionPopup.getSelectedValue(e);
+        ClassSugestionDTO suggestionSelected = codeCompletionPopup.getSelectedValue(e);
         int offset = editorText.getCaretPosition();
         SyntaxColorStyledDocument textDocument = tabPaneBuilderUI.getDocumentForActiveEditor();
         try {
-            textDocument.insertSuggestedText(offset, selectedValue);
+            textDocument.insertSuggestedText(offset, suggestionSelected);
             codeCompletionPopup.hide();
         } catch (BadLocationException ex) {
             throw new RuntimeException(ex);

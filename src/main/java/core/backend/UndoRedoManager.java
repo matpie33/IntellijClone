@@ -20,15 +20,15 @@ public class UndoRedoManager {
             actionsUndone.clear();
             actionsDone.clear();
         }
-        actionsDone.add(fileEditDTO);
+        actionsDone.addFirst(fileEditDTO);
     }
 
     public TextChangeDTO getNextUndoAction(){
-            return Optional.ofNullable(actionsDone.pollLast()).map(action->{actionsUndone.addLast(action); return action;}).orElse(new EmptyChangeDTO());
+            return Optional.ofNullable(actionsDone.pollFirst()).map(action->{actionsUndone.addFirst(action); return action;}).orElse(new EmptyChangeDTO());
     }
 
     public TextChangeDTO getNextRedoAction(){
-        return Optional.ofNullable(actionsUndone.pollLast()).map(action->{actionsDone.addLast(action); return action;}).orElse(new EmptyChangeDTO());
+        return Optional.ofNullable(actionsUndone.pollFirst()).map(action->{actionsDone.addFirst(action); return action;}).orElse(new EmptyChangeDTO());
 
 
     }

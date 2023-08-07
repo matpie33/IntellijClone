@@ -1,5 +1,6 @@
 package core.ui.components;
 
+import core.dto.ClassSugestionDTO;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -8,7 +9,8 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Map;
 
 @Component
 public class CodeCompletionPopup extends MouseAdapter implements WindowFocusListener {
@@ -16,8 +18,8 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     public static final int POPUP_OFFSET_Y_FROM_CARET = 20;
     public static final String CARET_DOWN = "caret-down";
     public static final String CARET_UP = "caret-up";
-    private final JList<String> list;
-    private final DefaultListModel<String> listModel;
+    private final JList<ClassSugestionDTO> list;
+    private final DefaultListModel<ClassSugestionDTO> listModel;
     private JPopupMenu popup;
     private ActionMap currentTextFieldActionMap;
 
@@ -46,8 +48,15 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
 
     }
 
-    public void addSuggestions(Set<String> text){
-        text.forEach(listModel::addElement);
+    public void addSuggestions(Map<String, Collection<String>> suggestions){
+        for (Map.Entry<String, Collection<String>> entry : suggestions.entrySet()) {
+            String className = entry.getKey();
+            Collection<String> packageNames = entry.getValue();
+            for (String packageName : packageNames) {
+                ClassSugestionDTO classSugestionDTO = new ClassSugestionDTO(className, packageName);
+                listModel.addElement(classSugestionDTO);
+            }
+        }
         if (listModel.getSize()==1){
             list.setSelectedIndex(0);
         }
@@ -83,7 +92,7 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
         return popup.isVisible();
     }
 
-    public String getSelectedValue(InputEvent e) {
+    public ClassSugestionDTO getSelectedValue(InputEvent e) {
 
         if (popup.isVisible()){
             e.consume();

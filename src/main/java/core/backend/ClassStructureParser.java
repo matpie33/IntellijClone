@@ -6,12 +6,12 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import com.github.javaparser.ast.stmt.*;
 import core.dto.ApplicatonState;
 import core.dto.ClassStructureDTO;
@@ -40,13 +40,21 @@ public class ClassStructureParser {
                 return false;
             }
             TypeDeclaration<?> typeDeclaration = types.get(0);
+            ClassStructureDTO classStructureDTO = new ClassStructureDTO();
+            cu.getImports().forEach(importDeclaration -> classStructureDTO.addImport(importDeclaration.getNameAsString()));
             if (typeDeclaration instanceof ClassOrInterfaceDeclaration){
                 ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
                 String name = classOrInterfaceDeclaration.getNameAsString();
-                String packageName = cu.getPackageDeclaration().map(NodeWithName::getNameAsString).orElse("");
+                Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
+                String packageName = "";
+                if (packageDeclaration.isPresent()){
+                    PackageDeclaration declaration = packageDeclaration.get();
+                    Range range = declaration.getRange().get();
+                    classStructureDTO.setPackageDeclarationPosition(range.begin);
+                    packageName = declaration.getNameAsString();
+                }
                 applicatonState.addClassWithPackage(name, packageName);
             }
-            ClassStructureDTO classStructureDTO = new ClassStructureDTO();
             Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
             Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
             checkForFieldsAccess(cu, classStructureDTO, fieldNames, variablesHidingFields);

@@ -11,10 +11,12 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 @Component
 @Scope("prototype")
@@ -67,6 +69,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             InsertChangeDTO insert = (InsertChangeDTO) undoAction;
             removeInternal(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().length());
         }
+        if (undoAction instanceof InsertImportChangeDTO){
+            applicatonState.getClassStructureOfOpenedFile().removeImport(((InsertImportChangeDTO)undoAction).getFullyQualifiedClassName());
+        }
         if (undoAction instanceof RemoveChangeDTO){
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
             insertInternal(removeAction.getStartingOffset(), removeAction.getTextRemoved().toString());
@@ -80,6 +85,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             InsertChangeDTO insert = (InsertChangeDTO)undoAction;
             insertInternal(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().toString());
         }
+        if (undoAction instanceof InsertImportChangeDTO){
+            applicatonState.getClassStructureOfOpenedFile().addImport(((InsertImportChangeDTO)undoAction).getFullyQualifiedClassName());
+        }
         if (undoAction instanceof RemoveChangeDTO){
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
             removeInternal(removeAction.getStartingOffset(), removeAction.getTextRemoved().length());
@@ -91,13 +99,17 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (textToAdd.equals("\n") && codeCompletionPopup.isVisible()){
             return;
         }
-        if (insertChangeDTO == null){
+        if (removeChangeDTO != null){
+            undoRedoManager.addNewChange(removeChangeDTO);
+            removeChangeDTO = null;
+        }
+        if ( insertChangeDTO == null){
             insertChangeDTO = new InsertChangeDTO(offset);
         }
 
         if (showSuggestions && !textToAdd.equals("\n") && !textToAdd.equals(" ")){
             wordBeingTyped.append(textToAdd);
-            Set<String> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+            Map<String, Collection<String >> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
             codeCompletionPopup.clear();
             codeCompletionPopup.addSuggestions(suggestedClasses);
             codeCompletionPopup.show(textComponent);
@@ -183,9 +195,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             wordBeingTyped.setLength(wordBeingTyped.length()-length);
         }
         if (showSuggestions){
-            Set<String> classesStartingWith = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+            Map<String, Collection<String>> suggestions = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
             codeCompletionPopup.clear();
-            codeCompletionPopup.addSuggestions(classesStartingWith);
+            codeCompletionPopup.addSuggestions(suggestions);
         }
         if (insertChangeDTO != null){
             undoRedoManager.addNewChange(insertChangeDTO);
@@ -259,10 +271,29 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     }
 
 
-    public void insertSuggestedText(int offset, String text) throws BadLocationException {
-        int deletedCharactersAmount = wordBeingTyped.length();
-        remove(offset - deletedCharactersAmount, deletedCharactersAmount);
-        insertString(offset-deletedCharactersAmount, text, defaultColorAttribute);
+    public void insertSuggestedText(int offset, ClassSugestionDTO suggestionSelected) throws BadLocationException {
+        insertChangeDTO = null;
+        int preTypedWordsLength = wordBeingTyped.length();
+        removeInternal(offset - preTypedWordsLength, preTypedWordsLength);
+        ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
+
+        int lineAfterPackageDeclaration = classStructure.getPackageDeclarationPosition() == null? 0: classStructure.getPackageDeclarationPosition().line;
+        Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);
+        int offsetForImport = element.getStartOffset();
+        String fullyQualifiedClassName = String.format("%s.%s", suggestionSelected.getPackageName(), suggestionSelected.getClassName());
+        String importText = String.format("import %s;\n", fullyQualifiedClassName);
+        boolean classAlreadyHasThisImport = classStructure.containsImport(fullyQualifiedClassName);
+
+        insertString(offset-preTypedWordsLength, suggestionSelected.getClassName(), defaultColorAttribute);
+        checkForTextChanges();
+
+        if (!classAlreadyHasThisImport){
+            classStructure.addImport(fullyQualifiedClassName);
+            insertChangeDTO = new InsertImportChangeDTO(offsetForImport, fullyQualifiedClassName);
+            insertString(offsetForImport, importText, defaultColorAttribute);
+            checkForTextChanges();
+        }
+
         wordBeingTyped.setLength(0);
     }
 }
