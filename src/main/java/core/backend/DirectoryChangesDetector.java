@@ -50,13 +50,15 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
         }
 
         boolean shouldCheckForKeys = true;
+        boolean changesDetected = false;
+        List<Path> createdFiles = new ArrayList<>();
+        List<Path> removedFiles = new ArrayList<>();
+        List<Path> modifiedFiles = new ArrayList<>();
         while (shouldCheckForKeys){
             WatchKey key = applicatonState.getFileWatcher().poll();
             if (key != null){
+                changesDetected = true;
                 List<WatchEvent<?>> watchEvents = key.pollEvents();
-                List<Path> createdFiles = new ArrayList<>();
-                List<Path> removedFiles = new ArrayList<>();
-                List<Path> modifiedFiles = new ArrayList<>();
                 for (WatchEvent<?> watchEvent : watchEvents) {
                     WatchEvent.Kind<?> kind = watchEvent.kind();
                     Path file = (Path) watchEvent.context();
@@ -73,11 +75,13 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
                     }
                 }
 
-                FileSystemChangeDTO fileSystemChangeDTO = new FileSystemChangeDTO(createdFiles, modifiedFiles, removedFiles);
-                uiEventsQueue.dispatchEvent(UIEventType.PROJECT_STRUCTURE_CHANGED, fileSystemChangeDTO);
                 key.reset();
             }
             shouldCheckForKeys = key !=null;
+        }
+        if (changesDetected){
+            FileSystemChangeDTO fileSystemChangeDTO = new FileSystemChangeDTO(createdFiles, modifiedFiles, removedFiles);
+            uiEventsQueue.dispatchEvent(UIEventType.PROJECT_STRUCTURE_CHANGED, fileSystemChangeDTO);
         }
 
 
