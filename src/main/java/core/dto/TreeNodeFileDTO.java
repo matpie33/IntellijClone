@@ -1,5 +1,7 @@
 package core.dto;
 
+import java.util.Objects;
+
 public class TreeNodeFileDTO {
 
     public enum Type {
@@ -37,5 +39,18 @@ public class TreeNodeFileDTO {
     @Override
     public String toString() {
         return displayName;
+    }
+
+    @Override
+    public boolean equals(Object objectInstance) {
+        if (this == objectInstance) return true;
+        if (objectInstance == null || getClass() != objectInstance.getClass()) return false;
+        TreeNodeFileDTO that = (TreeNodeFileDTO) objectInstance;
+        return type == that.type && Objects.equals(displayName, that.displayName) && Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, displayName, path);
     }
 }

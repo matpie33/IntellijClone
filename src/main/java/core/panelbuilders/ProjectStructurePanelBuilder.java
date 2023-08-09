@@ -38,8 +38,6 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private ContextConfiguration contextConfiguration;
 
-
-
     private DirectoryChangesDetector directoryChangesDetector;
 
     private ProjectStructureTreeShortcuts projectStructureTreeShortcuts;

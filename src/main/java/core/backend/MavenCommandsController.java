@@ -23,11 +23,14 @@ public class MavenCommandsController {
 
     private ClassesFromJarsExtractor classesFromJarsExtractor;
 
-    public MavenCommandsController(MavenCommandExecutor mavenCommandExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue, ClassesFromJarsExtractor classesFromJarsExtractor) {
+    private DirectoryChangesDetector directoryChangesDetector;
+
+    public MavenCommandsController(MavenCommandExecutor mavenCommandExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue, ClassesFromJarsExtractor classesFromJarsExtractor, DirectoryChangesDetector directoryChangesDetector) {
         this.mavenCommandExecutor = mavenCommandExecutor;
         this.applicatonState = applicatonState;
         this.uiEventsQueue = uiEventsQueue;
         this.classesFromJarsExtractor = classesFromJarsExtractor;
+        this.directoryChangesDetector = directoryChangesDetector;
     }
 
     public void executeMavenCommands() {
@@ -47,7 +50,10 @@ public class MavenCommandsController {
         applicatonState.setLocalRepositoryPath(localRepositoryResult.getOutput().trim());
         uiEventsQueue.dispatchEvent(UIEventType.MAVEN_CLASSPATH_READED, jarToClassesMap);
 
-        runMvnCommand(dialogErrorMessage, new String[]{"clean","install"}, new String[]{"-Dmaven.test.skip"});
+        runMvnCommand(dialogErrorMessage, new String[]{"clean"}, new String[]{"-Dmaven.test.skip"});
+        directoryChangesDetector.checkForChangesInWatchedDirectories();
+        runMvnCommand(dialogErrorMessage, new String[]{"install"}, new String[]{"-Dmaven.test.skip"});
+        directoryChangesDetector.checkForChangesInWatchedDirectories();
     }
 
     private MavenCommandResultDTO runMvnCommand(String dialogMessage, String[] goal, String[] args) {

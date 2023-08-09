@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -220,63 +219,101 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                                     DefaultTreeModel model){
         List<Path> createdFiles = fileSystemChangeDTO.getCreatedFiles();
         List<Path> deletedFiles = fileSystemChangeDTO.getDeletedFiles();
-        if (createdFiles.isEmpty() && deletedFiles.isEmpty()){
+        List<Path> modifiedFiles = fileSystemChangeDTO.getModifiedFiles();
+        if (createdFiles.isEmpty() && deletedFiles.isEmpty() && modifiedFiles.isEmpty()){
             return;
         }
 
-        Enumeration<TreeNode> enumeration = rootNode.depthFirstEnumeration();
-        List<DefaultMutableTreeNode> nodesToDelete = new ArrayList<>();
-        while (enumeration.hasMoreElements()){
-            DefaultMutableTreeNode iteratedNode = (DefaultMutableTreeNode) enumeration.nextElement();
-            Path iteratedNodeFilePath = getFilePathFromNode(iteratedNode);
-            handleAddNode(model, createdFiles, iteratedNode, iteratedNodeFilePath);
-            handleRemoveNode(deletedFiles, nodesToDelete, iteratedNode, iteratedNodeFilePath);
+        for (Path createdFile : createdFiles) {
+            findOrCreateNodesForPath(createdFile, rootNode, model);
         }
-        nodesToDelete.forEach(model::removeNodeFromParent);
+        for (Path modifiedFile : modifiedFiles) {
+            findOrCreateNodesForPath(modifiedFile, rootNode, model);
+        }
+        for (Path deletedFile : deletedFiles) {
+            deleteNode(deletedFile, rootNode, model);
+        }
+
     }
 
-    private Path getFilePathFromNode(DefaultMutableTreeNode iteratedNode) {
-        String[] nodesPath  = Arrays.stream(iteratedNode.getUserObjectPath()).map(TreeNodeFileDTO.class::cast).map(TreeNodeFileDTO::getDisplayName).toArray(String[]::new);
-        return Path.of(applicatonState.getProjectPath().getParent(), nodesPath);
-    }
-
-    private void handleRemoveNode(List<Path> deletedFiles, List<DefaultMutableTreeNode> nodesToDelete, DefaultMutableTreeNode iteratedNode, Path iteratedNodeFilePath) {
-        if (deletedFiles.contains(iteratedNodeFilePath)){
-            deletedFiles.remove(iteratedNodeFilePath);
-            nodesToDelete.add(iteratedNode);
+    private void deleteNode(Path deletedFile, DefaultMutableTreeNode rootNode, DefaultTreeModel model) {
+        Path projectPath = applicatonState.getProjectPath().toPath();
+        Path fileRelativeToProjectPath = projectPath.relativize(deletedFile);
+        DefaultMutableTreeNode parentNode = rootNode;
+        DefaultMutableTreeNode node = null;
+        for (Path pathPart : fileRelativeToProjectPath) {
+            node = tryGetChildNodeByName(parentNode, pathPart.toString()).orElse(null);
+            if (node == null) {
+                break;
+            }
+            parentNode = node;
+        }
+        if (node!=null){
+            model.removeNodeFromParent(node);
         }
     }
 
-    private void handleAddNode(DefaultTreeModel model, List<Path> createdFiles, DefaultMutableTreeNode iteratedNode, Path iteratedNodeFilePath) {
-        for (int i = 0; i < createdFiles.size(); i++) {
-            Path iteratedCreatedFile = createdFiles.get(i);
 
-            if (iteratedCreatedFile.getParent().equals(iteratedNodeFilePath)) {
-                createdFiles.remove(iteratedCreatedFile);
-                i--;
-                DefaultMutableTreeNode addedNode = addNodeWithAllChildren(iteratedCreatedFile);
-                model.insertNodeInto(addedNode, iteratedNode, iteratedNode.getChildCount());
+    private void findOrCreateNodesForPath (Path path, DefaultMutableTreeNode rootNode, DefaultTreeModel model){
+        Path projectPath = applicatonState.getProjectPath().toPath();
+        Path fileRelativeToProjectPath = projectPath.relativize(path);
+        DefaultMutableTreeNode parentNode = rootNode;
+        DefaultMutableTreeNode node = null;
+        for (Iterator<Path> iterator = fileRelativeToProjectPath.iterator(); iterator.hasNext(); ) {
+            Path pathPart = iterator.next();
+            final DefaultMutableTreeNode localParent = parentNode;
+            node = tryGetChildNodeByName(parentNode, pathPart.toString()).orElseGet(()->createNode(iterator.hasNext(), pathPart.toString(), model, localParent));
+            parentNode = node;
+        }
+        File file = path.toFile();
+        if (file.isDirectory() && node != null){
+            for (File child : file.listFiles()) {
+                extractNodes(child, node);
             }
         }
     }
 
-    private DefaultMutableTreeNode addNodeWithAllChildren(Path filePath) {
-        File file = filePath.toFile();
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  filePath.getFileName().toString(), filePath.getFileName().toString()));
-        if (file.isDirectory()){
-            extractNodes(file, node);
-        }
+    private DefaultMutableTreeNode createNode(boolean isLast, String name, DefaultTreeModel model, DefaultMutableTreeNode parentNode) {
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(new TreeNodeFileDTO(isLast ? TreeNodeFileDTO.Type.SOURCE_CLASS : TreeNodeFileDTO.Type.DIRECTORY, name, ""));
+        model.insertNodeInto(node, parentNode, parentNode.getChildCount());
         return node;
     }
 
-    private void extractNodes(File directory, DefaultMutableTreeNode parent) {
-        for (File childFile : directory.listFiles()) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(TreeNodeFileDTO.Type.DIRECTORY,  childFile.getName(), childFile.getName()));
-            parent.add(childNode);
-            if (childFile.isDirectory()){
-                extractNodes(childFile, childNode);
+    private Optional<DefaultMutableTreeNode> tryGetChildNodeByName(DefaultMutableTreeNode parentNode, String searchedName) {
+        Optional<DefaultMutableTreeNode> foundChild = Optional.empty();
+        for (int i = 0; i < parentNode.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) parentNode.getChildAt(i);
+            TreeNodeFileDTO userObject = (TreeNodeFileDTO) child.getUserObject();
+            String nodeName = userObject.getDisplayName();
+            if (nodeName.equals(searchedName)) {
+                foundChild = Optional.of(child);
+                break;
             }
         }
+        return foundChild;
+    }
+
+    private void extractNodes(File directory, DefaultMutableTreeNode parent) {
+        boolean isDirectory = directory.isDirectory();
+        DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new TreeNodeFileDTO(isDirectory ? TreeNodeFileDTO.Type.DIRECTORY: TreeNodeFileDTO.Type.SOURCE_CLASS,  directory.getName(), directory.getName()));
+        if (!parentContainsNode(parent, childNode)){
+            parent.add(childNode);
+        }
+        if(isDirectory){
+            for (File file : directory.listFiles()) {
+                extractNodes(file, childNode);
+            }
+        }
+    }
+
+    private boolean parentContainsNode(DefaultMutableTreeNode parent, DefaultMutableTreeNode childNode) {
+        for (int i=0; i<parent.getChildCount(); i++){
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) parent.getChildAt(i);
+            if (node.getUserObject().equals(childNode.getUserObject())){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

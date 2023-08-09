@@ -10,7 +10,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,12 +31,12 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
 
     @Override
     public void mousePressed(MouseEvent e) {
-        checkDirectory();
+        checkForChangesInWatchedDirectories();
     }
 
     @Override
     public void windowGainedFocus(WindowEvent e) {
-        checkDirectory();
+        checkForChangesInWatchedDirectories();
     }
 
     @Override
@@ -41,7 +44,7 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
 
     }
 
-    private void checkDirectory (){
+    public void checkForChangesInWatchedDirectories(){
         if (applicatonState.getFileWatcher() == null){
             return;
         }
