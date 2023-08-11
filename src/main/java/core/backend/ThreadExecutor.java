@@ -4,12 +4,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 public class ThreadExecutor {
 
     private CompletableFuture<Void> mavenReadClassPathTask;
+
+    private ExecutorService threadPool = Executors.newWorkStealingPool();
 
     public void addReadClassPathMavenTask(Runnable task){
 
@@ -46,6 +50,10 @@ public class ThreadExecutor {
     public void scheduleIndependentTask (Runnable runnable){
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(runnable);
+    }
+
+    public void scheduleTask (Runnable runnable){
+        threadPool.submit(runnable);
     }
 
 

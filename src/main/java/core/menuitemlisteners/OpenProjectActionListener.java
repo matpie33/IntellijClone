@@ -12,10 +12,13 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class OpenProjectActionListener implements MenuItemListener {
 
+    public static final int CLASSES_TO_PARSE_PER_THREAD = 20;
     private JFileChooser jFileChooser;
 
 
@@ -60,13 +63,43 @@ public class OpenProjectActionListener implements MenuItemListener {
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
             DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
             File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory();
-            threadExecutor.scheduleIndependentTask(()->{
-                cacheClassesWithMainMethods(jdkSourcesRoot);
-            });
+            List<File> classesGroup = new ArrayList<>();
+            groupClassesToParseByThread(jdkSourcesRoot, CLASSES_TO_PARSE_PER_THREAD, classesGroup);
+            if (!classesGroup.isEmpty()){
+                final ArrayList<File> files = new ArrayList<>(classesGroup);
+                threadExecutor.scheduleTask(()-> parseClasses(files));
+            }
+
 
             projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
 
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
+        }
+    }
+
+    private void groupClassesToParseByThread(File jdkSourcesRoot, int groupSize, List<File> fileGroup) {
+        for (File file : jdkSourcesRoot.listFiles()) {
+            if (file.isFile()){
+                if (fileGroup.size()< groupSize){
+                    fileGroup.add(file);
+                }
+                else{
+                    ArrayList<File> finalList = new ArrayList<>(fileGroup);
+                    threadExecutor.scheduleTask(()-> parseClasses(finalList));
+                    fileGroup.clear();
+                    fileGroup.add(file);
+                }
+            }
+            else{
+                groupClassesToParseByThread(file, groupSize, fileGroup);
+            }
+
+        }
+    }
+
+    private void parseClasses(List<File> classesGroup) {
+        for (File classFile : classesGroup) {
+            classStructureParser.parseClassStructure(classFile);
         }
     }
 

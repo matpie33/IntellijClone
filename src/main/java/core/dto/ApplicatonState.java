@@ -7,18 +7,20 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.WatchService;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Component
 public class ApplicatonState {
 
 
-    private Map<File, ClassStructureDTO> classStructureDTOs = new HashMap<>();
+    private Map<File, ClassStructureDTO> classStructureDTOs = new ConcurrentHashMap<>();
 
     private List<File> classesWithMainMethod = new ArrayList<>();
 
     private Set<File> classesToRecompile = new HashSet<>();
 
-    private List<String> availableClassNames = new ArrayList<>();
+    private Deque<String> availableClassNames = new ConcurrentLinkedDeque<>();
 
     private Multimap<String, String> classNameToPackageMap = ArrayListMultimap.create();
 
@@ -109,7 +111,7 @@ public class ApplicatonState {
         return classesWithMainMethod;
     }
 
-    public List<String> getAvailableClassNames() {
+    public Deque<String> getAvailableClassNames() {
         return availableClassNames;
     }
 

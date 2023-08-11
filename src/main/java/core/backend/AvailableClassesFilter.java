@@ -15,7 +15,7 @@ public class AvailableClassesFilter {
     }
 
     public Map<String, Collection<String>> getClassesStartingWith (String prefix){
-        List<String> availableClassNames = applicatonState.getAvailableClassNames();
+        Deque<String> availableClassNames = applicatonState.getAvailableClassNames();
         List<String> classNamesCopy = new ArrayList<>(availableClassNames);
         Map<String, Collection<String>> classToPackageNamesMap = new TreeMap<>();
         for (String className : classNamesCopy) {
