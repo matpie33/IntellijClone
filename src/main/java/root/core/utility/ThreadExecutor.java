@@ -5,29 +5,30 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
 public class ThreadExecutor {
 
-    private CompletableFuture<Void> mavenReadClassPathTask;
+    private CompletableFuture<Void> mavenInitialTask;
 
-    private ExecutorService threadPool = Executors.newWorkStealingPool();
+    private ExecutorService threadPool = Executors.newFixedThreadPool(5);
 
-    public void addReadClassPathMavenTask(Runnable task){
+    public void addMavenInitialTask(Runnable task){
 
 
-        if (mavenReadClassPathTask == null || mavenReadClassPathTask.isDone()){
-            mavenReadClassPathTask =  CompletableFuture.runAsync(task);
-            mavenReadClassPathTask.exceptionally(this::printStackTrace);
+        if (mavenInitialTask == null || mavenInitialTask.isDone()){
+            mavenInitialTask =  CompletableFuture.runAsync(task);
+            mavenInitialTask.exceptionally(this::printStackTrace);
         }
         else{
-            mavenReadClassPathTask = mavenReadClassPathTask.exceptionally(t-> {
+            mavenInitialTask = mavenInitialTask.exceptionally(t-> {
                  task.run();
                  return null;
             });
-            mavenReadClassPathTask.exceptionally(this::printStackTrace);
+            mavenInitialTask.exceptionally(this::printStackTrace);
         }
 
     }
@@ -35,7 +36,7 @@ public class ThreadExecutor {
     public void runTaskAfterMavenTaskFinished (Runnable... tasks){
         Iterator<Runnable> tasksIterator = Arrays.stream(tasks).iterator();
         Runnable firstTask = tasksIterator.next();
-        CompletableFuture<Void> nextTask = mavenReadClassPathTask.isDone()? CompletableFuture.runAsync(firstTask): mavenReadClassPathTask.thenRun(firstTask);
+        CompletableFuture<Void> nextTask = mavenInitialTask.isDone()? CompletableFuture.runAsync(firstTask): mavenInitialTask.thenRun(firstTask);
         while (tasksIterator.hasNext()){
             nextTask = nextTask.thenRun(tasksIterator.next());
         }
@@ -57,4 +58,7 @@ public class ThreadExecutor {
     }
 
 
+    public void waitForMavenTask() throws ExecutionException, InterruptedException {
+        mavenInitialTask.get();
+    }
 }

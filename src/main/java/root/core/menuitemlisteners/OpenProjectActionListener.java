@@ -18,11 +18,12 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Component
 public class OpenProjectActionListener implements MenuItemListener {
 
-    public static final int CLASSES_TO_PARSE_PER_THREAD = 20;
+    public static final int CLASSES_TO_PARSE_PER_THREAD = 50;
     private JFileChooser jFileChooser;
 
 
@@ -64,7 +65,7 @@ public class OpenProjectActionListener implements MenuItemListener {
             applicationState.setProjectPath(rootDirectory);
             directoriesWatcher.watchProjectDirectoryForChanges();
             mavenCommandsController.interrupt();
-            threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
+            threadExecutor.addMavenInitialTask(mavenCommandsController::executeMavenCommands);
             DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
             File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory();
             List<File> classesGroup = new ArrayList<>();
@@ -102,8 +103,17 @@ public class OpenProjectActionListener implements MenuItemListener {
     }
 
     private void parseClasses(List<File> classesGroup) {
+        waitForMavenTask();
         for (File classFile : classesGroup) {
             classStructureParser.parseClassStructure(classFile);
+        }
+    }
+
+    private void waitForMavenTask() {
+        try {
+            threadExecutor.waitForMavenTask();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

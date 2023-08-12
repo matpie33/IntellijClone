@@ -86,6 +86,9 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
         try {
             DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
             CompilationUnit compilationUnit = StaticJavaParser.parse(applicationState.getOpenedFile());
+            if (compilationUnit.getTypes().isEmpty()){
+                return;
+            }
             DefaultMutableTreeNode rootNode = classStructureNodesHandler.build(compilationUnit.getType(0));
             structureModel.setRoot(rootNode);
             classStructurePanel.revalidate();
