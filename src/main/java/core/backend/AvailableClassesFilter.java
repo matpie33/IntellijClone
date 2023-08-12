@@ -18,6 +18,9 @@ public class AvailableClassesFilter {
         Deque<String> availableClassNames = applicatonState.getAvailableClassNames();
         List<String> classNamesCopy = new ArrayList<>(availableClassNames);
         Map<String, Collection<String>> classToPackageNamesMap = new TreeMap<>();
+        if (prefix.isEmpty()){
+            return new HashMap<>();
+        }
         for (String className : classNamesCopy) {
             if (className.startsWith(prefix)){
                 classToPackageNamesMap.put(className, applicatonState.getPackageNamesForClass(className));

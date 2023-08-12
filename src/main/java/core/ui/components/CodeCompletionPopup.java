@@ -50,6 +50,9 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     }
 
     public void addSuggestions(Map<String, Collection<String>> suggestions){
+        if (suggestions.isEmpty()){
+            hide();
+        }
         for (Map.Entry<String, Collection<String>> entry : suggestions.entrySet()) {
             String className = entry.getKey();
             Collection<String> packageNames = entry.getValue();
