@@ -15,7 +15,7 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.ClassStructureDTO;
 
 import java.io.File;
@@ -29,11 +29,11 @@ public class ClassStructureParser {
 
     public static final String PACKAGE_KEYWORD = "package ";
     private final Node.TreeTraversal treeTraversal = Node.TreeTraversal.PREORDER;
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
 
-    public ClassStructureParser(ApplicatonState applicatonState) {
-        this.applicatonState = applicatonState;
+    public ClassStructureParser(ApplicationState applicationState) {
+        this.applicationState = applicationState;
     }
 
     public boolean parseClassStructure(File file){
@@ -57,25 +57,25 @@ public class ClassStructureParser {
                     classStructureDTO.setPackageDeclarationPosition(range.begin);
                     packageName = declaration.getNameAsString();
                 }
-                applicatonState.addClassWithPackage(name, packageName);
+                applicationState.addClassWithPackage(name, packageName);
             }
             Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
             Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
             checkForFieldsAccess(cu, classStructureDTO, fieldNames, variablesHidingFields);
             boolean hasMainMethod = containsMainMethod(file, cu);
 
-            applicatonState.putClassStructure(file, classStructureDTO);
+            applicationState.putClassStructure(file, classStructureDTO);
             return hasMainMethod;
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
         catch (ParseProblemException ex){
-            applicatonState.addClassWithCompilationError(file);
+            applicationState.addClassWithCompilationError(file);
             try {
                 int lineNumber = findPackageDeclarationLine(file);
                 ClassStructureDTO classStructureDTO = new ClassStructureDTO();
                 classStructureDTO.setPackageDeclarationPosition(new Position(lineNumber, 0));
-                applicatonState.putClassStructure(file, classStructureDTO);
+                applicationState.putClassStructure(file, classStructureDTO);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

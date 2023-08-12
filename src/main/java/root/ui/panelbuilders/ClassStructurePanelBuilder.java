@@ -6,7 +6,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import org.springframework.stereotype.Component;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.mouselisteners.PopupMenuRequestListener;
 import root.core.nodehandling.ClassStructureNodeClickListener;
@@ -33,14 +33,14 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
 
     private ClassStructureNodesHandler classStructureNodesHandler;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private ContextConfiguration contextConfiguration;
 
-    public ClassStructurePanelBuilder(ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureNodesHandler classStructureNodesHandler, ApplicatonState applicatonState, ContextConfiguration contextConfiguration) {
+    public ClassStructurePanelBuilder(ClassStructureNodeClickListener classStructureNodeClickListener, ClassStructureNodesHandler classStructureNodesHandler, ApplicationState applicationState, ContextConfiguration contextConfiguration) {
         this.classStructureNodeClickListener = classStructureNodeClickListener;
         this.classStructureNodesHandler = classStructureNodesHandler;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.contextConfiguration = contextConfiguration;
     }
 
@@ -85,12 +85,12 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
     private void displayJavaFileStructure() {
         try {
             DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
-            CompilationUnit compilationUnit = StaticJavaParser.parse(applicatonState.getOpenedFile());
+            CompilationUnit compilationUnit = StaticJavaParser.parse(applicationState.getOpenedFile());
             DefaultMutableTreeNode rootNode = classStructureNodesHandler.build(compilationUnit.getType(0));
             structureModel.setRoot(rootNode);
             classStructurePanel.revalidate();
         } catch (FileNotFoundException|ParseProblemException e) {
-            applicatonState.addClassWithCompilationError(applicatonState.getOpenedFile());
+            applicationState.addClassWithCompilationError(applicationState.getOpenedFile());
             e.printStackTrace();
         }
     }

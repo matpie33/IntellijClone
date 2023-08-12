@@ -8,14 +8,14 @@ public class JarPathNode {
 
     private Map<String, JarPathNode> subNodes = new TreeMap<>();
 
-    private String pathTojar;
+    private String pathToJar;
 
-    public String getPathTojar() {
-        return pathTojar;
+    public String getPathToJar() {
+        return pathToJar;
     }
 
-    public void setPathTojar(String pathTojar) {
-        this.pathTojar = pathTojar;
+    public void setPathToJar(String pathToJar) {
+        this.pathToJar = pathToJar;
     }
 
     public JarPathNode getNode(String name){

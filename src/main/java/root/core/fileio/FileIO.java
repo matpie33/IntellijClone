@@ -3,10 +3,10 @@ package root.core.fileio;
 import org.springframework.stereotype.Component;
 import root.core.classmanipulating.ClassStructureParser;
 import root.core.directory.changesdetecting.DirectoriesWatcher;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
+import root.core.dto.ProjectStructureTreeElementDTO;
 import root.core.dto.RenamedFileDTO;
-import root.core.dto.TreeNodeFileDTO;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
@@ -22,7 +22,7 @@ import java.util.Map;
 @Component
 public class FileIO {
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private DirectoriesWatcher directoriesWatcher;
 
@@ -30,22 +30,22 @@ public class FileIO {
 
     private UIEventsQueue uiEventsQueue;
 
-    public FileIO(ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, UIEventsQueue uiEventsQueue) {
-        this.applicatonState = applicatonState;
+    public FileIO(ApplicationState applicationState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, UIEventsQueue uiEventsQueue) {
+        this.applicationState = applicationState;
         this.directoriesWatcher = directoriesWatcher;
         this.classStructureParser = classStructureParser;
         this.uiEventsQueue = uiEventsQueue;
     }
 
-    public File getFile(TreeNodeFileDTO[] directories ){
-        String projectPath = applicatonState.getProjectPath().getParent();
-        String [] paths = Arrays.stream(directories).map(TreeNodeFileDTO::getDisplayName).toArray(String[]::new);
+    public File getFile(ProjectStructureTreeElementDTO[] directories ){
+        String projectPath = applicationState.getProjectPath().getParent();
+        String [] paths = Arrays.stream(directories).map(ProjectStructureTreeElementDTO::getDisplayName).toArray(String[]::new);
         Path path = Path.of(projectPath, paths);
         return path.toFile();
     }
 
     public FileReadResultDTO read(String[] directories){
-        String projectPath = applicatonState.getProjectPath().getParent();
+        String projectPath = applicationState.getProjectPath().getParent();
         Path path = Path.of(projectPath, directories);
         return readFile(path);
     }
@@ -53,7 +53,7 @@ public class FileIO {
     public FileReadResultDTO readFile(Path path){
 
         try {
-            String projectPath = applicatonState.getProjectPath().getParent();
+            String projectPath = applicationState.getProjectPath().getParent();
 
             File file = path.toFile();
             if (!file.exists() || file.isDirectory()){
@@ -61,11 +61,11 @@ public class FileIO {
             }
             List<String> lines = Files.readAllLines(path);
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
-            fileReadResultDTO.setLines(lines);
+            fileReadResultDTO.setContentLines(lines);
             fileReadResultDTO.setFile(file);
             fileReadResultDTO.setEditable(true);
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
-            fileReadResultDTO.setReaded(true);
+            fileReadResultDTO.setReadSuccessfully(true);
             fileReadResultDTO.setPathFromRoot(Path.of(projectPath).relativize(path).toString());
             return fileReadResultDTO;
         } catch (IOException e) {
@@ -78,9 +78,9 @@ public class FileIO {
         return Files.readAllLines(path);
     }
 
-    public void removeFile(TreeNodeFileDTO [] nodePaths){
-        String[] nodeNames = Arrays.stream(nodePaths).map(TreeNodeFileDTO::getDisplayName).toArray(String[] ::new);
-        String projectPath = applicatonState.getProjectPath().getParent();
+    public void removeFile(ProjectStructureTreeElementDTO[] nodePaths){
+        String[] nodeNames = Arrays.stream(nodePaths).map(ProjectStructureTreeElementDTO::getDisplayName).toArray(String[] ::new);
+        String projectPath = applicationState.getProjectPath().getParent();
         Path path = Path.of(projectPath, nodeNames);
         File file = path.toFile();
         boolean isDeleted = file.delete();
@@ -91,18 +91,18 @@ public class FileIO {
 
 
     public void save(String text){
-        File openedFile = applicatonState.getOpenedFile();
+        File openedFile = applicationState.getOpenedFile();
         if (openedFile == null || text==null){
             return;
         }
         try {
             Files.writeString(openedFile.toPath(), text);
             uiEventsQueue.dispatchEvent(UIEventType.AUTOSAVE_DONE, new Object());
-            if (applicatonState.getClassesWithCompilationErrors().contains(openedFile)){
+            if (applicationState.getClassesWithCompilationErrors().contains(openedFile)){
                 boolean isMain = classStructureParser.parseClassStructure(openedFile);
                 if (isMain){
-                    applicatonState.addClassWithMainMethod(openedFile);
-                    applicatonState.removeClassWithCompilationError(openedFile);
+                    applicationState.addClassWithMainMethod(openedFile);
+                    applicationState.removeClassWithCompilationError(openedFile);
                     uiEventsQueue.dispatchEvent(UIEventType.COMPILATION_ERROR_FIXED_IN_OPENED_FILE, new Object());
                 }
             }
@@ -119,8 +119,8 @@ public class FileIO {
         directoriesWatcher.stopWatchingDirectories();
         boolean isRenamed = file.renameTo(newFile);
         if (isRenamed){
-            applicatonState.updatePathsToClassesWithMainMethods(replacements);
-            applicatonState.renameFileIfContainsMainMethod(file, newFile);
+            applicationState.updatePathsToClassesWithMainMethods(replacements);
+            applicationState.renameFileIfContainsMainMethod(file, newFile);
         }
         directoriesWatcher.watchProjectDirectoryForChanges();
         return new RenameResult(newFile, isRenamed);
@@ -131,7 +131,7 @@ public class FileIO {
         if (file.isDirectory()){
             String parentDirectory = file.getParentFile().getAbsolutePath();
             String directoryToRenamePath = file.getAbsolutePath();
-            List<File> classesWithMainMethod = applicatonState.getClassesWithMainMethod();
+            List<File> classesWithMainMethod = applicationState.getClassesWithMainMethod();
             for (File mainMethodClass : classesWithMainMethod) {
                 if (mainMethodClass.getAbsolutePath().startsWith(directoryToRenamePath)){
                     String oldPath = mainMethodClass.getAbsolutePath();

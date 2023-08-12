@@ -9,7 +9,7 @@ import root.core.codecompletion.CodeCompletionNavigator;
 import root.core.constants.FontsConstants;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.dto.FileSystemChangeDTO;
 import root.core.fileio.FileAutoSaver;
@@ -43,7 +43,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private FileAutoSaver fileAutoSaver;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private Font editorFont = new Font("DejaVu Sans Mono", Font.PLAIN, FontsConstants.FONT_SIZE);
 
@@ -61,10 +61,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
     private CodeCompletionNavigator codeCompletionNavigator;
 
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup, CodeCompletionNavigator codeCompletionNavigator) {
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicationState applicationState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup, CodeCompletionNavigator codeCompletionNavigator) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.fileIO = fileIO;
         this.tabPaneBuilderUI = tabPaneBuilderUI;
         this.fileEditorShortcuts = fileEditorShortcuts;
@@ -94,7 +94,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             @Override
             public void keyReleased(KeyEvent e) {
                 fileAutoSaver.recordKeyRelease(editorText.getText());
-                applicatonState.addCurrentFileToClassesToRecompile();
+                applicationState.addCurrentFileToClassesToRecompile();
             }
 
             @Override
@@ -129,7 +129,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                openFile(resultDTO.getLines(), resultDTO.getFile(), resultDTO.isEditable());
+                openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.isEditable());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 Position lineStart = (Position)data;
@@ -140,17 +140,17 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 editorText.requestFocus();
                 break;
             case PROJECT_STRUCTURE_CHANGED:
-                if (applicatonState.getOpenedFile()== null){
+                if (applicationState.getOpenedFile()== null){
                     return;
                 }
                 FileSystemChangeDTO fileSystemChange = (FileSystemChangeDTO) data;
                 List<Path> modifiedFiles = fileSystemChange.getModifiedFiles();
-                Path openedFile = applicatonState.getOpenedFile().toPath();
+                Path openedFile = applicationState.getOpenedFile().toPath();
                 if (modifiedFiles.contains(openedFile)){
                     try {
                         List<String> content = fileIO.getContent(openedFile);
                         openFile(content, openedFile.toFile(), true);
-                        applicatonState.addCurrentFileToClassesToRecompile();
+                        applicationState.addCurrentFileToClassesToRecompile();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

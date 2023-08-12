@@ -36,9 +36,9 @@ public class JDKPathBrowseActionListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         int result = jdkPathChooser.showOpenDialog(uiViewUpdater.getDialog());
         if (result == JFileChooser.APPROVE_OPTION){
-            File selectedFile = jdkPathChooser.getSelectedFile();
-            boolean pathValid = jdkPathValidator.isPathValid(selectedFile);
-            JDKPathValidationDTO pathValidationDTO = new JDKPathValidationDTO(selectedFile, pathValid);
+            File selectedDirectory = jdkPathChooser.getSelectedFile();
+            boolean pathValid = jdkPathValidator.isPathValid(selectedDirectory);
+            JDKPathValidationDTO pathValidationDTO = new JDKPathValidationDTO(selectedDirectory, pathValid);
             uiViewUpdater.updateNeeded(pathValidationDTO);
             isCorrectJDK = pathValid;
         }

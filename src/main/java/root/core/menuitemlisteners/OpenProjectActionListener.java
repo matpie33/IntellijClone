@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import root.Main;
 import root.core.classmanipulating.ClassStructureParser;
 import root.core.directory.changesdetecting.DirectoriesWatcher;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.jdk.manipulating.JavaSourcesExtractor;
 import root.core.mavencommands.MavenCommandsController;
 import root.core.nodehandling.ProjectStructureNodesHandler;
@@ -30,7 +30,7 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private UIEventsQueue uiEventsQueue;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private DirectoriesWatcher directoriesWatcher;
 
@@ -42,10 +42,10 @@ public class OpenProjectActionListener implements MenuItemListener {
 
     private JavaSourcesExtractor javaSourcesExtractor;
 
-    public OpenProjectActionListener(ProjectStructureNodesHandler projectStructureNodesHandler, UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController, JavaSourcesExtractor javaSourcesExtractor) {
+    public OpenProjectActionListener(ProjectStructureNodesHandler projectStructureNodesHandler, UIEventsQueue uiEventsQueue, ApplicationState applicationState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController, JavaSourcesExtractor javaSourcesExtractor) {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.uiEventsQueue = uiEventsQueue;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.directoriesWatcher = directoriesWatcher;
         this.classStructureParser = classStructureParser;
         this.threadExecutor = threadExecutor;
@@ -61,7 +61,7 @@ public class OpenProjectActionListener implements MenuItemListener {
         if (action == JFileChooser.APPROVE_OPTION){
             File rootDirectory = jFileChooser.getSelectedFile();
             cacheClassesWithMainMethods(rootDirectory);
-            applicatonState.setProjectPath(rootDirectory);
+            applicationState.setProjectPath(rootDirectory);
             directoriesWatcher.watchProjectDirectoryForChanges();
             mavenCommandsController.interrupt();
             threadExecutor.addReadClassPathMavenTask(mavenCommandsController::executeMavenCommands);
@@ -116,7 +116,7 @@ public class OpenProjectActionListener implements MenuItemListener {
                 if (file.getName().endsWith(".java")){
                     boolean isMain = classStructureParser.parseClassStructure(file);
                     if (isMain){
-                        applicatonState.addClassWithMainMethod(file);
+                        applicationState.addClassWithMainMethod(file);
                     }
                 }
             }

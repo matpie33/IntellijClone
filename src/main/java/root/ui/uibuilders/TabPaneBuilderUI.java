@@ -1,7 +1,7 @@
 package root.ui.uibuilders;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.fileio.FileAutoSaver;
 import root.core.uievents.UIEventType;
@@ -28,13 +28,13 @@ public class TabPaneBuilderUI {
 
     private UIEventsQueue uiEventsQueue;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private FileAutoSaver fileAutoSaver;
 
-    public TabPaneBuilderUI(UIEventsQueue uiEventsQueue, ApplicatonState applicatonState, FileAutoSaver fileAutoSaver) {
+    public TabPaneBuilderUI(UIEventsQueue uiEventsQueue, ApplicationState applicationState, FileAutoSaver fileAutoSaver) {
         this.uiEventsQueue = uiEventsQueue;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.fileAutoSaver = fileAutoSaver;
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -57,12 +57,12 @@ public class TabPaneBuilderUI {
                 fileAutoSaver.save();
                 FileReadResultDTO readResult = new FileReadResultDTO();
                 readResult.setFile(file);
-                readResult.setLines(lines);
+                readResult.setContentLines(lines);
                 readResult.setJavaFile(file.getName().endsWith(".java"));
-                readResult.setReaded(true);
+                readResult.setReadSuccessfully(true);
                 readResult.setPathFromRoot(file.toString());
                 readResult.setEditable(!file.getName().endsWith(".class"));
-                applicatonState.setOpenedFile(file);
+                applicationState.setOpenedFile(file);
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, readResult);
             }
         });

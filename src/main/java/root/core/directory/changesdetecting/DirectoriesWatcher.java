@@ -1,7 +1,7 @@
 package root.core.directory.changesdetecting;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.FileSystemChangeDTO;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
@@ -17,12 +17,11 @@ import static java.nio.file.StandardWatchEventKinds.*;
 @Component
 public class DirectoriesWatcher implements UIEventObserver {
 
-
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
     private WatchService watcher;
 
-    public DirectoriesWatcher(ApplicatonState applicatonState) {
-        this.applicatonState = applicatonState;
+    public DirectoriesWatcher(ApplicationState applicationState) {
+        this.applicationState = applicationState;
     }
 
 
@@ -31,22 +30,22 @@ public class DirectoriesWatcher implements UIEventObserver {
     }
 
     public void watchProjectDirectoryForChanges(){
-        File rootDirectory = applicatonState.getProjectPath();
-        monitorPathsChanges(rootDirectory);
+        File rootDirectory = applicationState.getProjectPath();
+        watchDirectoriesInRootDirectory(rootDirectory);
     }
 
     public void stopWatchingDirectories (){
         try {
-            applicatonState.getFileWatcher().close();
+            applicationState.getFileWatcher().close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
 
-    private void monitorPathsChanges(File selectedFile) {
+    private void watchDirectoriesInRootDirectory(File rootDirectory) {
         try {
-            addPathsToWatchService(selectedFile);
+            addPathsToWatchService(rootDirectory);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -54,7 +53,7 @@ public class DirectoriesWatcher implements UIEventObserver {
 
     private void addPathsToWatchService(File selectedFile) throws IOException {
         watcher = FileSystems.getDefault().newWatchService();
-        applicatonState.setFileWatcher(watcher);
+        applicationState.setFileWatcher(watcher);
         Files.walkFileTree(selectedFile.toPath(), new SimpleFileVisitor<>() {
 
             @Override
@@ -73,24 +72,21 @@ public class DirectoriesWatcher implements UIEventObserver {
             case PROJECT_STRUCTURE_CHANGED:
                 FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
                 List<Path> createdFiles = fileSystemChangeDTO.getCreatedFiles();
-                for (Path createdFile : createdFiles) {
-                    if (createdFile.toFile().isDirectory()){
-                        try {
-                            watchDirectory(createdFile);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+                List<Path> modifiedFiles = fileSystemChangeDTO.getModifiedFiles();
+                watchDirectories(createdFiles);
+                watchDirectories(modifiedFiles);
+        }
+    }
+
+    private void watchDirectories(List<Path> filesList) {
+        for (Path filePath : filesList) {
+            if (filePath.toFile().isDirectory()){
+                try {
+                    watchDirectory(filePath);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-                for (Path modifiedFile : fileSystemChangeDTO.getModifiedFiles()) {
-                    if (modifiedFile.toFile().isDirectory()){
-                        try {
-                            watchDirectory(modifiedFile);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
+            }
         }
     }
 }

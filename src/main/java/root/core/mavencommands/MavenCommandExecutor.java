@@ -2,59 +2,32 @@ package root.core.mavencommands;
 
 import org.apache.maven.shared.invoker.*;
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.MavenCommandResultDTO;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.List;
 
 @Component
 public class MavenCommandExecutor {
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private String createdFileName = "cp.txt";
     private File pomFile;
 
     private boolean interrupted;
 
-    public MavenCommandExecutor(ApplicatonState applicatonState) {
-        this.applicatonState = applicatonState;
+    public MavenCommandExecutor(ApplicationState applicationState) {
+        this.applicationState = applicationState;
     }
 
     public void initialize (){
         System.setProperty("maven.home", System.getenv("maven.home"));
-        String projectPath = applicatonState.getProjectPath().toString();
+        String projectPath = applicationState.getProjectPath().toString();
         pomFile = new File(projectPath + "/pom.xml");
         interrupted = false;
-    }
-
-    public MavenCommandResultDTO runCommandWithFileOutput(String command, String... args) {
-
-        InvocationRequest request = createInvocationRequest(new String[]{command}, args);
-        request.setQuiet(true);
-
-        DefaultInvoker defaultInvoker = new DefaultInvoker();
-        StringBuilder builder = addOutputHandler(defaultInvoker);
-
-        try {
-            InvocationResult result = defaultInvoker.execute(request);
-            if (interrupted){
-                interrupted= false;
-                throw new RuntimeException("Interrupted");
-            }
-            Path createdFile = pomFile.getParentFile().toPath().resolve(createdFileName);
-            MavenCommandResultDTO mavenCommandResultDTO = new MavenCommandResultDTO(result.getExitCode() == 0, builder.toString());
-            mavenCommandResultDTO.setOutputFile(createdFile.toFile());
-            return mavenCommandResultDTO;
-
-        } catch (MavenInvocationException e) {
-            throw new RuntimeException(e);
-        }
-
-
     }
 
     private StringBuilder addOutputHandler(DefaultInvoker defaultInvoker) {

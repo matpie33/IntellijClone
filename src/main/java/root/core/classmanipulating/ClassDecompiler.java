@@ -41,12 +41,12 @@ public class ClassDecompiler {
     private FileReadResultDTO createResultDTO(String pathToJarFile, String pathFromJarToClass, List<String> decompilationResult) {
         FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
         fileReadResultDTO.setJavaFile(false);
-        fileReadResultDTO.setReaded(true);
+        fileReadResultDTO.setReadSuccessfully(true);
         Path pathToFile = Path.of(pathToJarFile, pathFromJarToClass);
         String pathFromRoot = pathToFile.toString();
         fileReadResultDTO.setFile(pathToFile.toFile());
         fileReadResultDTO.setPathFromRoot(pathFromRoot);
-        fileReadResultDTO.setLines(decompilationResult);
+        fileReadResultDTO.setContentLines(decompilationResult);
         fileReadResultDTO.setEditable(false);
         return fileReadResultDTO;
     }

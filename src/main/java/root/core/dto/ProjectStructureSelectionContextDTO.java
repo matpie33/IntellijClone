@@ -11,11 +11,11 @@ public class ProjectStructureSelectionContextDTO {
 
     private TreePath[] selectionPaths;
 
-    private List<TreeNodeFileDTO[]> nodePathsForEachSelectedItem;
+    private List<ProjectStructureTreeElementDTO[]> nodePathsForEachSelectedItem;
 
     private File selectedFile;
 
-    public ProjectStructureSelectionContextDTO(TreePath[] treePath, List<TreeNodeFileDTO[]> nodePathsForEachSelectedItem, Point position, File selectedFile) {
+    public ProjectStructureSelectionContextDTO(TreePath[] treePath, List<ProjectStructureTreeElementDTO[]> nodePathsForEachSelectedItem, Point position, File selectedFile) {
         this.selectionPaths = treePath;
         this.nodePathsForEachSelectedItem = nodePathsForEachSelectedItem;
         this.position = position;
@@ -38,7 +38,7 @@ public class ProjectStructureSelectionContextDTO {
         return selectionPaths;
     }
 
-    public List<TreeNodeFileDTO[]> getNodesPaths() {
+    public List<ProjectStructureTreeElementDTO[]> getNodesPaths() {
         return nodePathsForEachSelectedItem;
     }
 }

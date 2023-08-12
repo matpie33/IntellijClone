@@ -1,9 +1,9 @@
 package root.core.context.actionlisteners;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.ProjectStructureSelectionContextDTO;
-import root.core.dto.TreeNodeFileDTO;
+import root.core.dto.ProjectStructureTreeElementDTO;
 import root.ui.dialogbuilders.RenameFileDialogBuilder;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -22,24 +22,24 @@ public class FileRenameListener extends ContextAction<ProjectStructureSelectionC
 
     private RenameFileDialogBuilder renameFileDialogBuilder;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
-    public FileRenameListener(RenameFileDialogBuilder renameFileDialogBuilder, ApplicatonState applicatonState) {
+    public FileRenameListener(RenameFileDialogBuilder renameFileDialogBuilder, ApplicationState applicationState) {
         this.renameFileDialogBuilder = renameFileDialogBuilder;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<TreeNodeFileDTO[]> nodesSelections = context.getNodesPaths();
-        TreeNodeFileDTO[] firstSelection = nodesSelections.get(0);
+        List<ProjectStructureTreeElementDTO[]> nodesSelections = context.getNodesPaths();
+        ProjectStructureTreeElementDTO[] firstSelection = nodesSelections.get(0);
         TreePath[] selectedPaths = context.getSelectedPaths();
         if (selectedPaths.length==0){
             return;
         }
         TreePath selectedPath = selectedPaths[0];
-        String projectPath = applicatonState.getProjectPath().getParent();
-        String[] paths = Arrays.stream(firstSelection).map(TreeNodeFileDTO::getDisplayName).toArray(String [] :: new);
+        String projectPath = applicationState.getProjectPath().getParent();
+        String[] paths = Arrays.stream(firstSelection).map(ProjectStructureTreeElementDTO::getDisplayName).toArray(String [] :: new);
         Path path = Path.of(projectPath, paths);
         File file = path.toFile();
         Point position = context.getPosition();

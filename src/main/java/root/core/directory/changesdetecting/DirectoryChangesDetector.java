@@ -1,7 +1,7 @@
 package root.core.directory.changesdetecting;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.FileSystemChangeDTO;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
@@ -20,12 +20,12 @@ import java.util.List;
 @Component
 public class DirectoryChangesDetector extends MouseAdapter implements WindowFocusListener {
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private UIEventsQueue uiEventsQueue;
 
-    public DirectoryChangesDetector(ApplicatonState applicatonState, UIEventsQueue uiEventsQueue) {
-        this.applicatonState = applicatonState;
+    public DirectoryChangesDetector(ApplicationState applicationState, UIEventsQueue uiEventsQueue) {
+        this.applicationState = applicationState;
         this.uiEventsQueue = uiEventsQueue;
     }
 
@@ -45,7 +45,7 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
     }
 
     public void checkForChangesInWatchedDirectories(){
-        if (applicatonState.getFileWatcher() == null){
+        if (applicationState.getFileWatcher() == null){
             return;
         }
 
@@ -55,24 +55,14 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
         List<Path> removedFiles = new ArrayList<>();
         List<Path> modifiedFiles = new ArrayList<>();
         while (shouldCheckForKeys){
-            WatchKey key = applicatonState.getFileWatcher().poll();
+            WatchKey key = applicationState.getFileWatcher().poll();
             if (key != null){
                 changesDetected = true;
                 List<WatchEvent<?>> watchEvents = key.pollEvents();
                 for (WatchEvent<?> watchEvent : watchEvents) {
                     WatchEvent.Kind<?> kind = watchEvent.kind();
-                    Path file = (Path) watchEvent.context();
-                    Path directory = (Path) key.watchable();
-                    Path absolutePath = directory.resolve(file);
-                    if (kind.equals(StandardWatchEventKinds.ENTRY_DELETE)){
-                        handleFileDelete(createdFiles, removedFiles, modifiedFiles, absolutePath);
-                    }
-                    else if (kind.equals(StandardWatchEventKinds.ENTRY_CREATE)){
-                        handleFileCreate(createdFiles, removedFiles, absolutePath);
-                    }
-                    else if (kind.equals(StandardWatchEventKinds.ENTRY_MODIFY)){
-                        modifiedFiles.add(absolutePath);
-                    }
+                    Path absolutePath = getFilePathFromEvent(key, watchEvent);
+                    handleFileChangeEvent(createdFiles, removedFiles, modifiedFiles, kind, absolutePath);
                 }
 
                 key.reset();
@@ -87,6 +77,25 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
 
     }
 
+    private void handleFileChangeEvent(List<Path> createdFiles, List<Path> removedFiles, List<Path> modifiedFiles, WatchEvent.Kind<?> kind, Path absolutePath) {
+        if (kind.equals(StandardWatchEventKinds.ENTRY_DELETE)){
+            handleFileDelete(createdFiles, removedFiles, modifiedFiles, absolutePath);
+        }
+        else if (kind.equals(StandardWatchEventKinds.ENTRY_CREATE)){
+            handleFileCreate(createdFiles, removedFiles, absolutePath);
+        }
+        else if (kind.equals(StandardWatchEventKinds.ENTRY_MODIFY)){
+            modifiedFiles.add(absolutePath);
+        }
+    }
+
+    private Path getFilePathFromEvent(WatchKey key, WatchEvent<?> watchEvent) {
+        Path file = (Path) watchEvent.context();
+        Path directory = (Path) key.watchable();
+        Path absolutePath = directory.resolve(file);
+        return absolutePath;
+    }
+
     private void handleFileCreate(List<Path> createdFile, List<Path> removedFiles, Path file) {
         if (removedFiles.contains(file)){
             removedFiles.remove(file);
@@ -97,13 +106,13 @@ public class DirectoryChangesDetector extends MouseAdapter implements WindowFocu
         }
     }
 
-    private void handleFileDelete(List<Path> createdFile, List<Path> removedFiles, List<Path> modifiedFiles, Path file) {
-        if (createdFile.contains(file) && modifiedFiles.contains(file)){
-            createdFile.remove(file);
+    private void handleFileDelete(List<Path> createdFiles, List<Path> removedFiles, List<Path> modifiedFiles, Path file) {
+        if (createdFiles.contains(file) && modifiedFiles.contains(file)){
+            createdFiles.remove(file);
             modifiedFiles.remove(file);
         }
-        else if (createdFile.contains(file)){
-            createdFile.remove(file);
+        else if (createdFiles.contains(file)){
+            createdFiles.remove(file);
         }
         else if (modifiedFiles.contains(file)){
             modifiedFiles.remove(file);

@@ -1,7 +1,7 @@
 package root.core.dto;
 
 public class InsertChangeDTO implements TextChangeDTO {
-    private StringBuilder singleChangeBuilder = new StringBuilder();
+    private StringBuilder changedTextBuilder = new StringBuilder();
     private int offsetWhereChangeStarted;
 
     public InsertChangeDTO(int offsetWhereChangeStarted) {
@@ -9,11 +9,11 @@ public class InsertChangeDTO implements TextChangeDTO {
     }
 
     public void appendText (String text){
-        singleChangeBuilder.append(text);
+        changedTextBuilder.append(text);
     }
 
-    public StringBuilder getSingleChangeBuilder() {
-        return singleChangeBuilder;
+    public String getChangedText() {
+        return changedTextBuilder.toString();
     }
 
     public int getOffsetWhereChangeStarted() {
@@ -23,7 +23,7 @@ public class InsertChangeDTO implements TextChangeDTO {
     @Override
     public String toString() {
         return "InsertChangeDTO{" +
-                "singleChangeBuilder=" + singleChangeBuilder +
+                "singleChangeBuilder=" + changedTextBuilder +
                 '}';
     }
 }

@@ -76,7 +76,7 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
             errorLabel.setForeground(Color.RED);
         }
         else {
-            jdkInputField.setText(pathValidationDTO.getSelectedFile().toString());
+            jdkInputField.setText(pathValidationDTO.getSelectedDirectory().toString());
             errorLabel.setText("JDK path is correct.");
             errorLabel.setForeground(Color.WHITE);
         }

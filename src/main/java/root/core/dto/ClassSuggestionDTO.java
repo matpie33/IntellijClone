@@ -1,11 +1,11 @@
 package root.core.dto;
 
-public class ClassSugestionDTO {
+public class ClassSuggestionDTO {
 
     private String className;
     private String packageName;
 
-    public ClassSugestionDTO(String className, String packageName) {
+    public ClassSuggestionDTO(String className, String packageName) {
         this.className = className;
         this.packageName = packageName;
     }

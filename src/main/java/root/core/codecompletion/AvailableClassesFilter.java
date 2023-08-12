@@ -1,21 +1,21 @@
 package root.core.codecompletion;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 
 import java.util.*;
 
 @Component
 public class AvailableClassesFilter {
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
-    public AvailableClassesFilter(ApplicatonState applicatonState) {
-        this.applicatonState = applicatonState;
+    public AvailableClassesFilter(ApplicationState applicationState) {
+        this.applicationState = applicationState;
     }
 
     public Map<String, Collection<String>> getClassesStartingWith (String prefix){
-        Deque<String> availableClassNames = applicatonState.getAvailableClassNames();
+        Deque<String> availableClassNames = applicationState.getAvailableClassNames();
         List<String> classNamesCopy = new ArrayList<>(availableClassNames);
         Map<String, Collection<String>> classToPackageNamesMap = new TreeMap<>();
         if (prefix.isEmpty()){
@@ -23,7 +23,7 @@ public class AvailableClassesFilter {
         }
         for (String className : classNamesCopy) {
             if (className.startsWith(prefix)){
-                classToPackageNamesMap.put(className, applicatonState.getPackageNamesForClass(className));
+                classToPackageNamesMap.put(className, applicationState.getPackageNamesForClass(className));
             }
         }
         return classToPackageNamesMap;

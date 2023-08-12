@@ -8,13 +8,13 @@ public class FileReadResultDTO {
 
     private String pathFromRoot;
 
-    private List<String> lines =new ArrayList<>();
+    private List<String> contentLines =new ArrayList<>();
 
     private File file;
 
     private boolean isJavaFile;
 
-    private boolean isReaded;
+    private boolean isReadSuccessfully;
 
     private boolean isEditable;
 
@@ -34,12 +34,12 @@ public class FileReadResultDTO {
         this.pathFromRoot = pathFromRoot;
     }
 
-    public boolean isReaded() {
-        return isReaded;
+    public boolean isReadSuccessfully() {
+        return isReadSuccessfully;
     }
 
-    public void setReaded(boolean readed) {
-        isReaded = readed;
+    public void setReadSuccessfully(boolean readSuccessfully) {
+        isReadSuccessfully = readSuccessfully;
     }
 
     public boolean isJavaFile() {
@@ -50,12 +50,12 @@ public class FileReadResultDTO {
         isJavaFile = javaFile;
     }
 
-    public List<String> getLines() {
-        return lines;
+    public List<String> getContentLines() {
+        return contentLines;
     }
 
-    public void setLines(List<String> lines) {
-        this.lines = lines;
+    public void setContentLines(List<String> contentLines) {
+        this.contentLines = contentLines;
     }
 
     public File getFile() {

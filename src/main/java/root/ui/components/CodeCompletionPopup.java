@@ -1,7 +1,7 @@
 package root.ui.components;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ClassSugestionDTO;
+import root.core.dto.ClassSuggestionDTO;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -18,8 +18,8 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     public static final int POPUP_OFFSET_Y_FROM_CARET = 20;
     public static final String CARET_DOWN = "caret-down";
     public static final String CARET_UP = "caret-up";
-    private final JList<ClassSugestionDTO> list;
-    private final DefaultListModel<ClassSugestionDTO> listModel;
+    private final JList<ClassSuggestionDTO> list;
+    private final DefaultListModel<ClassSuggestionDTO> listModel;
     private final JScrollPane scrollPane;
     private JPopupMenu popup;
     private ActionMap currentTextFieldActionMap;
@@ -57,8 +57,8 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
             String className = entry.getKey();
             Collection<String> packageNames = entry.getValue();
             for (String packageName : packageNames) {
-                ClassSugestionDTO classSugestionDTO = new ClassSugestionDTO(className, packageName);
-                listModel.addElement(classSugestionDTO);
+                ClassSuggestionDTO classSuggestionDTO = new ClassSuggestionDTO(className, packageName);
+                listModel.addElement(classSuggestionDTO);
             }
         }
         if (!listModel.isEmpty()){
@@ -97,7 +97,7 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
         return popup.isVisible();
     }
 
-    public ClassSugestionDTO getSelectedValue(InputEvent e) {
+    public ClassSuggestionDTO getSelectedValue(InputEvent e) {
 
         if (popup.isVisible()){
             e.consume();

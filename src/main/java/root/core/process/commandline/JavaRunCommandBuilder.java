@@ -1,7 +1,7 @@
 package root.core.process.commandline;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -13,20 +13,20 @@ import java.util.Set;
 @Component
 public class JavaRunCommandBuilder {
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
-    public JavaRunCommandBuilder(ApplicatonState applicatonState) {
-        this.applicatonState = applicatonState;
+    public JavaRunCommandBuilder(ApplicationState applicationState) {
+        this.applicationState = applicationState;
     }
 
     public String[] createCommandForRunningMainClass(File mainClass){
-        Path projectDirectory = applicatonState.getProjectPath().toPath();
+        Path projectDirectory = applicationState.getProjectPath().toPath();
         Path srcRootRelative = Path.of("src", "main", "java");
         Path sourcesRootDirectory = projectDirectory.resolve(srcRootRelative);
         String pathToMainClass = sourcesRootDirectory.relativize(mainClass.toPath()).toString()
                 .replace(".java", "");
 
-        String classPath = applicatonState.getClassPath();
+        String classPath = applicationState.getClassPath();
         List<String> commands = new ArrayList<>();
         commands.add("java");
         commands.add("-classpath");
@@ -37,9 +37,9 @@ public class JavaRunCommandBuilder {
     }
 
     public String[] createCommandForCompilingClass(Set<File> classes){
-        Path projectDirectory = applicatonState.getProjectPath().toPath();
+        Path projectDirectory = applicationState.getProjectPath().toPath();
         String pathsToClasses = getPathsToFiles(classes, projectDirectory);
-        String classPath = applicatonState.getClassPath();
+        String classPath = applicationState.getClassPath();
         List<String> commands = new ArrayList<>();
         String outputDirectory = getOutputDirectory(projectDirectory);
         commands.add("javac");
@@ -55,7 +55,7 @@ public class JavaRunCommandBuilder {
     }
 
     private String getOutputDirectory(Path projectDirectory) {
-        Path outputDirectory = Path.of(applicatonState.getOutputDirectory());
+        Path outputDirectory = Path.of(applicationState.getBuildOutputDirectory());
         Path outputDirectoryRelativeToProjectDirectory = projectDirectory.relativize(outputDirectory);
         return outputDirectoryRelativeToProjectDirectory.toString();
     }

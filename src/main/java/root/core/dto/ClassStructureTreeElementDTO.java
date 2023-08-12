@@ -2,7 +2,7 @@ package root.core.dto;
 
 import com.github.javaparser.Position;
 
-public class NavigableTreeElementDTO {
+public class ClassStructureTreeElementDTO {
 
     private String displayName;
     private Position startingPosition;

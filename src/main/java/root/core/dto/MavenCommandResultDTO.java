@@ -1,30 +1,18 @@
 package root.core.dto;
 
-import java.io.File;
-
 public class MavenCommandResultDTO {
 
-    private boolean success;
+    private boolean isSuccess;
 
     private String output;
 
-    private File outputFile;
-
-    public MavenCommandResultDTO(boolean success, String output) {
-        this.success = success;
+    public MavenCommandResultDTO(boolean isSuccess, String output) {
+        this.isSuccess = isSuccess;
         this.output = output;
     }
 
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
-    }
-
-    public File getOutputFile() {
-        return outputFile;
-    }
-
     public boolean isSuccess() {
-        return success;
+        return isSuccess;
     }
 
     public String getOutput() {

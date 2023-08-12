@@ -30,7 +30,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private final AttributeSet defaultColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(169, 183, 198));
     private Pattern keywordsPattern = Pattern.compile(SyntaxModifiers.KEYWORDS_REGEXP);
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private UndoRedoManager undoRedoManager;
 
@@ -46,8 +46,8 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private StringBuilder wordBeingTyped = new StringBuilder();
     private boolean showSuggestions;
 
-    public SyntaxColorStyledDocument(ApplicatonState applicatonState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter) {
-        this.applicatonState = applicatonState;
+    public SyntaxColorStyledDocument(ApplicationState applicationState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter) {
+        this.applicationState = applicationState;
         this.undoRedoManager = undoRedoManager;
         this.codeCompletionPopup = codeCompletionPopup;
         this.availableClassesFilter = availableClassesFilter;
@@ -67,14 +67,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         TextChangeDTO undoAction = undoRedoManager.getNextUndoAction();
         if (undoAction instanceof InsertChangeDTO){
             InsertChangeDTO insert = (InsertChangeDTO) undoAction;
-            removeInternal(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().length());
+            removeInternal(insert.getOffsetWhereChangeStarted(), insert.getChangedText().length());
         }
         if (undoAction instanceof InsertImportChangeDTO){
-            applicatonState.getClassStructureOfOpenedFile().removeImport(((InsertImportChangeDTO)undoAction).getFullyQualifiedClassName());
+            applicationState.getClassStructureOfOpenedFile().removeImport(((InsertImportChangeDTO)undoAction).getFullyQualifiedClassName());
         }
         if (undoAction instanceof RemoveChangeDTO){
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
-            insertInternal(removeAction.getStartingOffset(), removeAction.getTextRemoved().toString());
+            insertInternal(removeAction.getStartingOffset(), removeAction.getRemovedText());
         }
     }
 
@@ -83,14 +83,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         TextChangeDTO undoAction = undoRedoManager.getNextRedoAction();
         if (undoAction instanceof InsertChangeDTO){
             InsertChangeDTO insert = (InsertChangeDTO)undoAction;
-            insertInternal(insert.getOffsetWhereChangeStarted(), insert.getSingleChangeBuilder().toString());
+            insertInternal(insert.getOffsetWhereChangeStarted(), insert.getChangedText());
         }
         if (undoAction instanceof InsertImportChangeDTO){
-            applicatonState.getClassStructureOfOpenedFile().addImport(((InsertImportChangeDTO)undoAction).getFullyQualifiedClassName());
+            applicationState.getClassStructureOfOpenedFile().addImport(((InsertImportChangeDTO)undoAction).getFullyQualifiedClassName());
         }
         if (undoAction instanceof RemoveChangeDTO){
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
-            removeInternal(removeAction.getStartingOffset(), removeAction.getTextRemoved().length());
+            removeInternal(removeAction.getStartingOffset(), removeAction.getRemovedText().length());
         }
     }
 
@@ -130,7 +130,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
         Element rootElement = getDefaultRootElement();
         int lineNumber = rootElement.getElementIndex(offset);
-        ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
+        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
         if (classStructure == null){
             return;
         }
@@ -276,11 +276,11 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     }
 
 
-    public void insertSuggestedText(int offset, ClassSugestionDTO suggestionSelected) throws BadLocationException {
+    public void insertSuggestedText(int offset, ClassSuggestionDTO suggestionSelected) throws BadLocationException {
         insertChangeDTO = null;
         int preTypedWordsLength = wordBeingTyped.length();
         removeInternal(offset - preTypedWordsLength, preTypedWordsLength);
-        ClassStructureDTO classStructure = applicatonState.getClassStructureOfOpenedFile();
+        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
 
         int lineAfterPackageDeclaration = classStructure.getPackageDeclarationPosition() == null? 0: classStructure.getPackageDeclarationPosition().line;
         Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);

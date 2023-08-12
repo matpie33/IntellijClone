@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Component
-public class ApplicatonState {
+public class ApplicationState {
 
 
     private Map<File, ClassStructureDTO> classStructureDTOs = new ConcurrentHashMap<>();
@@ -33,7 +33,7 @@ public class ApplicatonState {
 
     private String classPath;
 
-    private String outputDirectory;
+    private String buildOutputDirectory;
 
     private Set<Process> runningProcesses = new HashSet<>();
 
@@ -79,12 +79,12 @@ public class ApplicatonState {
         return runningProcesses;
     }
 
-    public String getOutputDirectory() {
-        return outputDirectory;
+    public String getBuildOutputDirectory() {
+        return buildOutputDirectory;
     }
 
-    public void setOutputDirectory(String outputDirectory) {
-        this.outputDirectory = outputDirectory;
+    public void setBuildOutputDirectory(String buildOutputDirectory) {
+        this.buildOutputDirectory = buildOutputDirectory;
     }
 
     public Set<File> getClassesToRecompile() {

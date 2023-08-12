@@ -2,7 +2,7 @@ package root.core.undoredo;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import root.core.dto.EmptyChangeDTO;
+import root.core.dto.NoChangeDTO;
 import root.core.dto.TextChangeDTO;
 
 import java.util.LinkedList;
@@ -24,11 +24,11 @@ public class UndoRedoManager {
     }
 
     public TextChangeDTO getNextUndoAction(){
-            return Optional.ofNullable(actionsDone.pollFirst()).map(action->{actionsUndone.addFirst(action); return action;}).orElse(new EmptyChangeDTO());
+            return Optional.ofNullable(actionsDone.pollFirst()).map(action->{actionsUndone.addFirst(action); return action;}).orElse(new NoChangeDTO());
     }
 
     public TextChangeDTO getNextRedoAction(){
-        return Optional.ofNullable(actionsUndone.pollFirst()).map(action->{actionsDone.addFirst(action); return action;}).orElse(new EmptyChangeDTO());
+        return Optional.ofNullable(actionsUndone.pollFirst()).map(action->{actionsDone.addFirst(action); return action;}).orElse(new NoChangeDTO());
 
 
     }

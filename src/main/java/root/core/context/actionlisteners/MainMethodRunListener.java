@@ -1,7 +1,7 @@
 package root.core.context.actionlisteners;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.ProjectStructureSelectionContextDTO;
 import root.core.fileio.FileAutoSaver;
 import root.core.process.commandline.JavaRunCommandBuilder;
@@ -30,16 +30,16 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
 
     private FileAutoSaver fileAutoSaver;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private ProcessExecutor processExecutor;
 
-    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, FileAutoSaver fileAutoSaver, ApplicatonState applicatonState, ProcessExecutor processExecutor) {
+    public MainMethodRunListener(JavaRunCommandBuilder javaRunCommandBuilder, ThreadExecutor threadExecutor, UIEventsQueue uiEventsQueue, FileAutoSaver fileAutoSaver, ApplicationState applicationState, ProcessExecutor processExecutor) {
         this.javaRunCommandBuilder = javaRunCommandBuilder;
         this.threadExecutor = threadExecutor;
         this.uiEventsQueue = uiEventsQueue;
         this.fileAutoSaver = fileAutoSaver;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.processExecutor = processExecutor;
     }
 
@@ -47,10 +47,10 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
     public void actionPerformed(ActionEvent e) {
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
         fileAutoSaver.save();
-        Set<File> classesToRecompile = applicatonState.getClassesToRecompile();
+        Set<File> classesToRecompile = applicationState.getClassesToRecompile();
         List<String[]> commands = getCommandsToCompileAndRunApplication(classesToRecompile);
         threadExecutor.runTaskAfterMavenTaskFinished(processExecutor.executeCommands(commands));
-        applicatonState.clearClassesToRecompile();
+        applicationState.clearClassesToRecompile();
 
     }
 

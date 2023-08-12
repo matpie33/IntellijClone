@@ -4,7 +4,7 @@ import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import root.core.directory.changesdetecting.DirectoryChangesDetector;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.nodehandling.ProjectStructureNodesHandler;
 import root.core.shortcuts.ApplicationShortcuts;
 import root.core.uievents.UIEventObserver;
@@ -38,7 +38,7 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicatonState applicatonState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts, CodeCompletionPopup codeCompletionPopup) throws IOException {
+    public Main (MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicationState applicationState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts, CodeCompletionPopup codeCompletionPopup) throws IOException {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.codeCompletionPopup = codeCompletionPopup;
 
@@ -54,7 +54,7 @@ public class Main implements UIEventObserver {
         applicationShortcuts.assignShortcuts(mainPanel);
 
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
-            for (Process runningProcess : applicatonState.getRunningProcesses()) {
+            for (Process runningProcess : applicationState.getRunningProcesses()) {
                 runningProcess.destroy();
             }
         }));

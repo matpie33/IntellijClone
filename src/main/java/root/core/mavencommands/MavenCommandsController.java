@@ -2,7 +2,7 @@ package root.core.mavencommands;
 
 import org.springframework.stereotype.Component;
 import root.core.directory.changesdetecting.DirectoryChangesDetector;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.ErrorDTO;
 import root.core.dto.MavenCommandResultDTO;
 import root.core.jdk.manipulating.ClassesFromJarsExtractor;
@@ -19,7 +19,7 @@ public class MavenCommandsController {
 
     private MavenCommandExecutor mavenCommandExecutor;
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
 
     private UIEventsQueue uiEventsQueue;
 
@@ -27,9 +27,9 @@ public class MavenCommandsController {
 
     private DirectoryChangesDetector directoryChangesDetector;
 
-    public MavenCommandsController(MavenCommandExecutor mavenCommandExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue, ClassesFromJarsExtractor classesFromJarsExtractor, DirectoryChangesDetector directoryChangesDetector) {
+    public MavenCommandsController(MavenCommandExecutor mavenCommandExecutor, ApplicationState applicationState, UIEventsQueue uiEventsQueue, ClassesFromJarsExtractor classesFromJarsExtractor, DirectoryChangesDetector directoryChangesDetector) {
         this.mavenCommandExecutor = mavenCommandExecutor;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.uiEventsQueue = uiEventsQueue;
         this.classesFromJarsExtractor = classesFromJarsExtractor;
         this.directoryChangesDetector = directoryChangesDetector;
@@ -41,15 +41,15 @@ public class MavenCommandsController {
         MavenCommandResultDTO readClasspathResult = runMvnCommand(dialogErrorMessage, new String[]{"exec:exec"}, new String[]{"-Dexec.executable=cmd","-q", "-Dexec.args='/c echo %classpath'"});
 
         String classPath = readClasspathResult.getOutput().replace("\"", ";");
-        int outputDirectoryIndex = classPath.indexOf(applicatonState.getProjectPath().toString());
+        int outputDirectoryIndex = classPath.indexOf(applicationState.getProjectPath().toString());
         String outputDirectory = classPath.substring(outputDirectoryIndex, classPath.indexOf(";", outputDirectoryIndex));
-        applicatonState.setOutputDirectory(outputDirectory);
-        applicatonState.setClassPath(classPath);
+        applicationState.setBuildOutputDirectory(outputDirectory);
+        applicationState.setClassPath(classPath);
 
         Map<String, List<File>> jarToClassesMap = classesFromJarsExtractor.extractClassesFromJars(classPath);
 
         MavenCommandResultDTO localRepositoryResult = runMvnCommand(dialogErrorMessage, new String[]{"help:evaluate"}, new String[]{"-Dexpression=settings.localRepository", "-q", "-DforceStdout"});
-        applicatonState.setLocalRepositoryPath(localRepositoryResult.getOutput().trim());
+        applicationState.setLocalRepositoryPath(localRepositoryResult.getOutput().trim());
         uiEventsQueue.dispatchEvent(UIEventType.MAVEN_CLASSPATH_READED, jarToClassesMap);
 
         runMvnCommand(dialogErrorMessage, new String[]{"clean"}, new String[]{"-Dmaven.test.skip"});
@@ -68,19 +68,6 @@ public class MavenCommandsController {
             throw exception;
         }
         return evaluateBuildDirectoryResult;
-    }
-
-    private MavenCommandResultDTO runMvnCommandGetClasspath(String dialogMessage) {
-        String command = "dependency:build-classpath";
-        String args = String.format("-Dmdep.outputFile=%s", "cp.txt");
-        uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, String.format("Executing maven command: %s with args %s", command, args));
-        MavenCommandResultDTO buildClassPathResult = mavenCommandExecutor.runCommandWithFileOutput(command, args);
-        if (!buildClassPathResult.isSuccess()){
-            RuntimeException exception = new RuntimeException("Failed to run maven read class path command\n" + buildClassPathResult.getOutput());
-            uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO(dialogMessage, exception));
-            throw exception;
-        }
-        return buildClassPathResult;
     }
 
     public void interrupt() {

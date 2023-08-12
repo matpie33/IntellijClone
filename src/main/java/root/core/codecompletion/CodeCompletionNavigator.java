@@ -1,7 +1,7 @@
 package root.core.codecompletion;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.ClassSugestionDTO;
+import root.core.dto.ClassSuggestionDTO;
 import root.ui.components.CodeCompletionPopup;
 import root.ui.components.SyntaxColorStyledDocument;
 import root.ui.uibuilders.TabPaneBuilderUI;
@@ -62,7 +62,7 @@ public class CodeCompletionNavigator extends MouseAdapter implements ChangeListe
     }
 
     public void insertSelectedValue(InputEvent e, JTextComponent editorText) {
-        ClassSugestionDTO suggestionSelected = codeCompletionPopup.getSelectedValue(e);
+        ClassSuggestionDTO suggestionSelected = codeCompletionPopup.getSelectedValue(e);
         int offset = editorText.getCaretPosition();
         SyntaxColorStyledDocument textDocument = tabPaneBuilderUI.getDocumentForActiveEditor();
         try {

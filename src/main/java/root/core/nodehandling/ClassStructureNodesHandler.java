@@ -8,7 +8,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.type.Type;
 import org.springframework.stereotype.Component;
-import root.core.dto.NavigableTreeElementDTO;
+import root.core.dto.ClassStructureTreeElementDTO;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.stream.Collectors;
@@ -17,20 +17,20 @@ import java.util.stream.Collectors;
 public class ClassStructureNodesHandler {
 
     public Position getPositionInTextEditorForClassNode (DefaultMutableTreeNode defaultMutableTreeNode){
-        return ((NavigableTreeElementDTO) defaultMutableTreeNode.getUserObject()).getStartingPosition();
+        return ((ClassStructureTreeElementDTO) defaultMutableTreeNode.getUserObject()).getStartingPosition();
     }
 
     public DefaultMutableTreeNode createEmptyRootNode (){
-        return new DefaultMutableTreeNode(new NavigableTreeElementDTO());
+        return new DefaultMutableTreeNode(new ClassStructureTreeElementDTO());
     }
 
     public DefaultMutableTreeNode build (TypeDeclaration<?> classOrInterfaceDeclaration){
-        NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
+        ClassStructureTreeElementDTO classStructureTreeElementDTO = new ClassStructureTreeElementDTO();
         Position position = classOrInterfaceDeclaration.getRange().orElseThrow().begin;
-        navigableTreeElementDTO.setStartingPosition(position);
-        navigableTreeElementDTO.setDisplayName(classOrInterfaceDeclaration.getNameAsString());
+        classStructureTreeElementDTO.setStartingPosition(position);
+        classStructureTreeElementDTO.setDisplayName(classOrInterfaceDeclaration.getNameAsString());
         DefaultMutableTreeNode top =
-                new DefaultMutableTreeNode(navigableTreeElementDTO);
+                new DefaultMutableTreeNode(classStructureTreeElementDTO);
         for (FieldDeclaration fieldDeclaration : classOrInterfaceDeclaration.getFields()) {
             addFieldNode(top, fieldDeclaration);
         }
@@ -43,12 +43,12 @@ public class ClassStructureNodesHandler {
 
     private void addFieldNode(DefaultMutableTreeNode parentNode, FieldDeclaration fieldDeclaration) {
 
-        NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
-        navigableTreeElementDTO.setStartingPosition(fieldDeclaration.getVariable(0).getName().getRange().orElseThrow().begin);
+        ClassStructureTreeElementDTO classStructureTreeElementDTO = new ClassStructureTreeElementDTO();
+        classStructureTreeElementDTO.setStartingPosition(fieldDeclaration.getVariable(0).getName().getRange().orElseThrow().begin);
         String displayName = String.format("%s %s:%s", getModifiers(fieldDeclaration),
                 getFieldNames(fieldDeclaration), getType(fieldDeclaration));
-        navigableTreeElementDTO.setDisplayName(displayName);
-        DefaultMutableTreeNode fieldNode = new DefaultMutableTreeNode(navigableTreeElementDTO);
+        classStructureTreeElementDTO.setDisplayName(displayName);
+        DefaultMutableTreeNode fieldNode = new DefaultMutableTreeNode(classStructureTreeElementDTO);
         parentNode.add(fieldNode);
     }
 
@@ -66,12 +66,12 @@ public class ClassStructureNodesHandler {
 
     private void addMethodNode(DefaultMutableTreeNode parentNode, MethodDeclaration methodDeclaration) {
 
-        NavigableTreeElementDTO navigableTreeElementDTO = new NavigableTreeElementDTO();
+        ClassStructureTreeElementDTO classStructureTreeElementDTO = new ClassStructureTreeElementDTO();
         String displayName = String.format("%s %s(%s):%s", getModifiers(methodDeclaration), methodDeclaration.getName(),
                 getParameters(methodDeclaration), methodDeclaration.getType());
-        navigableTreeElementDTO.setDisplayName(displayName);
-        navigableTreeElementDTO.setStartingPosition(methodDeclaration.getName().getRange().orElseThrow().begin);
-        DefaultMutableTreeNode methodNode = new DefaultMutableTreeNode(navigableTreeElementDTO);
+        classStructureTreeElementDTO.setDisplayName(displayName);
+        classStructureTreeElementDTO.setStartingPosition(methodDeclaration.getName().getRange().orElseThrow().begin);
+        DefaultMutableTreeNode methodNode = new DefaultMutableTreeNode(classStructureTreeElementDTO);
         parentNode.add(methodNode);
     }
 

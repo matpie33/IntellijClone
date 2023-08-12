@@ -4,7 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
-import root.core.dto.ApplicatonState;
+import root.core.dto.ApplicationState;
 import root.core.dto.ErrorDTO;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
@@ -23,7 +23,7 @@ public class ProcessExecutor implements ApplicationContextAware {
 
     private ProcessBuilder processBuilder = new ProcessBuilder();
 
-    private ApplicatonState applicatonState;
+    private ApplicationState applicationState;
     private ApplicationContext applicationContext;
 
     private UIEventsQueue uiEventsQueue;
@@ -31,15 +31,15 @@ public class ProcessExecutor implements ApplicationContextAware {
     private ProcessOutputReader inputStreamReader;
     private ProcessOutputReader errorStreamReader;
 
-    public ProcessExecutor(ThreadExecutor threadExecutor, ApplicatonState applicatonState, UIEventsQueue uiEventsQueue) {
+    public ProcessExecutor(ThreadExecutor threadExecutor, ApplicationState applicationState, UIEventsQueue uiEventsQueue) {
         this.threadExecutor = threadExecutor;
-        this.applicatonState = applicatonState;
+        this.applicationState = applicationState;
         this.uiEventsQueue = uiEventsQueue;
     }
 
 
     public Runnable executeCommands(List<String[]> commands){
-        processBuilder.directory( applicatonState.getProjectPath());
+        processBuilder.directory( applicationState.getProjectPath());
 
         return () -> {
             for (String[] command : commands) {
@@ -49,12 +49,12 @@ public class ProcessExecutor implements ApplicationContextAware {
                 processBuilder.command(command);
                 try {
                     Process process = processBuilder.start();
-                    applicatonState.addRunningProcess(process);
+                    applicationState.addRunningProcess(process);
                     addStreamReader(process.getInputStream(), inputStreamReader);
                     addStreamReader(process.getErrorStream(), errorStreamReader);
 
                     process.onExit().whenComplete((processLocal, ex)->{
-                        applicatonState.removeRunningProcess(processLocal);
+                        applicationState.removeRunningProcess(processLocal);
                         if (processLocal.exitValue() !=0){
                             uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", new IllegalArgumentException("Wrong argument to process builder")));
                         }

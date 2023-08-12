@@ -4,17 +4,17 @@ import java.io.File;
 
 public class JDKPathValidationDTO {
 
-    private File selectedFile;
+    private File selectedDirectory;
 
     private boolean pathValid;
 
-    public JDKPathValidationDTO(File selectedFile, boolean pathValid) {
-        this.selectedFile = selectedFile;
+    public JDKPathValidationDTO(File selectedDirectory, boolean pathValid) {
+        this.selectedDirectory = selectedDirectory;
         this.pathValid = pathValid;
     }
 
-    public File getSelectedFile() {
-        return selectedFile;
+    public File getSelectedDirectory() {
+        return selectedDirectory;
     }
 
     public boolean isPathValid() {

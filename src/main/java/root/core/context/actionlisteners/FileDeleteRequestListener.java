@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import root.Main;
 import root.core.constants.DialogText;
 import root.core.dto.ProjectStructureSelectionContextDTO;
-import root.core.dto.TreeNodeFileDTO;
+import root.core.dto.ProjectStructureTreeElementDTO;
 import root.core.fileio.FileIO;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
@@ -30,7 +30,7 @@ public class FileDeleteRequestListener extends ContextAction<ProjectStructureSel
     @Override
     public void actionPerformed(ActionEvent e) {
         ProjectStructureSelectionContextDTO context = this.context;
-        List<TreeNodeFileDTO[]> nodesPaths = context.getNodesPaths();
+        List<ProjectStructureTreeElementDTO[]> nodesPaths = context.getNodesPaths();
         if (nodesPaths.isEmpty()){
             return;
         }
@@ -38,20 +38,20 @@ public class FileDeleteRequestListener extends ContextAction<ProjectStructureSel
         int result = JOptionPane.showConfirmDialog(Main.FRAME.getContentPane(),
                 String.format(DialogText.CONFIRM_FILE_DELETE, objectToDelete));
         if (result == JOptionPane.YES_OPTION) {
-            for (TreeNodeFileDTO[] nodeNames : nodesPaths) {
+            for (ProjectStructureTreeElementDTO[] nodeNames : nodesPaths) {
                 fileIO.removeFile(nodeNames);
             }
             uiEventsQueue.dispatchEvent(UIEventType.FILE_REMOVED_FROM_PROJECT, context);
         }
     }
 
-    private String getObjectToDeleteName(List<TreeNodeFileDTO[]> nodesPaths) {
+    private String getObjectToDeleteName(List<ProjectStructureTreeElementDTO[]> nodesPaths) {
         String objectToDelete;
         if (nodesPaths.size()>1){
             objectToDelete = String.format("%d files", nodesPaths.size());
         }
         else{
-            TreeNodeFileDTO[] paths = nodesPaths.iterator().next();
+            ProjectStructureTreeElementDTO[] paths = nodesPaths.iterator().next();
             objectToDelete = paths[paths.length-1].getDisplayName();
 
         }
