@@ -48,27 +48,32 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
         fileAutoSaver.save();
         Set<File> classesToRecompile = applicatonState.getClassesToRecompile();
-        List<String [] > commands = new ArrayList<>();
-        threadExecutor.runTasksSequentially(()->getCommandsToCompileClasses(classesToRecompile, commands), ()->getCommandsToRunApplication(commands),
-                processExecutor.executeCommands(commands)
-                );
+        List<String[]> commands = getCommandsToCompileAndRunApplication(classesToRecompile);
+        threadExecutor.runTaskAfterMavenTaskFinished(processExecutor.executeCommands(commands));
+        applicatonState.clearClassesToRecompile();
 
     }
 
-    private void getCommandsToCompileClasses(Set<File> classes, List<String[]> commandsList){
+    private List<String[]> getCommandsToCompileAndRunApplication(Set<File> classesToRecompile) {
+        List<String [] > commands = new ArrayList<>();
+        String[] commandsToCompileClasses = getCommandsToCompileClasses(classesToRecompile);
+        String[] commandsToRunApplication = getCommandsToCompileAndRunApplication();
+        commands.add(commandsToCompileClasses);
+        commands.add(commandsToRunApplication);
+        return commands;
+    }
+
+    private String[] getCommandsToCompileClasses(Set<File> classes){
         if (classes.isEmpty()){
-            return;
+            return new String[0];
         }
 
-        String[] commands = javaRunCommandBuilder.createCommandForCompilingClass(classes);
-        applicatonState.clearClassesToRecompile();
-        commandsList.add(commands);
+        return javaRunCommandBuilder.createCommandForCompilingClass(classes);
     }
 
-    private void getCommandsToRunApplication(List<String[]> commands)  {
+    private String[] getCommandsToCompileAndRunApplication()  {
         File selectedFile = context.getSelectedFile();
-        String[] commandsToRunMainClass = javaRunCommandBuilder.createCommandForRunningMainClass(selectedFile);
-        commands.add(commandsToRunMainClass);
+        return javaRunCommandBuilder.createCommandForRunningMainClass(selectedFile);
     }
 
 
