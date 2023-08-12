@@ -18,7 +18,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Component
 public class OpenProjectActionListener implements MenuItemListener {
@@ -65,14 +64,16 @@ public class OpenProjectActionListener implements MenuItemListener {
             applicationState.setProjectPath(rootDirectory);
             directoriesWatcher.watchProjectDirectoryForChanges();
             mavenCommandsController.interrupt();
-            threadExecutor.addMavenInitialTask(mavenCommandsController::executeMavenCommands);
+            mavenCommandsController.init();
+            threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
+            threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Maven tasks finished"));
             DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
             File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory();
             List<File> classesGroup = new ArrayList<>();
             groupClassesToParseByThread(jdkSourcesRoot, CLASSES_TO_PARSE_PER_THREAD, classesGroup);
             if (!classesGroup.isEmpty()){
                 final ArrayList<File> files = new ArrayList<>(classesGroup);
-                threadExecutor.scheduleTask(()-> parseClasses(files));
+                threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(files));
             }
 
 
@@ -90,7 +91,7 @@ public class OpenProjectActionListener implements MenuItemListener {
                 }
                 else{
                     ArrayList<File> finalList = new ArrayList<>(fileGroup);
-                    threadExecutor.scheduleTask(()-> parseClasses(finalList));
+                    threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(finalList));
                     fileGroup.clear();
                     fileGroup.add(file);
                 }
@@ -103,19 +104,11 @@ public class OpenProjectActionListener implements MenuItemListener {
     }
 
     private void parseClasses(List<File> classesGroup) {
-        waitForMavenTask();
         for (File classFile : classesGroup) {
             classStructureParser.parseClassStructure(classFile);
         }
     }
 
-    private void waitForMavenTask() {
-        try {
-            threadExecutor.waitForMavenTask();
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private void cacheClassesWithMainMethods(File rootDirectory) {
         for (File file : rootDirectory.listFiles()) {

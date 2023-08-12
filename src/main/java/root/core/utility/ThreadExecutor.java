@@ -2,45 +2,34 @@ package root.core.utility;
 
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
 public class ThreadExecutor {
 
-    private CompletableFuture<Void> mavenInitialTask;
-
-    private ExecutorService threadPool = Executors.newFixedThreadPool(5);
-
-    public void addMavenInitialTask(Runnable task){
+    private ExecutorService jdkRelatedPool = Executors.newFixedThreadPool(5);
+    private ExecutorService mainPool = Executors.newFixedThreadPool(5);
+    private CompletableFuture<Void> mavenTask;
 
 
-        if (mavenInitialTask == null || mavenInitialTask.isDone()){
-            mavenInitialTask =  CompletableFuture.runAsync(task);
-            mavenInitialTask.exceptionally(this::printStackTrace);
+    public void runTasksInMainPool(Runnable... tasks){
+        CompletableFuture [] futures = new CompletableFuture[tasks.length];
+        for (int i = 0; i < tasks.length; i++) {
+            Runnable task = tasks[i];
+            CompletableFuture<Void> future = CompletableFuture.runAsync(task, mainPool);
+            futures[i] = future;
         }
-        else{
-            mavenInitialTask = mavenInitialTask.exceptionally(t-> {
-                 task.run();
-                 return null;
-            });
-            mavenInitialTask.exceptionally(this::printStackTrace);
-        }
-
+        mavenTask = CompletableFuture.allOf(futures);
     }
 
-    public void runTaskAfterMavenTaskFinished (Runnable... tasks){
-        Iterator<Runnable> tasksIterator = Arrays.stream(tasks).iterator();
-        Runnable firstTask = tasksIterator.next();
-        CompletableFuture<Void> nextTask = mavenInitialTask.isDone()? CompletableFuture.runAsync(firstTask): mavenInitialTask.thenRun(firstTask);
-        while (tasksIterator.hasNext()){
-            nextTask = nextTask.thenRun(tasksIterator.next());
-        }
-        nextTask.exceptionally(this::printStackTrace);
+    public void runTaskInJdkPoolAfterMavenTaskDone(Runnable task){
+        mavenTask.thenRunAsync(task, jdkRelatedPool).exceptionally(this::printStackTrace);
+    }
+
+    public void runTaskInMainPoolAfterMavenTaskDone(Runnable task){
+        mavenTask.thenRunAsync(task, mainPool).exceptionally(this::printStackTrace);
     }
 
     private Void printStackTrace(Throwable t) {
@@ -48,17 +37,8 @@ public class ThreadExecutor {
         return null;
     }
 
-    public void scheduleIndependentTask (Runnable runnable){
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(runnable);
-    }
 
-    public void scheduleTask (Runnable runnable){
-        threadPool.submit(runnable);
-    }
-
-
-    public void waitForMavenTask() throws ExecutionException, InterruptedException {
-        mavenInitialTask.get();
+    public boolean isMavenCommandRunning() {
+        return !mavenTask.isDone();
     }
 }

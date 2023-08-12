@@ -61,7 +61,6 @@ public class ConsolePanelBuilder implements UIEventObserver {
     }
 
     private void writeLineToConsole(String data) {
-        consoleOutput.append(data);
-        consoleOutput.append("\n");
+        consoleOutput.append(data + "\n");
     }
 }

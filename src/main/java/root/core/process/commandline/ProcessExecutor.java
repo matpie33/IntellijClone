@@ -38,41 +38,40 @@ public class ProcessExecutor implements ApplicationContextAware {
     }
 
 
-    public Runnable executeCommands(List<String[]> commands){
+    public void executeCommands(List<String[]> commands){
         processBuilder.directory( applicationState.getProjectPath());
 
-        return () -> {
-            for (String[] command : commands) {
-                if (command.length==0){
-                    continue;
-                }
-                processBuilder.command(command);
-                try {
-                    Process process = processBuilder.start();
-                    applicationState.addRunningProcess(process);
-                    addStreamReader(process.getInputStream(), inputStreamReader);
-                    addStreamReader(process.getErrorStream(), errorStreamReader);
-
-                    process.onExit().whenComplete((processLocal, ex)->{
-                        applicationState.removeRunningProcess(processLocal);
-                        if (processLocal.exitValue() !=0){
-                            uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", new IllegalArgumentException("Wrong argument to process builder")));
-                        }
-                    });
-                    process.waitFor();
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
+        uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application.");
+        for (String[] command : commands) {
+            if (command.length==0){
+                continue;
             }
-        };
+            processBuilder.command(command);
+            try {
+                Process process = processBuilder.start();
+                applicationState.addRunningProcess(process);
+                addStreamReader(process.getInputStream(), inputStreamReader);
+                addStreamReader(process.getErrorStream(), errorStreamReader);
+
+                process.onExit().whenComplete((processLocal, ex)->{
+                    applicationState.removeRunningProcess(processLocal);
+                    if (processLocal.exitValue() !=0){
+                        uiEventsQueue.dispatchEvent(UIEventType.ERROR_OCCURRED, new ErrorDTO("Error running java command", new IllegalArgumentException("Wrong argument to process builder")));
+                    }
+                });
+                process.waitFor();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
 
     }
 
         private void addStreamReader(InputStream inputStream, ProcessOutputReader processOutputReader) {
             BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(inputStream));
             processOutputReader.setBufferedReader(bufferedInputReader);
-            threadExecutor.scheduleIndependentTask(processOutputReader);
+            threadExecutor.runTaskInMainPoolAfterMavenTaskDone(processOutputReader);
         }
 
     @Override

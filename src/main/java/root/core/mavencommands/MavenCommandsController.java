@@ -35,9 +35,39 @@ public class MavenCommandsController {
         this.directoryChangesDetector = directoryChangesDetector;
     }
 
-    public void executeMavenCommands() {
+    public void init (){
         mavenCommandExecutor.initialize();
+    }
+
+    public Runnable[] getMavenTasks() {
         String dialogErrorMessage = "Failed to run maven command. Check console";
+        return new Runnable[] {
+                ()-> readClassPathAndLocalRepositoryPath(dialogErrorMessage),
+                ()-> cleanInstallTargetDirectory(dialogErrorMessage)
+        };
+
+    }
+
+
+    private void cleanInstallTargetDirectory(String dialogErrorMessage) {
+        runMvnCommand(dialogErrorMessage, new String[]{"clean"}, new String[]{"-Dmaven.test.skip"});
+        directoryChangesDetector.checkForChangesInWatchedDirectories();
+        runMvnCommand(dialogErrorMessage, new String[]{"install"}, new String[]{"-Dmaven.test.skip"});
+        directoryChangesDetector.checkForChangesInWatchedDirectories();
+
+    }
+
+    private void readLocalRepositoryPath(String dialogErrorMessage) {
+        MavenCommandResultDTO localRepositoryResult = runMvnCommand(dialogErrorMessage, new String[]{"help:evaluate"}, new String[]{"-Dexpression=settings.localRepository", "-q", "-DforceStdout"});
+        applicationState.setLocalRepositoryPath(localRepositoryResult.getOutput().trim());
+    }
+
+    private void readClassPathAndLocalRepositoryPath(String dialogErrorMessage) {
+        readLocalRepositoryPath(dialogErrorMessage);
+        readClassPath(dialogErrorMessage);
+    }
+
+    private void readClassPath(String dialogErrorMessage) {
         MavenCommandResultDTO readClasspathResult = runMvnCommand(dialogErrorMessage, new String[]{"exec:exec"}, new String[]{"-Dexec.executable=cmd","-q", "-Dexec.args='/c echo %classpath'"});
 
         String classPath = readClasspathResult.getOutput().replace("\"", ";");
@@ -45,17 +75,8 @@ public class MavenCommandsController {
         String outputDirectory = classPath.substring(outputDirectoryIndex, classPath.indexOf(";", outputDirectoryIndex));
         applicationState.setBuildOutputDirectory(outputDirectory);
         applicationState.setClassPath(classPath);
-
         Map<String, List<File>> jarToClassesMap = classesFromJarsExtractor.extractClassesFromJars(classPath);
-
-        MavenCommandResultDTO localRepositoryResult = runMvnCommand(dialogErrorMessage, new String[]{"help:evaluate"}, new String[]{"-Dexpression=settings.localRepository", "-q", "-DforceStdout"});
-        applicationState.setLocalRepositoryPath(localRepositoryResult.getOutput().trim());
         uiEventsQueue.dispatchEvent(UIEventType.MAVEN_CLASSPATH_READED, jarToClassesMap);
-
-        runMvnCommand(dialogErrorMessage, new String[]{"clean"}, new String[]{"-Dmaven.test.skip"});
-        directoryChangesDetector.checkForChangesInWatchedDirectories();
-        runMvnCommand(dialogErrorMessage, new String[]{"install"}, new String[]{"-Dmaven.test.skip"});
-        directoryChangesDetector.checkForChangesInWatchedDirectories();
     }
 
     private MavenCommandResultDTO runMvnCommand(String dialogMessage, String[] goal, String[] args) {

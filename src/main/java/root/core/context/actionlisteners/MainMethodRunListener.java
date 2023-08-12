@@ -45,11 +45,16 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Running java application: "+ context.getSelectedFile().getName());
         fileAutoSaver.save();
-        Set<File> classesToRecompile = applicationState.getClassesToRecompile();
-        List<String[]> commands = getCommandsToCompileAndRunApplication(classesToRecompile);
-        threadExecutor.runTaskAfterMavenTaskFinished(processExecutor.executeCommands(commands));
+        boolean mavenCommandRunning = threadExecutor.isMavenCommandRunning();
+        if (mavenCommandRunning){
+            uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Waiting for maven task to finish");
+        }
+        threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->{
+            Set<File> classesToRecompile = applicationState.getClassesToRecompile();
+            List<String[]> commands = getCommandsToCompileAndRunApplication(classesToRecompile);
+            processExecutor.executeCommands(commands);
+        });
         applicationState.clearClassesToRecompile();
 
     }
@@ -57,7 +62,7 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
     private List<String[]> getCommandsToCompileAndRunApplication(Set<File> classesToRecompile) {
         List<String [] > commands = new ArrayList<>();
         String[] commandsToCompileClasses = getCommandsToCompileClasses(classesToRecompile);
-        String[] commandsToRunApplication = getCommandsToCompileAndRunApplication();
+        String[] commandsToRunApplication = getCommandsToRunApplication();
         commands.add(commandsToCompileClasses);
         commands.add(commandsToRunApplication);
         return commands;
@@ -71,7 +76,7 @@ public class MainMethodRunListener extends ContextAction<ProjectStructureSelecti
         return javaRunCommandBuilder.createCommandForCompilingClass(classes);
     }
 
-    private String[] getCommandsToCompileAndRunApplication()  {
+    private String[] getCommandsToRunApplication()  {
         File selectedFile = context.getSelectedFile();
         return javaRunCommandBuilder.createCommandForRunningMainClass(selectedFile);
     }
