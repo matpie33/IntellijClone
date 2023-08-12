@@ -10,11 +10,14 @@ import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public class EditorScrollPane extends JScrollPane {
 
     private static final long serialVersionUID = 1L;
     public static final String NEW_LINE = "\n";
+    public static final String UNIT_SCROLL_UP = "unitScrollUp";
+    public static final String UNIT_SCROLL_DOWN = "unitScrollDown";
     private final String fontFamily;
     private final int fontSize;
     private final SimpleAttributeSet fontAttributeSet;
@@ -24,6 +27,8 @@ public class EditorScrollPane extends JScrollPane {
     private int currentLinesCount = 0;
 
     public EditorScrollPane(JTextPane textEditor) {
+        clearAction(UNIT_SCROLL_UP);
+        clearAction(UNIT_SCROLL_DOWN);
         this.textEditor = textEditor;
         fontFamily = textEditor.getFont().getFamily();
         fontSize = textEditor.getFont().getSize();
@@ -90,6 +95,14 @@ public class EditorScrollPane extends JScrollPane {
         this.getViewport().add(textEditor);
 
         this.setRowHeaderView(lineNumbersPane);
+    }
+
+    private void clearAction(String actionName) {
+        getActionMap().put(actionName, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
     }
 
     public JTextPane getTextEditor() {

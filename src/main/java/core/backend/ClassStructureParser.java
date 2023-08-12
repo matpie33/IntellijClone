@@ -1,6 +1,7 @@
-package core.backend;
+    package core.backend;
 
 import com.github.javaparser.ParseProblemException;
+import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -19,11 +20,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @Component
 public class ClassStructureParser {
 
+    public static final String PACKAGE_KEYWORD = "package ";
     private final Node.TreeTraversal treeTraversal = Node.TreeTraversal.PREORDER;
     private ApplicatonState applicatonState;
 
@@ -67,8 +71,29 @@ public class ClassStructureParser {
         }
         catch (ParseProblemException ex){
             applicatonState.addClassWithCompilationError(file);
+            try {
+                int lineNumber = findPackageDeclarationLine(file);
+                ClassStructureDTO classStructureDTO = new ClassStructureDTO();
+                classStructureDTO.setPackageDeclarationPosition(new Position(lineNumber, 0));
+                applicatonState.putClassStructure(file, classStructureDTO);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
+    }
+
+    private int findPackageDeclarationLine(File file) throws IOException {
+        List<String> lines = Files.readAllLines(file.toPath());
+        int lineNumber = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.contains(PACKAGE_KEYWORD)){
+                lineNumber = i;
+                break;
+            }
+        }
+        return lineNumber;
     }
 
     private boolean containsMainMethod(File file, CompilationUnit cu) {

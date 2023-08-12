@@ -20,6 +20,7 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     public static final String CARET_UP = "caret-up";
     private final JList<ClassSugestionDTO> list;
     private final DefaultListModel<ClassSugestionDTO> listModel;
+    private final JScrollPane scrollPane;
     private JPopupMenu popup;
     private ActionMap currentTextFieldActionMap;
 
@@ -30,7 +31,7 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
 
         listModel = new DefaultListModel<>();
         list = new JList<>(listModel);
-        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane = new JScrollPane(list);
         contentPanel.add(scrollPane);
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         popup.add(contentPanel);
@@ -57,7 +58,7 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
                 listModel.addElement(classSugestionDTO);
             }
         }
-        if (listModel.getSize()==1){
+        if (!listModel.isEmpty()){
             list.setSelectedIndex(0);
         }
     }
@@ -67,7 +68,6 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
             return;
         }
         currentTextFieldActionMap = textComponent.getActionMap();
-
         currentTextFieldActionMap.get(CARET_DOWN).setEnabled(false);
         currentTextFieldActionMap.get(CARET_UP).setEnabled(false);
         Rectangle2D caretPositionRelativeToTextPane = textComponent.modelToView2D(textComponent.getCaretPosition());
@@ -79,7 +79,9 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     public void selectNextIfVisible() {
         if (popup.isVisible()){
             if (list.getSelectedIndex() < listModel.getSize()-1){
-                list.setSelectedIndex(list.getSelectedIndex()+1);
+                int index = list.getSelectedIndex() + 1;
+                list.setSelectedIndex(index);
+                list.ensureIndexIsVisible(index);
             }
         }
     }
@@ -103,7 +105,9 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
     public void selectPreviousIfVisible() {
         if (popup.isVisible()){
             if (list.getSelectedIndex() >0){
-                list.setSelectedIndex(list.getSelectedIndex()-1);
+                int index = list.getSelectedIndex() - 1;
+                list.setSelectedIndex(index);
+                list.ensureIndexIsVisible(index);
             }
         }
     }

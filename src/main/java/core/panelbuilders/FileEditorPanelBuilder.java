@@ -98,6 +98,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             public void keyReleased(KeyEvent e) {
                 fileAutoSaver.recordKeyRelease(editorText.getText());
                 applicatonState.addCurrentFileToClassesToRecompile();
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
                 codeCompletionNavigator.handleCodeCompletionNavigation(e);
             }
         });

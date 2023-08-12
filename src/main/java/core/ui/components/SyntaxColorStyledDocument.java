@@ -112,7 +112,12 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             Map<String, Collection<String >> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
             codeCompletionPopup.clear();
             codeCompletionPopup.addSuggestions(suggestedClasses);
-            codeCompletionPopup.show(textComponent);
+            if (!suggestedClasses.isEmpty()){
+                codeCompletionPopup.show(textComponent);
+            }
+            else{
+                codeCompletionPopup.hide();
+            }
         }
 
         insertChangeDTO.appendText(textToAdd);
