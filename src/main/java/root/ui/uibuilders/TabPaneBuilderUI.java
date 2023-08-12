@@ -24,7 +24,7 @@ public class TabPaneBuilderUI {
 
     private JTabbedPane tabbedPane;
 
-    private Map<File, JScrollPane> openedTabs = new HashMap<>();
+    private Map<File, EditorScrollPane> openedTabs = new HashMap<>();
 
     private UIEventsQueue uiEventsQueue;
 
@@ -48,7 +48,7 @@ public class TabPaneBuilderUI {
         return ((EditorScrollPane) tabbedPane.getSelectedComponent());
     }
 
-    public void addTab(JScrollPane scrollPane, File file, List<String> lines) {
+    public void addTab(EditorScrollPane scrollPane, File file, List<String> lines) {
         tabbedPane.add(scrollPane);
         JPanel tabHeaderPanel = createTabHeader(scrollPane, file);
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
@@ -135,8 +135,10 @@ public class TabPaneBuilderUI {
         return selectedComponent.getTextEditor();
     }
 
-    public void selectTab(File file) {
-        tabbedPane.setSelectedComponent(openedTabs.get(file));
+    public void selectTab(File file, String text) {
+        EditorScrollPane editorScrollPane = openedTabs.get(file);
+        editorScrollPane.getTextEditor().setText(text);
+        tabbedPane.setSelectedComponent(editorScrollPane);
     }
 
     public void addTabChangeListener(ChangeListener changeListener) {

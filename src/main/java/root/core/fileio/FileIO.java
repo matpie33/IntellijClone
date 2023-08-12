@@ -53,8 +53,6 @@ public class FileIO {
     public FileReadResultDTO readFile(Path path){
 
         try {
-            String projectPath = applicationState.getProjectPath().getParent();
-
             File file = path.toFile();
             if (!file.exists() || file.isDirectory()){
                 return new FileReadResultDTO();
@@ -66,7 +64,7 @@ public class FileIO {
             fileReadResultDTO.setEditable(true);
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
             fileReadResultDTO.setReadSuccessfully(true);
-            fileReadResultDTO.setPathFromRoot(Path.of(projectPath).relativize(path).toString());
+            fileReadResultDTO.setPathFromRoot(path.toString());
             return fileReadResultDTO;
         } catch (IOException e) {
             throw new RuntimeException(e);

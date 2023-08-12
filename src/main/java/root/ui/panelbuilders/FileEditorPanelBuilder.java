@@ -76,14 +76,14 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
     public void init (){
         rootPanel = new JPanel(new BorderLayout());
 
-        JScrollPane scrollPane = createScrollableTextEditor("", true);
+        EditorScrollPane scrollPane = createScrollableTextEditor("", true);
         tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>());
         JTabbedPane tabbedPane = tabPaneBuilderUI.getTabbedPane();
         rootPanel.add(tabbedPane, BorderLayout.CENTER);
         fileEditorShortcuts.assignShortcuts(tabbedPane);
     }
 
-    private JScrollPane createScrollableTextEditor(String text, boolean editable) {
+    private EditorScrollPane createScrollableTextEditor(String text, boolean editable) {
         SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
         FileEditorComponent editorText = new FileEditorComponent (document);
         editorText.setEditable(editable);
@@ -168,10 +168,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
     private void openFile(List<String> lines, File file, boolean editable) {
         String text = String.join(System.lineSeparator(), lines);
         if (tabPaneBuilderUI.containsTab(file)){
-            tabPaneBuilderUI.selectTab(file);
+            tabPaneBuilderUI.selectTab(file, text);
         }
         else{
-            JScrollPane scrollPane = createScrollableTextEditor(text, editable);
+            EditorScrollPane scrollPane = createScrollableTextEditor(text, editable);
             tabPaneBuilderUI.addTab(scrollPane, file, lines);
 
         }
