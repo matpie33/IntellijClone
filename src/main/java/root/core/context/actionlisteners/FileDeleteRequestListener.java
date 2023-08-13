@@ -10,7 +10,10 @@ import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -31,6 +34,7 @@ public class FileDeleteRequestListener extends ContextAction<ProjectStructureSel
     public void actionPerformed(ActionEvent e) {
         ProjectStructureSelectionContextDTO context = this.context;
         List<ProjectStructureTreeElementDTO[]> nodesPaths = context.getNodesPaths();
+        TreePath[] selectedPaths = context.getSelectedPaths();
         if (nodesPaths.isEmpty()){
             return;
         }
@@ -38,10 +42,23 @@ public class FileDeleteRequestListener extends ContextAction<ProjectStructureSel
         int result = JOptionPane.showConfirmDialog(Main.FRAME.getContentPane(),
                 String.format(DialogText.CONFIRM_FILE_DELETE, objectToDelete));
         if (result == JOptionPane.YES_OPTION) {
-            for (ProjectStructureTreeElementDTO[] nodeNames : nodesPaths) {
-                fileIO.removeFile(nodeNames);
+            List<TreePath> deletedNodes = new ArrayList<>();
+            for (TreePath path : selectedPaths) {
+                boolean isDeleted = tryDeleteFile(path);
+                if (isDeleted){
+                    deletedNodes.add(path);
+                }
             }
+            context.setSelectionPaths(deletedNodes.toArray(new TreePath[] {}));
             uiEventsQueue.dispatchEvent(UIEventType.FILE_REMOVED_FROM_PROJECT, context);
+        }
+    }
+
+    private boolean tryDeleteFile(TreePath path) {
+        try {
+            return fileIO.removeFile(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

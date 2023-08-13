@@ -38,6 +38,10 @@ public class ProjectStructureSelectionContextDTO {
         return selectionPaths;
     }
 
+    public void setSelectionPaths(TreePath[] selectionPaths) {
+        this.selectionPaths = selectionPaths;
+    }
+
     public List<ProjectStructureTreeElementDTO[]> getNodesPaths() {
         return nodePathsForEachSelectedItem;
     }

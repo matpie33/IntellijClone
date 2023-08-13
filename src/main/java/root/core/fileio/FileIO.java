@@ -10,14 +10,15 @@ import root.core.dto.RenamedFileDTO;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class FileIO {
@@ -76,14 +77,22 @@ public class FileIO {
         return Files.readAllLines(path);
     }
 
-    public void removeFile(ProjectStructureTreeElementDTO[] nodePaths){
-        String[] nodeNames = Arrays.stream(nodePaths).map(ProjectStructureTreeElementDTO::getDisplayName).toArray(String[] ::new);
+    public boolean removeFile(TreePath nodePaths) throws IOException {
+        String[] nodeNames = Arrays.stream(nodePaths.getPath())
+                .map(DefaultMutableTreeNode.class::cast)
+                .map(DefaultMutableTreeNode::getUserObject)
+                .map(ProjectStructureTreeElementDTO.class::cast)
+                .map(ProjectStructureTreeElementDTO::getDisplayName)
+                .toArray(String[]::new);
         String projectPath = applicationState.getProjectPath().getParent();
         Path path = Path.of(projectPath, nodeNames);
-        File file = path.toFile();
-        boolean isDeleted = file.delete();
-        if (!isDeleted){
-            System.out.println("is not deleted");
+        try (Stream<Path> filesStream = Files.walk(path)){
+            Set<Boolean> deletedStatuses = filesStream
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .map(File::delete)
+                    .collect(Collectors.toSet());
+            return !deletedStatuses.contains(false);
         }
     }
 
