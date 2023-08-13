@@ -268,7 +268,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         File file = path.toFile();
         if (file.isDirectory() && node != null){
             for (File child : file.listFiles()) {
-                extractNodes(child, node);
+                extractNodes(child, node, model);
             }
         }
     }
@@ -293,15 +293,15 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         return foundChild;
     }
 
-    private void extractNodes(File directory, DefaultMutableTreeNode parent) {
+    private void extractNodes(File directory, DefaultMutableTreeNode parent, DefaultTreeModel model) {
         boolean isDirectory = directory.isDirectory();
         DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new ProjectStructureTreeElementDTO(isDirectory ? ProjectStructureTreeElementDTO.Type.DIRECTORY: ProjectStructureTreeElementDTO.Type.SOURCE_CLASS,  directory.getName(), directory.getName()));
         if (!parentContainsNode(parent, childNode)){
-            parent.add(childNode);
+            model.insertNodeInto(childNode, parent, parent.getChildCount());
         }
         if(isDirectory){
             for (File file : directory.listFiles()) {
-                extractNodes(file, childNode);
+                extractNodes(file, childNode, model);
             }
         }
     }

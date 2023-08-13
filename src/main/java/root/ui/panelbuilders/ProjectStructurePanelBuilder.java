@@ -78,7 +78,9 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         switch (eventType) {
             case MAVEN_CLASSPATH_READED:
                 Map<String, List<File>> jarToClassesMap = (Map<String, List<File>>) data;
-                projectStructureNodesHandler.addExternalDependencies(model, jarToClassesMap, rootNode);
+                synchronized (projectStructureTree){
+                    projectStructureNodesHandler.addExternalDependencies(model, jarToClassesMap, rootNode);
+                }
                 break;
             case PROJECT_OPENED:
                 rootNode = (DefaultMutableTreeNode) data;
@@ -95,7 +97,9 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 break;
             case PROJECT_STRUCTURE_CHANGED:
                 FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
-                projectStructureNodesHandler.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
+                synchronized (projectStructureTree){
+                    projectStructureNodesHandler.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
+                }
                 break;
             case FILENAME_CHANGED:
                 RenamedFileDTO renamedFileDTO = (RenamedFileDTO) data;

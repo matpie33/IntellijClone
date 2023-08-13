@@ -60,26 +60,27 @@ public class OpenProjectActionListener implements MenuItemListener {
         int action = jFileChooser.showOpenDialog(Main.FRAME);
         if (action == JFileChooser.APPROVE_OPTION){
             File rootDirectory = jFileChooser.getSelectedFile();
-            cacheClassesWithMainMethods(rootDirectory);
             applicationState.setProjectPath(rootDirectory);
+            parseClasses(rootDirectory);
             directoriesWatcher.watchProjectDirectoryForChanges();
-            mavenCommandsController.interrupt();
             mavenCommandsController.init();
             threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
             threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Maven tasks finished"));
             DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
             File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory();
-            List<File> classesGroup = new ArrayList<>();
-            groupClassesToParseByThread(jdkSourcesRoot, CLASSES_TO_PARSE_PER_THREAD, classesGroup);
-            if (!classesGroup.isEmpty()){
-                final ArrayList<File> files = new ArrayList<>(classesGroup);
-                threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(files));
-            }
-
-
             projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
-
+            parseJdkSources(jdkSourcesRoot);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
+        }
+    }
+
+    private void parseJdkSources(File jdkSourcesRoot) {
+
+        List<File> classesGroup = new ArrayList<>();
+        groupClassesToParseByThread(jdkSourcesRoot, CLASSES_TO_PARSE_PER_THREAD, classesGroup);
+        if (!classesGroup.isEmpty()){
+            final ArrayList<File> files = new ArrayList<>(classesGroup);
+            threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(files));
         }
     }
 
@@ -110,10 +111,10 @@ public class OpenProjectActionListener implements MenuItemListener {
     }
 
 
-    private void cacheClassesWithMainMethods(File rootDirectory) {
+    private void parseClasses(File rootDirectory) {
         for (File file : rootDirectory.listFiles()) {
             if (file.isDirectory()){
-                cacheClassesWithMainMethods(file);
+                parseClasses(file);
             }
             else{
                 if (file.getName().endsWith(".java")){

@@ -14,7 +14,6 @@ public class MavenCommandExecutor {
 
     private ApplicationState applicationState;
 
-    private String createdFileName = "cp.txt";
     private File pomFile;
 
     private boolean interrupted;
