@@ -74,17 +74,15 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
         DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
-        DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) model.getRoot();
+        final DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) model.getRoot();
         switch (eventType) {
             case MAVEN_CLASSPATH_READED:
                 Map<String, List<File>> jarToClassesMap = (Map<String, List<File>>) data;
-                synchronized (projectStructureTree){
-                    projectStructureNodesHandler.addExternalDependencies(model, jarToClassesMap, rootNode);
-                }
+                SwingUtilities.invokeLater(()->projectStructureNodesHandler.addExternalDependencies(model, jarToClassesMap, rootNode));
                 break;
             case PROJECT_OPENED:
-                rootNode = (DefaultMutableTreeNode) data;
-                model.setRoot(rootNode);
+                DefaultMutableTreeNode localRoot = (DefaultMutableTreeNode) data;
+                model.setRoot(localRoot);
                 projectStructurePanel.revalidate();
                 break;
             case FILE_REMOVED_FROM_PROJECT:
@@ -97,9 +95,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
                 break;
             case PROJECT_STRUCTURE_CHANGED:
                 FileSystemChangeDTO fileSystemChangeDTO = (FileSystemChangeDTO) data;
-                synchronized (projectStructureTree){
-                    projectStructureNodesHandler.updateTreeStructure(fileSystemChangeDTO, rootNode, model);
-                }
+                SwingUtilities.invokeLater(()->projectStructureNodesHandler.updateTreeStructure(fileSystemChangeDTO, rootNode, model));
                 break;
             case FILENAME_CHANGED:
                 RenamedFileDTO renamedFileDTO = (RenamedFileDTO) data;
