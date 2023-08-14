@@ -18,7 +18,8 @@ public class ThreadExecutor {
         CompletableFuture [] futures = new CompletableFuture[tasks.length];
         for (int i = 0; i < tasks.length; i++) {
             Runnable task = tasks[i];
-            CompletableFuture<Void> future = CompletableFuture.runAsync(task, mainPool);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(task, mainPool).exceptionally(this::printStackTrace);
+
             futures[i] = future;
         }
         mavenTask = CompletableFuture.allOf(futures);
@@ -33,7 +34,7 @@ public class ThreadExecutor {
     }
 
     private Void printStackTrace(Throwable t) {
-        t.printStackTrace();
+        t.getCause().printStackTrace();
         return null;
     }
 
