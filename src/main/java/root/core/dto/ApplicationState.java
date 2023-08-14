@@ -14,15 +14,15 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class ApplicationState {
 
 
-    private Map<File, ClassStructureDTO> classStructureDTOs = new ConcurrentHashMap<>();
+    private final Map<File, ClassStructureDTO> classStructureDTOs = new ConcurrentHashMap<>();
 
-    private List<File> classesWithMainMethod = new ArrayList<>();
+    private final List<File> classesWithMainMethod = new ArrayList<>();
 
-    private Set<File> classesToRecompile = new HashSet<>();
+    private final Set<File> classesToRecompile = new HashSet<>();
 
-    private Deque<String> availableClassNames = new ConcurrentLinkedDeque<>();
+    private final Deque<String> availableClassNames = new ConcurrentLinkedDeque<>();
 
-    private Multimap<String, String> classNameToPackageMap = ArrayListMultimap.create();
+    private final Multimap<String, String> classNameToPackageMap = ArrayListMultimap.create();
 
 
     private WatchService fileWatcher;
@@ -35,9 +35,9 @@ public class ApplicationState {
 
     private String buildOutputDirectory;
 
-    private Set<Process> runningProcesses = new HashSet<>();
+    private final Set<Process> runningProcesses = new HashSet<>();
 
-    private Set<File> classesWithCompilationErrors = new HashSet<>();
+    private final Set<File> classesWithCompilationErrors = new HashSet<>();
 
     private String localRepositoryPath;
 

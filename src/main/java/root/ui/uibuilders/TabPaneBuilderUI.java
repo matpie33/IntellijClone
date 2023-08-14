@@ -135,10 +135,15 @@ public class TabPaneBuilderUI {
         return selectedComponent.getTextEditor();
     }
 
-    public void selectTab(File file, String text) {
+    public EditorScrollPane selectTab(File file, String text) {
         EditorScrollPane editorScrollPane = openedTabs.get(file);
-        editorScrollPane.getTextEditor().setText(text);
+        JTextPane textEditor = editorScrollPane.getTextEditor();
+        editorScrollPane.setUpdateCaret(false);
+        textEditor.setText(text);
+        editorScrollPane.setUpdateCaret(true);
         tabbedPane.setSelectedComponent(editorScrollPane);
+        editorScrollPane.revalidate();
+        return editorScrollPane;
     }
 
     public void addTabChangeListener(ChangeListener changeListener) {

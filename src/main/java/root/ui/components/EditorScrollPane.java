@@ -5,10 +5,7 @@ import org.springframework.util.StringUtils;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
@@ -95,6 +92,20 @@ public class EditorScrollPane extends JScrollPane {
         this.getViewport().add(textEditor);
 
         this.setRowHeaderView(lineNumbersPane);
+    }
+
+    public void setUpdateCaret (boolean update){
+        DefaultCaret caret1 = (DefaultCaret) textEditor.getCaret();
+        DefaultCaret caret2 = (DefaultCaret) lineNumbersPane.getCaret();
+        if (update){
+            caret2.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+            caret1.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        }
+        else{
+            caret2.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+            caret1.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+
+        }
     }
 
     private void clearAction(String actionName) {

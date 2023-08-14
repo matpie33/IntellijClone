@@ -5,6 +5,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassStructureParser;
 import root.core.codecompletion.CodeCompletionNavigator;
 import root.core.constants.FontsConstants;
 import root.core.context.ContextConfiguration;
@@ -33,6 +34,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -63,8 +65,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private CodeCompletionNavigator codeCompletionNavigator;
 
+    private ClassStructureParser classStructureParser;
 
-    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicationState applicationState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup, CodeCompletionNavigator codeCompletionNavigator) {
+
+    public FileEditorPanelBuilder(ContextConfiguration contextConfiguration, FileAutoSaver fileAutoSaver, ApplicationState applicationState, FileIO fileIO, TabPaneBuilderUI tabPaneBuilderUI, FileEditorShortcuts fileEditorShortcuts, CodeCompletionPopup codeCompletionPopup, CodeCompletionNavigator codeCompletionNavigator, ClassStructureParser classStructureParser) {
         this.fileAutoSaver = fileAutoSaver;
         this.contextConfiguration = contextConfiguration;
         this.applicationState = applicationState;
@@ -73,6 +77,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         this.fileEditorShortcuts = fileEditorShortcuts;
         this.codeCompletionPopup = codeCompletionPopup;
         this.codeCompletionNavigator = codeCompletionNavigator;
+        this.classStructureParser = classStructureParser;
     }
 
     @PostConstruct
@@ -132,7 +137,11 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.isEditable());
+                try {
+                    openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.isEditable(), resultDTO.isJavaFile());
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
                 Position position = (Position)data;
@@ -150,7 +159,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 if (modifiedFiles.contains(openedFile)){
                     try {
                         List<String> content = fileIO.getContent(openedFile);
-                        openFile(content, openedFile.toFile(), true);
+                        openFile(content, openedFile.toFile(), true, openedFile.endsWith(".java"));
                         applicationState.addCurrentFileToClassesToRecompile();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -198,12 +207,16 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         return visibleRectangular.y + visibleRectangular.height < destinationRectangular.y;
     }
 
-    private void openFile(List<String> lines, File file, boolean editable) {
+    private void openFile(List<String> lines, File file, boolean editable, boolean javaFile) throws FileNotFoundException {
         String text = String.join(System.lineSeparator(), lines);
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
+        if (classStructure == null && javaFile){
+            classStructureParser.parseClassStructure(file);
+            classStructure = applicationState.getClassStructureOfOpenedFile();
+        }
         Position classDeclarationPosition = classStructure == null? new Position(1,1): classStructure.getClassDeclarationPosition();
         if (tabPaneBuilderUI.containsTab(file)){
-             tabPaneBuilderUI.selectTab(file, text);
+            tabPaneBuilderUI.selectTab(file, text);
         }
         else{
             EditorScrollPane editorScrollPane = createScrollableTextEditor(text, editable);
