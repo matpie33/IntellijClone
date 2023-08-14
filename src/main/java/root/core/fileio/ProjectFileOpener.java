@@ -2,6 +2,7 @@ package root.core.fileio;
 
 import org.springframework.stereotype.Component;
 import root.core.classmanipulating.ClassDecompiler;
+import root.core.classmanipulating.ClassStructureParser;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.dto.ProjectStructureTreeElementDTO;
@@ -20,14 +21,18 @@ public class ProjectFileOpener {
 
     private ClassDecompiler classDecompiler;
 
-    public ProjectFileOpener(ApplicationState applicationState, FileIO fileIO, ClassDecompiler classDecompiler) {
+    private ClassStructureParser classStructureParser;
+
+    public ProjectFileOpener(ApplicationState applicationState, FileIO fileIO, ClassDecompiler classDecompiler, ClassStructureParser classStructureParser) {
         this.applicationState = applicationState;
         this.fileIO = fileIO;
         this.classDecompiler = classDecompiler;
+        this.classStructureParser = classStructureParser;
     }
 
     public FileReadResultDTO openNode (ProjectStructureTreeElementDTO[] nodesPath){
         List<String> nodeNames = Arrays.stream(nodesPath).map(ProjectStructureTreeElementDTO::getPath).collect(Collectors.toList());
+        boolean isJDKOrMaven = nodeNames.contains("JDK") || nodeNames.contains("maven");
         nodeNames = removeRootNodeIfItsMavenOrJDKPath(nodeNames);
         String[] nodes = nodeNames.toArray(new String[]{});
 
@@ -36,9 +41,11 @@ public class ProjectFileOpener {
         FileReadResultDTO fileReadResultDTO;
         if (!nodeNames.isEmpty() && nodes[nodes.length-1].endsWith(".class")) {
             fileReadResultDTO = classDecompiler.decompile(nodes);
+            String content = String.join("\n", fileReadResultDTO.getContentLines());
+            classStructureParser.parseClassContent(content, fileReadResultDTO.getFile());
         }
         else if (path.toFile().isFile() && !path.toString().endsWith(".jar")) {
-            fileReadResultDTO = fileIO.readFile(path);
+            fileReadResultDTO = fileIO.readFile(path, isJDKOrMaven);
         }
         else{
             fileReadResultDTO = new FileReadResultDTO();

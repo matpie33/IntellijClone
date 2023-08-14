@@ -46,9 +46,7 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
             FileReadResultDTO resultDTO = projectFileOpener.openNode(nodeNames.get(0));
             if (resultDTO.isReadSuccessfully()){
                 fileAutoSaver.save();
-                if (resultDTO.isEditable()){
-                    applicationState.setOpenedFile(resultDTO.getFile());
-                }
+                applicationState.setOpenedFile(resultDTO.getFile());
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, resultDTO);
             }
         }

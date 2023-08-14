@@ -45,13 +45,7 @@ public class FileIO {
         return path.toFile();
     }
 
-    public FileReadResultDTO read(String[] directories){
-        String projectPath = applicationState.getProjectPath().getParent();
-        Path path = Path.of(projectPath, directories);
-        return readFile(path);
-    }
-
-    public FileReadResultDTO readFile(Path path){
+    public FileReadResultDTO readFile(Path path, boolean isJDKOrMaven){
 
         try {
             File file = path.toFile();
@@ -62,7 +56,7 @@ public class FileIO {
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
             fileReadResultDTO.setContentLines(lines);
             fileReadResultDTO.setFile(file);
-            fileReadResultDTO.setEditable(true);
+            fileReadResultDTO.setEditable(!isJDKOrMaven);
             fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
             fileReadResultDTO.setReadSuccessfully(true);
             fileReadResultDTO.setPathFromRoot(path.toString());

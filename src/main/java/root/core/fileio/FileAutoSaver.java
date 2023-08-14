@@ -43,8 +43,10 @@ public class FileAutoSaver {
     }
 
     public void save (){
-        saveInternal();
-        currentText=null;
+        if (isDirty){
+            saveInternal();
+            currentText=null;
+        }
     }
 
     public void recordKeyRelease (String currentText){

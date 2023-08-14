@@ -40,36 +40,20 @@ public class ClassStructureParser {
         this.classNamesCollector = classNamesCollector;
     }
 
+    public void parseClassContent (String content, File file){
+        CompilationUnit compilationUnit = StaticJavaParser.parse(content);
+        ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(compilationUnit);
+        applicationState.putClassStructure(file, classStructureDTO);
+    }
+
     public boolean parseClassStructure(File file){
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            NodeList<TypeDeclaration<?>> types = cu.getTypes();
-            if (types.isEmpty()){
-                return false;
-            }
-            TypeDeclaration<?> typeDeclaration = types.get(0);
-            ClassStructureDTO classStructureDTO = new ClassStructureDTO();
-            cu.getImports().forEach(importDeclaration -> classStructureDTO.addImport(importDeclaration.getNameAsString()));
-            if (typeDeclaration instanceof ClassOrInterfaceDeclaration){
-                ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
-                String name = classOrInterfaceDeclaration.getNameAsString();
-                Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
-                String packageName = "";
-                if (packageDeclaration.isPresent()){
-                    PackageDeclaration declaration = packageDeclaration.get();
-                    Range range = declaration.getRange().get();
-                    classStructureDTO.setPackageDeclarationPosition(range.begin);
-                    packageName = declaration.getNameAsString();
-                }
-                classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName);
-            }
-            Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
-            Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
-            checkForFieldsAccess(cu, classStructureDTO, fieldNames, variablesHidingFields);
-            boolean hasMainMethod = containsMainMethod(file, cu);
+            ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(cu);
+            if (classStructureDTO == null) return false;
 
             applicationState.putClassStructure(file, classStructureDTO);
-            return hasMainMethod;
+            return containsMainMethod(file, cu);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -85,6 +69,33 @@ public class ClassStructureParser {
             }
         }
         return false;
+    }
+
+    private ClassStructureDTO extractStructureFromCompilationUnit(CompilationUnit cu) {
+        NodeList<TypeDeclaration<?>> types = cu.getTypes();
+        if (types.isEmpty()){
+            return null;
+        }
+        TypeDeclaration<?> typeDeclaration = types.get(0);
+        ClassStructureDTO classStructureDTO = new ClassStructureDTO();
+        cu.getImports().forEach(importDeclaration -> classStructureDTO.addImport(importDeclaration.getNameAsString()));
+        if (typeDeclaration instanceof ClassOrInterfaceDeclaration){
+            ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
+            String name = classOrInterfaceDeclaration.getNameAsString();
+            Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
+            String packageName = "";
+            if (packageDeclaration.isPresent()){
+                PackageDeclaration declaration = packageDeclaration.get();
+                Range range = declaration.getRange().get();
+                classStructureDTO.setPackageDeclarationPosition(range.begin);
+                packageName = declaration.getNameAsString();
+            }
+            classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName);
+        }
+        Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
+        Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
+        checkForFieldsAccess(cu, classStructureDTO, fieldNames, variablesHidingFields);
+        return classStructureDTO;
     }
 
     private int findPackageDeclarationLine(File file) throws IOException {
