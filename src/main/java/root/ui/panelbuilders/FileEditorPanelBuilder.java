@@ -10,6 +10,7 @@ import root.core.constants.FontsConstants;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
 import root.core.dto.ApplicationState;
+import root.core.dto.ClassStructureDTO;
 import root.core.dto.FileReadResultDTO;
 import root.core.dto.FileSystemChangeDTO;
 import root.core.fileio.FileAutoSaver;
@@ -23,12 +24,14 @@ import root.ui.uibuilders.TabPaneBuilderUI;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -132,12 +135,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.isEditable());
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
-                Position lineStart = (Position)data;
+                Position position = (Position)data;
                 EditorScrollPane editorScrollPane = tabPaneBuilderUI.getScrollPaneFromActiveTab();
                 JTextPane editorText = editorScrollPane.getTextEditor();
-                Element rootElement = editorText.getDocument().getDefaultRootElement();
-                editorText.setCaretPosition(rootElement.getElement(lineStart.line - 1).getStartOffset() + lineStart.column-1);
-                editorText.requestFocus();
+                scrollTextPaneToPosition(editorText, position);
                 break;
             case PROJECT_STRUCTURE_CHANGED:
                 if (applicationState.getOpenedFile()== null){
@@ -165,15 +166,49 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         }
     }
 
+    private void scrollTextPaneToPosition(JTextPane editorText, Position position) {
+
+
+        Element rootElement = editorText.getDocument().getDefaultRootElement();
+        Element elementForGivenLine = rootElement.getElement(position.line - 1);
+        editorText.requestFocusInWindow();
+        SwingUtilities.invokeLater(()->{
+            try {
+                Rectangle2D rectangleForDestinationLine = editorText.modelToView2D(elementForGivenLine.getStartOffset() + position.column - 1);
+                int viewportHeight = editorText.getParent().getHeight();
+                Rectangle visibleRectangular = editorText.getVisibleRect();
+                Rectangle destinationRectangular = new Rectangle((int) rectangleForDestinationLine.getX(), (int) rectangleForDestinationLine.getY(), (int) rectangleForDestinationLine.getWidth(), (int) rectangleForDestinationLine.getHeight());
+                int destinationYPosition = destinationRectangular.y;
+                if (destinationIsBelowVisibleRectangular(visibleRectangular, destinationRectangular)){
+                    destinationYPosition += 4*viewportHeight/5;
+                }
+                else{
+                    destinationYPosition -= viewportHeight/5;
+                }
+                destinationRectangular.y = destinationYPosition;
+                editorText.scrollRectToVisible(destinationRectangular);
+            } catch (BadLocationException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+    }
+
+    private boolean destinationIsBelowVisibleRectangular(Rectangle visibleRectangular, Rectangle destinationRectangular) {
+        return visibleRectangular.y + visibleRectangular.height < destinationRectangular.y;
+    }
+
     private void openFile(List<String> lines, File file, boolean editable) {
         String text = String.join(System.lineSeparator(), lines);
+        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
+        Position classDeclarationPosition = classStructure == null? new Position(1,1): classStructure.getClassDeclarationPosition();
         if (tabPaneBuilderUI.containsTab(file)){
-            tabPaneBuilderUI.selectTab(file, text);
+             tabPaneBuilderUI.selectTab(file, text);
         }
         else{
-            EditorScrollPane scrollPane = createScrollableTextEditor(text, editable);
-            tabPaneBuilderUI.addTab(scrollPane, file, lines);
-
+            EditorScrollPane editorScrollPane = createScrollableTextEditor(text, editable);
+            tabPaneBuilderUI.addTab(editorScrollPane, file, lines);
+            scrollTextPaneToPosition(editorScrollPane.getTextEditor(), classDeclarationPosition);
         }
     }
 

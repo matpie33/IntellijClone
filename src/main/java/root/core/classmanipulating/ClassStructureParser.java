@@ -81,7 +81,8 @@ public class ClassStructureParser {
         cu.getImports().forEach(importDeclaration -> classStructureDTO.addImport(importDeclaration.getNameAsString()));
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration){
             ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
-            String name = classOrInterfaceDeclaration.getNameAsString();
+            Position declarationPosition = classOrInterfaceDeclaration.getName().getRange().get().begin;
+            classStructureDTO.setClassDeclarationPosition(declarationPosition);
             Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
             String packageName = "";
             if (packageDeclaration.isPresent()){

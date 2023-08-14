@@ -30,12 +30,9 @@ public class ClassStructureNodeClickListener extends MouseAdapter {
 
             JTree tree = (JTree) e.getSource();
             TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
-            String [] paths = new String [path.getPathCount()];
-            for (int i=0; i<paths.length; i++){
-                DefaultMutableTreeNode pathComponent = (DefaultMutableTreeNode) path.getPathComponent(i);
-                Position position = classStructureNodesHandler.getPositionInTextEditorForClassNode(pathComponent);
-                uiEventsQueue.dispatchEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, position);
-            }
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            Position position = classStructureNodesHandler.getPositionInTextEditorForClassNode(node);
+            uiEventsQueue.dispatchEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, position);
         }
     }
 }

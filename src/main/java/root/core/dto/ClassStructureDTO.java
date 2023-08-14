@@ -11,7 +11,17 @@ public class ClassStructureDTO {
 
     private Position packageDeclarationPosition;
 
+    private Position classDeclarationPosition;
+
     private Set<String> imports = new HashSet<>();
+
+    public Position getClassDeclarationPosition() {
+        return classDeclarationPosition;
+    }
+
+    public void setClassDeclarationPosition(Position classDeclarationPosition) {
+        this.classDeclarationPosition = classDeclarationPosition;
+    }
 
     public Position getPackageDeclarationPosition() {
         return packageDeclarationPosition;
