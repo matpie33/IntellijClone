@@ -197,7 +197,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     @Override
     public void remove (int offset, int length) throws BadLocationException {
         if (wordBeingTyped.length()>0){
-            wordBeingTyped.setLength(wordBeingTyped.length()-length);
+            wordBeingTyped.setLength(Math.max(wordBeingTyped.length()-length, 0));
         }
         if (showSuggestions){
             Map<String, Collection<String>> suggestions = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());

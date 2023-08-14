@@ -1,6 +1,9 @@
 package root.core.jdk.manipulating;
 
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
 import org.springframework.stereotype.Component;
+import root.core.codecompletion.ClassNamesCollector;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +13,12 @@ import java.util.zip.ZipFile;
 
 @Component
 public class ClassesFromJarsExtractor {
+
+    private ClassNamesCollector classNamesCollector;
+
+    public ClassesFromJarsExtractor(ClassNamesCollector classNamesCollector) {
+        this.classNamesCollector = classNamesCollector;
+    }
 
     public Map<String, List<File>> extractClassesFromJars (String classpath){
         Map<String, List<File>> classFilesPerJar = new HashMap<>();
@@ -25,6 +34,8 @@ public class ClassesFromJarsExtractor {
                     while (entries.hasMoreElements()) {
                         ZipEntry zipEntry = entries.nextElement();
                         if (zipEntry.getName().endsWith(".class")){
+                            JavaClass parsedClass = new ClassParser(zipFile.getName(), zipEntry.getName()).parse();
+                            classNamesCollector.addClassIfAccessible(parsedClass);
                             File e = new File(zipEntry.getName());
                             classes.add(e);
                         }

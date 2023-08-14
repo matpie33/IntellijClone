@@ -15,6 +15,7 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
 import org.springframework.stereotype.Component;
+import root.core.codecompletion.ClassNamesCollector;
 import root.core.dto.ApplicationState;
 import root.core.dto.ClassStructureDTO;
 
@@ -31,9 +32,12 @@ public class ClassStructureParser {
     private final Node.TreeTraversal treeTraversal = Node.TreeTraversal.PREORDER;
     private ApplicationState applicationState;
 
+    private ClassNamesCollector classNamesCollector;
 
-    public ClassStructureParser(ApplicationState applicationState) {
+
+    public ClassStructureParser(ApplicationState applicationState, ClassNamesCollector classNamesCollector) {
         this.applicationState = applicationState;
+        this.classNamesCollector = classNamesCollector;
     }
 
     public boolean parseClassStructure(File file){
@@ -57,7 +61,7 @@ public class ClassStructureParser {
                     classStructureDTO.setPackageDeclarationPosition(range.begin);
                     packageName = declaration.getNameAsString();
                 }
-                applicationState.addClassWithPackage(name, packageName);
+                classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName);
             }
             Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
             Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);

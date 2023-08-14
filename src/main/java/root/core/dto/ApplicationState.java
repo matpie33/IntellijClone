@@ -168,4 +168,16 @@ public class ApplicationState {
     public Set<File> getClassesWithCompilationErrors() {
         return classesWithCompilationErrors;
     }
+
+    public void addClassWithPackage(String fullName) {
+        if (!fullName.contains(".")){
+            return;
+        }
+        String replacedDollarSigns = fullName.replace("$", ".");
+
+        int lastDot = replacedDollarSigns.lastIndexOf('.');
+        String className = replacedDollarSigns.substring(lastDot+1);
+        String packageName = replacedDollarSigns.substring(0, lastDot);
+        addClassWithPackage(className, packageName);
+    }
 }
