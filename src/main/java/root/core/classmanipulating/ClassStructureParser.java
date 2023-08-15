@@ -18,11 +18,13 @@ import org.springframework.stereotype.Component;
 import root.core.codecompletion.ClassNamesCollector;
 import root.core.dto.ApplicationState;
 import root.core.dto.ClassStructureDTO;
+import root.core.jdk.manipulating.JavaSourcesExtractor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 @Component
@@ -34,22 +36,32 @@ public class ClassStructureParser {
 
     private ClassNamesCollector classNamesCollector;
 
+    private JavaSourcesExtractor javaSourcesExtractor;
 
-    public ClassStructureParser(ApplicationState applicationState, ClassNamesCollector classNamesCollector) {
+
+    public ClassStructureParser(ApplicationState applicationState, ClassNamesCollector classNamesCollector, JavaSourcesExtractor javaSourcesExtractor) {
         this.applicationState = applicationState;
         this.classNamesCollector = classNamesCollector;
+        this.javaSourcesExtractor = javaSourcesExtractor;
     }
 
-    public void parseClassContent (String content, File file){
+    public void parseClassContent (String content, File file, ClassOrigin origin){
         CompilationUnit compilationUnit = StaticJavaParser.parse(content);
-        ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(compilationUnit);
+        ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(compilationUnit, origin, "");
         applicationState.putClassStructure(file, classStructureDTO);
     }
 
-    public boolean parseClassStructure(File file){
+    public boolean parseClassStructure(File file, ClassOrigin origin){
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(cu);
+            String rootDirectory = "";
+            if (origin.equals(ClassOrigin.JDK)){
+                Path javaSourcesDirectory = javaSourcesExtractor.getJavaSourcesDirectory();
+                Path fileRelativeToJavaSources = javaSourcesDirectory.relativize(file.toPath());
+                Path rootDirectoryObject = fileRelativeToJavaSources.subpath(0, 1);
+                rootDirectory = rootDirectoryObject + "/";
+            }
+            ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(cu, origin,rootDirectory);
             if (classStructureDTO == null) return false;
 
             applicationState.putClassStructure(file, classStructureDTO);
@@ -71,7 +83,7 @@ public class ClassStructureParser {
         return false;
     }
 
-    private ClassStructureDTO extractStructureFromCompilationUnit(CompilationUnit cu) {
+    private ClassStructureDTO extractStructureFromCompilationUnit(CompilationUnit cu, ClassOrigin origin, String rootDirectory) {
         NodeList<TypeDeclaration<?>> types = cu.getTypes();
         if (types.isEmpty()){
             return null;
@@ -91,7 +103,7 @@ public class ClassStructureParser {
                 classStructureDTO.setPackageDeclarationPosition(range.begin);
                 packageName = declaration.getNameAsString();
             }
-            classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName);
+            classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName, origin, rootDirectory);
         }
         Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
         Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);

@@ -4,6 +4,7 @@ import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
 import root.core.dto.ApplicationState;
@@ -20,6 +21,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.io.File;
 import java.io.FileNotFoundException;
 
 @Component
@@ -68,8 +70,9 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
             case FILE_OPENED_FOR_EDIT:
 
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
-                if (resultDTO.isJavaFile()){
-                    displayJavaFileStructure();
+                ClassOrigin classOrigin = resultDTO.getClassOrigin();
+                if (classOrigin.equals(ClassOrigin.JDK) || classOrigin.equals(ClassOrigin.SOURCES)){
+                    displayJavaFileStructure(resultDTO.getFile());
                 }
                 else{
                     DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
@@ -77,15 +80,16 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
                 }
                 break;
             case COMPILATION_ERROR_FIXED_IN_OPENED_FILE:
-                displayJavaFileStructure();
+                File file = (File)data;
+                displayJavaFileStructure(file);
                 break;
         }
     }
 
-    private void displayJavaFileStructure() {
+    private void displayJavaFileStructure(File file) {
         try {
             DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
-            CompilationUnit compilationUnit = StaticJavaParser.parse(applicationState.getOpenedFile());
+            CompilationUnit compilationUnit = StaticJavaParser.parse(file);
             if (compilationUnit.getTypes().isEmpty()){
                 return;
             }

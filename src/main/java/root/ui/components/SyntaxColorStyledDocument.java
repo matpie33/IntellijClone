@@ -109,7 +109,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
         if (showSuggestions && !textToAdd.equals("\n") && !textToAdd.equals(" ")){
             wordBeingTyped.append(textToAdd);
-            Map<String, Collection<String >> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+            Map<String, Collection<ClassNavigationDTO>> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
             codeCompletionPopup.clear();
             codeCompletionPopup.addSuggestions(suggestedClasses);
             if (!suggestedClasses.isEmpty()){
@@ -200,7 +200,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             wordBeingTyped.setLength(Math.max(wordBeingTyped.length()-length, 0));
         }
         if (showSuggestions){
-            Map<String, Collection<String>> suggestions = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+            Map<String, Collection<ClassNavigationDTO>> suggestions = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
             codeCompletionPopup.clear();
             codeCompletionPopup.addSuggestions(suggestions);
         }

@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -19,12 +17,15 @@ import java.util.zip.ZipFile;
 @Component
 public class ClassDecompiler {
 
-    public FileReadResultDTO decompile (String[] nodesPath){
+    public static final String JAR_EXTENSION = ".jar";
+
+    public FileReadResultDTO decompile (Path pathToFile){
         try {
 
-            Iterator<String> nodesIterator = Arrays.stream(nodesPath).iterator();
-            String pathToJarFile = nodesIterator.next();
-            String pathFromJarToClass = getPathFromJarToClass(nodesIterator);
+            String path = pathToFile.toString();
+            int indexOfPathAfterJar = path.indexOf(JAR_EXTENSION) + JAR_EXTENSION.length();
+            String pathToJarFile = path.substring(0, indexOfPathAfterJar);
+            String pathFromJarToClass = path.substring(indexOfPathAfterJar+1);
             File fileForClassContents = File.createTempFile("File", ".class");
             File tempFileDirectory = fileForClassContents.getParentFile();
             try (ZipFile zipFile = new ZipFile(pathToJarFile)) {
@@ -40,14 +41,13 @@ public class ClassDecompiler {
 
     private FileReadResultDTO createResultDTO(String pathToJarFile, String pathFromJarToClass, List<String> decompilationResult) {
         FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
-        fileReadResultDTO.setJavaFile(false);
+        fileReadResultDTO.setClassOrigin(ClassOrigin.MAVEN);
         fileReadResultDTO.setReadSuccessfully(true);
         Path pathToFile = Path.of(pathToJarFile, pathFromJarToClass);
         String pathFromRoot = pathToFile.toString();
         fileReadResultDTO.setFile(pathToFile.toFile());
         fileReadResultDTO.setPathFromRoot(pathFromRoot);
         fileReadResultDTO.setContentLines(decompilationResult);
-        fileReadResultDTO.setEditable(false);
         return fileReadResultDTO;
     }
 
@@ -60,22 +60,12 @@ public class ClassDecompiler {
     }
 
     private void createFileWithClassContents(String pathFromJarToClass, File fileForClassContents, ZipFile zipFile) throws IOException {
+        pathFromJarToClass = pathFromJarToClass.replace("\\", "/");
         ZipEntry classFileEntry = zipFile.getEntry(pathFromJarToClass);
         InputStream inputStream = zipFile.getInputStream(classFileEntry);
         Files.write(fileForClassContents.toPath(), inputStream.readAllBytes());
     }
 
-    private String getPathFromJarToClass(Iterator<String> nodesIterator) {
-        StringBuilder pathFromJarToClassBuilder = new StringBuilder();
-        while (nodesIterator.hasNext()){
-            pathFromJarToClassBuilder.append(nodesIterator.next());
-            if (nodesIterator.hasNext()){
-                pathFromJarToClassBuilder.append("/");
-            }
-
-        }
-        return pathFromJarToClassBuilder.toString();
-    }
 
 
 }

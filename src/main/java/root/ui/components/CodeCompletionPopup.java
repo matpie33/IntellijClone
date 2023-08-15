@@ -1,6 +1,7 @@
 package root.ui.components;
 
 import org.springframework.stereotype.Component;
+import root.core.dto.ClassNavigationDTO;
 import root.core.dto.ClassSuggestionDTO;
 
 import javax.swing.*;
@@ -49,15 +50,15 @@ public class CodeCompletionPopup extends MouseAdapter implements WindowFocusList
 
     }
 
-    public void addSuggestions(Map<String, Collection<String>> suggestions){
+    public void addSuggestions(Map<String, Collection<ClassNavigationDTO>> suggestions){
         if (suggestions.isEmpty()){
             hide();
         }
-        for (Map.Entry<String, Collection<String>> entry : suggestions.entrySet()) {
+        for (Map.Entry<String, Collection<ClassNavigationDTO>> entry : suggestions.entrySet()) {
             String className = entry.getKey();
-            Collection<String> packageNames = entry.getValue();
-            for (String packageName : packageNames) {
-                ClassSuggestionDTO classSuggestionDTO = new ClassSuggestionDTO(className, packageName);
+            Collection<ClassNavigationDTO> classNavigationDTOS = entry.getValue();
+            for (ClassNavigationDTO classNavigation : classNavigationDTOS) {
+                ClassSuggestionDTO classSuggestionDTO = new ClassSuggestionDTO(classNavigation.getRootDirectory(), className, classNavigation.getPackageName(), classNavigation.getOrigin());
                 listModel.addElement(classSuggestionDTO);
             }
         }

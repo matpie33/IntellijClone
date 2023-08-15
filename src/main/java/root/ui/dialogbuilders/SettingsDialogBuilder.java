@@ -22,7 +22,7 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
     private JDialog dialog;
     private JTextField jdkInputField;
 
-    private root.core.jdk.manipulating.JDKConfigurationHolder JDKConfigurationHolder;
+    private JDKConfigurationHolder JDKConfigurationHolder;
 
     private JLabel errorLabel;
 

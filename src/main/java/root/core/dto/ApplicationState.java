@@ -3,12 +3,12 @@ package root.core.dto;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassOrigin;
 
 import java.io.File;
 import java.nio.file.WatchService;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Component
 public class ApplicationState {
@@ -20,9 +20,8 @@ public class ApplicationState {
 
     private final Set<File> classesToRecompile = new HashSet<>();
 
-    private final Deque<String> availableClassNames = new ConcurrentLinkedDeque<>();
 
-    private final Multimap<String, String> classNameToPackageMap = ArrayListMultimap.create();
+    private final Multimap<String, ClassNavigationDTO> classNameToInfoDTO = ArrayListMultimap.create();
 
 
     private WatchService fileWatcher;
@@ -41,13 +40,17 @@ public class ApplicationState {
 
     private String localRepositoryPath;
 
-    public void addClassWithPackage (String className, String packageName){
-        availableClassNames.add(className);
-        classNameToPackageMap.put(className, packageName);
+    public void addClassWithPackage (String className, String packageName, ClassOrigin origin, String rootDirectory){
+        ClassNavigationDTO classNavigationDTO = new ClassNavigationDTO(rootDirectory, packageName, origin, className);
+        classNameToInfoDTO.put(className, classNavigationDTO);
     }
 
-    public Collection<String> getPackageNamesForClass(String className){
-        return classNameToPackageMap.get(className);
+    public Collection<ClassNavigationDTO> getPackageNamesForClass(String className){
+        return classNameToInfoDTO.get(className);
+    }
+
+    public Collection<ClassNavigationDTO> getAvailableClassNames (){
+        return classNameToInfoDTO.values();
     }
 
     public String getLocalRepositoryPath() {
@@ -111,10 +114,6 @@ public class ApplicationState {
         return classesWithMainMethod;
     }
 
-    public Deque<String> getAvailableClassNames() {
-        return availableClassNames;
-    }
-
     public void renameFileIfContainsMainMethod(File oldFile, File newFile ){
         if (classesWithMainMethod.contains(oldFile)){
             classesWithMainMethod.remove(oldFile);
@@ -169,7 +168,7 @@ public class ApplicationState {
         return classesWithCompilationErrors;
     }
 
-    public void addClassWithPackage(String fullName) {
+    public void addClassWithPackage(String fullName, String pathToJar, ClassOrigin origin) {
         if (!fullName.contains(".")){
             return;
         }
@@ -178,6 +177,6 @@ public class ApplicationState {
         int lastDot = replacedDollarSigns.lastIndexOf('.');
         String className = replacedDollarSigns.substring(lastDot+1);
         String packageName = replacedDollarSigns.substring(0, lastDot);
-        addClassWithPackage(className, packageName);
+        addClassWithPackage(className, packageName, origin, pathToJar);
     }
 }

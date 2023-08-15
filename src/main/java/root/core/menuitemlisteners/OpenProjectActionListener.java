@@ -2,6 +2,7 @@ package root.core.menuitemlisteners;
 
 import org.springframework.stereotype.Component;
 import root.Main;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.classmanipulating.ClassStructureParser;
 import root.core.directory.changesdetecting.DirectoriesWatcher;
 import root.core.dto.ApplicationState;
@@ -61,13 +62,13 @@ public class OpenProjectActionListener implements MenuItemListener {
         if (action == JFileChooser.APPROVE_OPTION){
             File rootDirectory = jFileChooser.getSelectedFile();
             applicationState.setProjectPath(rootDirectory);
-            parseClasses(rootDirectory);
+            parseClasses(rootDirectory, ClassOrigin.SOURCES);
             directoriesWatcher.watchProjectDirectoryForChanges();
             mavenCommandsController.init();
             threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
             threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Maven tasks finished"));
             DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
-            File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory();
+            File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory().toFile();
             projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
             parseJdkSources(jdkSourcesRoot);
             uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
@@ -80,7 +81,7 @@ public class OpenProjectActionListener implements MenuItemListener {
         groupClassesToParseByThread(jdkSourcesRoot, CLASSES_TO_PARSE_PER_THREAD, classesGroup);
         if (!classesGroup.isEmpty()){
             final ArrayList<File> files = new ArrayList<>(classesGroup);
-            threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(files));
+            threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(files, ClassOrigin.JDK));
         }
     }
 
@@ -92,7 +93,7 @@ public class OpenProjectActionListener implements MenuItemListener {
                 }
                 else{
                     ArrayList<File> finalList = new ArrayList<>(fileGroup);
-                    threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(finalList));
+                    threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()-> parseClasses(finalList, ClassOrigin.JDK));
                     fileGroup.clear();
                     fileGroup.add(file);
                 }
@@ -104,21 +105,21 @@ public class OpenProjectActionListener implements MenuItemListener {
         }
     }
 
-    private void parseClasses(List<File> classesGroup) {
+    private void parseClasses(List<File> classesGroup, ClassOrigin origin) {
         for (File classFile : classesGroup) {
-            classStructureParser.parseClassStructure(classFile);
+            classStructureParser.parseClassStructure(classFile, origin);
         }
     }
 
 
-    private void parseClasses(File rootDirectory) {
+    private void parseClasses(File rootDirectory, ClassOrigin origin) {
         for (File file : rootDirectory.listFiles()) {
             if (file.isDirectory()){
-                parseClasses(file);
+                parseClasses(file, ClassOrigin.SOURCES);
             }
             else{
                 if (file.getName().endsWith(".java")){
-                    boolean isMain = classStructureParser.parseClassStructure(file);
+                    boolean isMain = classStructureParser.parseClassStructure(file, origin);
                     if (isMain){
                         applicationState.addClassWithMainMethod(file);
                     }

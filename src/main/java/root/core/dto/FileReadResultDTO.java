@@ -1,5 +1,7 @@
 package root.core.dto;
 
+import root.core.classmanipulating.ClassOrigin;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,19 +13,16 @@ public class FileReadResultDTO {
     private List<String> contentLines =new ArrayList<>();
 
     private File file;
-
-    private boolean isJavaFile;
-
     private boolean isReadSuccessfully;
 
-    private boolean isEditable;
+    private ClassOrigin classOrigin;
 
-    public boolean isEditable() {
-        return isEditable;
+    public ClassOrigin getClassOrigin() {
+        return classOrigin;
     }
 
-    public void setEditable(boolean editable) {
-        isEditable = editable;
+    public void setClassOrigin(ClassOrigin classOrigin) {
+        this.classOrigin = classOrigin;
     }
 
     public String getPathFromRoot() {
@@ -40,14 +39,6 @@ public class FileReadResultDTO {
 
     public void setReadSuccessfully(boolean readSuccessfully) {
         isReadSuccessfully = readSuccessfully;
-    }
-
-    public boolean isJavaFile() {
-        return isJavaFile;
-    }
-
-    public void setJavaFile(boolean javaFile) {
-        isJavaFile = javaFile;
     }
 
     public List<String> getContentLines() {

@@ -2,6 +2,7 @@ package root.core.codecompletion;
 
 import org.springframework.stereotype.Component;
 import root.core.dto.ApplicationState;
+import root.core.dto.ClassNavigationDTO;
 
 import java.util.*;
 
@@ -14,16 +15,18 @@ public class AvailableClassesFilter {
         this.applicationState = applicationState;
     }
 
-    public Map<String, Collection<String>> getClassesStartingWith (String prefix){
-        Deque<String> availableClassNames = applicationState.getAvailableClassNames();
-        List<String> classNamesCopy = new ArrayList<>(availableClassNames);
-        Map<String, Collection<String>> classToPackageNamesMap = new TreeMap<>();
+    public Map<String, Collection<ClassNavigationDTO>> getClassesStartingWith (String prefix){
+        Collection<ClassNavigationDTO> availableClassNames = applicationState.getAvailableClassNames();
+        List<ClassNavigationDTO> classNamesCopy = new ArrayList<>(availableClassNames);
+        Map<String, Collection<ClassNavigationDTO>> classToPackageNamesMap = new TreeMap<>();
         if (prefix.isEmpty()){
             return new HashMap<>();
         }
-        for (String className : classNamesCopy) {
+        for (ClassNavigationDTO classNameDTO : classNamesCopy) {
+            String className = classNameDTO.getClassName();
             if (className.startsWith(prefix)){
-                classToPackageNamesMap.put(className, applicationState.getPackageNamesForClass(className));
+                Collection<ClassNavigationDTO> packageNames = applicationState.getPackageNamesForClass(className);
+                classToPackageNamesMap.put(className, packageNames);
             }
         }
         return classToPackageNamesMap;

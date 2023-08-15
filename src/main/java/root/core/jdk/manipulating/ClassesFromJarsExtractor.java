@@ -35,7 +35,7 @@ public class ClassesFromJarsExtractor {
                         ZipEntry zipEntry = entries.nextElement();
                         if (zipEntry.getName().endsWith(".class")){
                             JavaClass parsedClass = new ClassParser(zipFile.getName(), zipEntry.getName()).parse();
-                            classNamesCollector.addClassIfAccessible(parsedClass);
+                            classNamesCollector.addClassIfAccessible(parsedClass, pathToJar);
                             File e = new File(zipEntry.getName());
                             classes.add(e);
                         }

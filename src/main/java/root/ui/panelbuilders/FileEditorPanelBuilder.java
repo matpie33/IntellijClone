@@ -5,6 +5,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.classmanipulating.ClassStructureParser;
 import root.core.codecompletion.CodeCompletionNavigator;
 import root.core.constants.FontsConstants;
@@ -85,7 +86,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         rootPanel = new JPanel(new BorderLayout());
 
         EditorScrollPane scrollPane = createScrollableTextEditor("", true);
-        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>());
+        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>(), ClassOrigin.SOURCES);
         JTabbedPane tabbedPane = tabPaneBuilderUI.getTabbedPane();
         rootPanel.add(tabbedPane, BorderLayout.CENTER);
         fileEditorShortcuts.assignShortcuts(tabbedPane);
@@ -137,8 +138,9 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
+                applicationState.setOpenedFile(resultDTO.getFile());
                 try {
-                    openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.isEditable(), resultDTO.isJavaFile());
+                    openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.getClassOrigin());
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -159,7 +161,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 if (modifiedFiles.contains(openedFile)){
                     try {
                         List<String> content = fileIO.getContent(openedFile);
-                        openFile(content, openedFile.toFile(), true, openedFile.endsWith(".java"));
+                        openFile(content, openedFile.toFile(), ClassOrigin.SOURCES);
                         applicationState.addCurrentFileToClassesToRecompile();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -207,11 +209,11 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         return visibleRectangular.y + visibleRectangular.height < destinationRectangular.y;
     }
 
-    private void openFile(List<String> lines, File file, boolean editable, boolean javaFile) throws FileNotFoundException {
+    private void openFile(List<String> lines, File file, ClassOrigin classOrigin) throws FileNotFoundException {
         String text = String.join(System.lineSeparator(), lines);
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
-        if (classStructure == null && javaFile){
-            classStructureParser.parseClassStructure(file);
+        if (classStructure == null && classOrigin.isSourceFile()){
+            classStructureParser.parseClassStructure(file, ClassOrigin.SOURCES);
             classStructure = applicationState.getClassStructureOfOpenedFile();
         }
         Position classDeclarationPosition = classStructure == null? new Position(1,1): classStructure.getClassDeclarationPosition();
@@ -219,8 +221,8 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             tabPaneBuilderUI.selectTab(file, text);
         }
         else{
-            EditorScrollPane editorScrollPane = createScrollableTextEditor(text, editable);
-            tabPaneBuilderUI.addTab(editorScrollPane, file, lines);
+            EditorScrollPane editorScrollPane = createScrollableTextEditor(text, classOrigin.isEditable());
+            tabPaneBuilderUI.addTab(editorScrollPane, file, lines, classOrigin);
             scrollTextPaneToPosition(editorScrollPane.getTextEditor(), classDeclarationPosition);
         }
     }

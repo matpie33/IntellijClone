@@ -1,6 +1,7 @@
 package root.core.fileio;
 
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.classmanipulating.ClassStructureParser;
 import root.core.directory.changesdetecting.DirectoriesWatcher;
 import root.core.dto.ApplicationState;
@@ -45,7 +46,7 @@ public class FileIO {
         return path.toFile();
     }
 
-    public FileReadResultDTO readFile(Path path, boolean isJDKOrMaven){
+    public FileReadResultDTO readFile(Path path, ClassOrigin classOrigin){
 
         try {
             File file = path.toFile();
@@ -56,8 +57,7 @@ public class FileIO {
             FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
             fileReadResultDTO.setContentLines(lines);
             fileReadResultDTO.setFile(file);
-            fileReadResultDTO.setEditable(!isJDKOrMaven);
-            fileReadResultDTO.setJavaFile(file.getName().endsWith(".java"));
+            fileReadResultDTO.setClassOrigin(classOrigin);
             fileReadResultDTO.setReadSuccessfully(true);
             fileReadResultDTO.setPathFromRoot(path.toString());
             return fileReadResultDTO;
@@ -100,11 +100,11 @@ public class FileIO {
             Files.writeString(openedFile.toPath(), text);
             uiEventsQueue.dispatchEvent(UIEventType.AUTOSAVE_DONE, new Object());
             if (applicationState.getClassesWithCompilationErrors().contains(openedFile)){
-                boolean isMain = classStructureParser.parseClassStructure(openedFile);
+                boolean isMain = classStructureParser.parseClassStructure(openedFile, ClassOrigin.SOURCES);
                 if (isMain){
                     applicationState.addClassWithMainMethod(openedFile);
                     applicationState.removeClassWithCompilationError(openedFile);
-                    uiEventsQueue.dispatchEvent(UIEventType.COMPILATION_ERROR_FIXED_IN_OPENED_FILE, new Object());
+                    uiEventsQueue.dispatchEvent(UIEventType.COMPILATION_ERROR_FIXED_IN_OPENED_FILE, openedFile);
                 }
             }
         } catch (IOException e) {

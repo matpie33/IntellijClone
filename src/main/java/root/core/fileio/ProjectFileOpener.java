@@ -2,6 +2,7 @@ package root.core.fileio;
 
 import org.springframework.stereotype.Component;
 import root.core.classmanipulating.ClassDecompiler;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.classmanipulating.ClassStructureParser;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
@@ -32,20 +33,24 @@ public class ProjectFileOpener {
 
     public FileReadResultDTO openNode (ProjectStructureTreeElementDTO[] nodesPath){
         List<String> nodeNames = Arrays.stream(nodesPath).map(ProjectStructureTreeElementDTO::getPath).collect(Collectors.toList());
-        boolean isJDKOrMaven = nodeNames.contains("JDK") || nodeNames.contains("maven");
+        ClassOrigin classOrigin = nodeNames.contains("JDK")? ClassOrigin.JDK: nodeNames.contains("maven")? ClassOrigin.MAVEN: ClassOrigin.SOURCES;
         nodeNames = removeRootNodeIfItsMavenOrJDKPath(nodeNames);
         String[] nodes = nodeNames.toArray(new String[]{});
 
 
         Path path = Path.of("", nodes);
+        return readFile(classOrigin, path);
+    }
+
+    public FileReadResultDTO readFile(ClassOrigin classOrigin, Path path) {
         FileReadResultDTO fileReadResultDTO;
-        if (!nodeNames.isEmpty() && nodes[nodes.length-1].endsWith(".class")) {
-            fileReadResultDTO = classDecompiler.decompile(nodes);
+        if (!path.toString().isEmpty() && path.toString().endsWith(".class")) {
+            fileReadResultDTO = classDecompiler.decompile(path);
             String content = String.join("\n", fileReadResultDTO.getContentLines());
-            classStructureParser.parseClassContent(content, fileReadResultDTO.getFile());
+            classStructureParser.parseClassContent(content, fileReadResultDTO.getFile(), ClassOrigin.MAVEN);
         }
         else if (path.toFile().isFile() && !path.toString().endsWith(".jar")) {
-            fileReadResultDTO = fileIO.readFile(path, isJDKOrMaven);
+            fileReadResultDTO = fileIO.readFile(path, classOrigin);
         }
         else{
             fileReadResultDTO = new FileReadResultDTO();

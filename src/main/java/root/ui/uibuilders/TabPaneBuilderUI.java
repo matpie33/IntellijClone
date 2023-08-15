@@ -1,6 +1,7 @@
 package root.ui.uibuilders;
 
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.fileio.FileAutoSaver;
@@ -48,7 +49,7 @@ public class TabPaneBuilderUI {
         return ((EditorScrollPane) tabbedPane.getSelectedComponent());
     }
 
-    public void addTab(EditorScrollPane scrollPane, File file, List<String> lines) {
+    public void addTab(EditorScrollPane scrollPane, File file, List<String> lines, ClassOrigin classOrigin) {
         tabbedPane.add(scrollPane);
         JPanel tabHeaderPanel = createTabHeader(scrollPane, file);
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
@@ -58,11 +59,9 @@ public class TabPaneBuilderUI {
                 FileReadResultDTO readResult = new FileReadResultDTO();
                 readResult.setFile(file);
                 readResult.setContentLines(lines);
-                readResult.setJavaFile(file.getName().endsWith(".java"));
+                readResult.setClassOrigin(classOrigin);
                 readResult.setReadSuccessfully(true);
                 readResult.setPathFromRoot(file.toString());
-                readResult.setEditable(!file.getName().endsWith(".class"));
-                applicationState.setOpenedFile(file);
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, readResult);
             }
         });

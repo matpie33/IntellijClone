@@ -22,7 +22,7 @@ public class JavaSourcesExtractor {
         Path pathToJDKObject     = Path.of(pathToJDK);
         Path librariesDirectory = pathToJDKObject.resolve(LIB);
         Path sourcesZipPath = librariesDirectory.resolve(SRC);
-        Path destinationDirectory = getDestinationDirectoryPath();
+        Path destinationDirectory = getJavaSourcesDirectory();
         File destinationDirectoryFile = destinationDirectory.toFile();
         if (destinationDirectoryFile.exists() && destinationDirectoryFile.listFiles().length>0){
             return;
@@ -51,13 +51,10 @@ public class JavaSourcesExtractor {
 
     }
 
-    private Path getDestinationDirectoryPath() {
+    public Path getJavaSourcesDirectory() {
         return Path.of(System.getenv("APPDATA")).resolve(DESTINATION_DIRECTORY);
     }
 
-    public File getJavaSourcesDirectory (){
-        return getDestinationDirectoryPath().toFile();
-    }
 
 
 }
