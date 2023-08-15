@@ -9,6 +9,7 @@ import java.util.*;
 @Component
 public class AvailableClassesFilter {
 
+    public static final int MAXIMUM_SUGGESTIONS = 100;
     private ApplicationState applicationState;
 
     public AvailableClassesFilter(ApplicationState applicationState) {
@@ -16,17 +17,27 @@ public class AvailableClassesFilter {
     }
 
     public Map<String, Collection<ClassNavigationDTO>> getClassesStartingWith (String prefix){
-        Collection<ClassNavigationDTO> availableClassNames = applicationState.getAvailableClassNames();
-        List<ClassNavigationDTO> classNamesCopy = new ArrayList<>(availableClassNames);
+        Object classNamesLock = applicationState.getClassNamesLock();
+        List<ClassNavigationDTO> classNamesCopy = null;
+        synchronized ( classNamesLock){
+            Collection<ClassNavigationDTO> availableClassNames = applicationState.getAvailableClassNames();
+            classNamesCopy = new ArrayList<>(availableClassNames);
+        }
+
         Map<String, Collection<ClassNavigationDTO>> classToPackageNamesMap = new TreeMap<>();
         if (prefix.isEmpty()){
             return new HashMap<>();
         }
+        int addedElementsSize = 0;
         for (ClassNavigationDTO classNameDTO : classNamesCopy) {
             String className = classNameDTO.getClassName();
             if (className.startsWith(prefix)){
                 Collection<ClassNavigationDTO> packageNames = applicationState.getPackageNamesForClass(className);
                 classToPackageNamesMap.put(className, packageNames);
+                addedElementsSize++;
+            }
+            if (addedElementsSize> MAXIMUM_SUGGESTIONS){
+                break;
             }
         }
         return classToPackageNamesMap;

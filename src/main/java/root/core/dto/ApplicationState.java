@@ -23,6 +23,8 @@ public class ApplicationState {
 
     private final Multimap<String, ClassNavigationDTO> classNameToInfoDTO = ArrayListMultimap.create();
 
+    private final Object classNamesLock = new Object();
+
 
     private WatchService fileWatcher;
 
@@ -42,14 +44,20 @@ public class ApplicationState {
 
     public void addClassWithPackage (String className, String packageName, ClassOrigin origin, String rootDirectory){
         ClassNavigationDTO classNavigationDTO = new ClassNavigationDTO(rootDirectory, packageName, origin, className);
-        classNameToInfoDTO.put(className, classNavigationDTO);
+        synchronized (classNamesLock){
+            classNameToInfoDTO.put(className, classNavigationDTO);
+        }
+    }
+
+    public Object getClassNamesLock() {
+        return classNamesLock;
     }
 
     public Collection<ClassNavigationDTO> getPackageNamesForClass(String className){
         return classNameToInfoDTO.get(className);
     }
 
-    public Collection<ClassNavigationDTO> getAvailableClassNames (){
+    public synchronized Collection<ClassNavigationDTO> getAvailableClassNames (){
         return classNameToInfoDTO.values();
     }
 
