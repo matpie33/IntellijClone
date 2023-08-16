@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -26,11 +28,25 @@ public class ClassDecompiler {
             int indexOfPathAfterJar = path.indexOf(JAR_EXTENSION) + JAR_EXTENSION.length();
             String pathToJarFile = path.substring(0, indexOfPathAfterJar);
             String pathFromJarToClass = path.substring(indexOfPathAfterJar+1);
-            File fileForClassContents = File.createTempFile("File", ".class");
-            File tempFileDirectory = fileForClassContents.getParentFile();
+            String nameOfClassToBeDecompiled = pathFromJarToClass.replace(".class", "").replace("\\", "/");
+            List<File> classNames = new ArrayList<>();
             try (ZipFile zipFile = new ZipFile(pathToJarFile)) {
-                createFileWithClassContents(pathFromJarToClass, fileForClassContents, zipFile);
-                List<String> decompilationResult = decompile(fileForClassContents, tempFileDirectory);
+                Enumeration<? extends ZipEntry> filesInZip = zipFile.entries();
+                String decompilationResultFile = "";
+                while (filesInZip.hasMoreElements()){
+                    ZipEntry fileInZip = filesInZip.nextElement();
+                    String fileName = fileInZip.getName().replace(".class", "");
+                    if (fileName.startsWith(nameOfClassToBeDecompiled)){
+                        InputStream fileContentsStream = zipFile.getInputStream(fileInZip);
+                        File fileWithClassContents = File.createTempFile("File", ".class");
+                        Files.write(fileWithClassContents.toPath(), fileContentsStream.readAllBytes());
+                        if (fileName.equals(nameOfClassToBeDecompiled)){
+                            decompilationResultFile = fileWithClassContents.getAbsolutePath();
+                        }
+                        classNames.add(fileWithClassContents);
+                    }
+                }
+                List<String> decompilationResult = decompile(classNames, decompilationResultFile);
                 return createResultDTO(pathToJarFile, pathFromJarToClass, decompilationResult);
             }
         } catch (IOException e) {
@@ -51,19 +67,13 @@ public class ClassDecompiler {
         return fileReadResultDTO;
     }
 
-    private List<String> decompile(File fileForClassContents, File tempFileDirectory) throws IOException {
+    private List<String> decompile(List<File> fileForClassContents, String decompilationResultFile) throws IOException {
+        File tempFileDirectory = fileForClassContents.get(0).getParentFile();
         ConsoleDecompiler consoleDecompiler = new ConsoleDecompiler(tempFileDirectory, new HashMap<>());
-        consoleDecompiler.addSpace(fileForClassContents, true);
+        fileForClassContents.forEach(file->consoleDecompiler.addSpace(file, true));
         consoleDecompiler.decompileContext();
-        File fileWithDecompilationResult = new File(fileForClassContents.toString().replace(".class", ".java"));
+        File fileWithDecompilationResult = new File(decompilationResultFile.replace(".class", ".java"));
         return Files.readAllLines(fileWithDecompilationResult.toPath());
-    }
-
-    private void createFileWithClassContents(String pathFromJarToClass, File fileForClassContents, ZipFile zipFile) throws IOException {
-        pathFromJarToClass = pathFromJarToClass.replace("\\", "/");
-        ZipEntry classFileEntry = zipFile.getEntry(pathFromJarToClass);
-        InputStream inputStream = zipFile.getInputStream(classFileEntry);
-        Files.write(fileForClassContents.toPath(), inputStream.readAllBytes());
     }
 
 

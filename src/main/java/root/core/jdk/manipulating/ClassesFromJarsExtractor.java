@@ -33,10 +33,11 @@ public class ClassesFromJarsExtractor {
                     classFilesPerJar.put(pathToJar, classes);
                     while (entries.hasMoreElements()) {
                         ZipEntry zipEntry = entries.nextElement();
-                        if (zipEntry.getName().endsWith(".class")){
-                            JavaClass parsedClass = new ClassParser(zipFile.getName(), zipEntry.getName()).parse();
+                        String fileName = zipEntry.getName();
+                        if (fileName.endsWith(".class") && !fileName.contains("$")){
+                            JavaClass parsedClass = new ClassParser(zipFile.getName(), fileName).parse();
                             classNamesCollector.addClassIfAccessible(parsedClass, pathToJar);
-                            File e = new File(zipEntry.getName());
+                            File e = new File(fileName);
                             classes.add(e);
                         }
 
