@@ -12,14 +12,16 @@ public class AvailableClassesFilter {
     public static final int MAXIMUM_SUGGESTIONS = 100;
     private ApplicationState applicationState;
 
-    public AvailableClassesFilter(ApplicationState applicationState) {
+    private ClassNameMatcher classNameMatcher;
+
+    public AvailableClassesFilter(ApplicationState applicationState, ClassNameMatcher classNameMatcher) {
         this.applicationState = applicationState;
+        this.classNameMatcher = classNameMatcher;
     }
 
     public Map<String, Collection<ClassNavigationDTO>> getClassesStartingWith (String prefix){
-        Object classNamesLock = applicationState.getClassNamesLock();
         List<ClassNavigationDTO> classNamesCopy = null;
-        synchronized ( classNamesLock){
+        synchronized ( applicationState.getClassNamesLock()){
             Collection<ClassNavigationDTO> availableClassNames = applicationState.getAvailableClassNames();
             classNamesCopy = new ArrayList<>(availableClassNames);
         }
@@ -28,19 +30,41 @@ public class AvailableClassesFilter {
         if (prefix.isEmpty()){
             return new HashMap<>();
         }
+        Map<ClassMatchType, List<String>> classMatchTypeToClassNameMap = new HashMap<>();
+        classMatchTypeToClassNameMap.put(ClassMatchType.PARTIAL_MATCH, new ArrayList<>());
+        classMatchTypeToClassNameMap.put(ClassMatchType.FULL_MATCH, new ArrayList<>());
+        boolean isAnyFullMatch = false;
         int addedElementsSize = 0;
         for (ClassNavigationDTO classNameDTO : classNamesCopy) {
             String className = classNameDTO.getClassName();
-            if (className.startsWith(prefix)){
-                Collection<ClassNavigationDTO> packageNames = applicationState.getPackageNamesForClass(className);
-                classToPackageNamesMap.put(className, packageNames);
-                addedElementsSize++;
+            ClassMatchType classMatchType = classNameMatcher.doesClassNameMatch(className, prefix);
+            if (classMatchType.equals(ClassMatchType.FULL_MATCH)){
+                isAnyFullMatch = true;
+                classMatchTypeToClassNameMap.get(classMatchType).add(className);
             }
-            if (addedElementsSize> MAXIMUM_SUGGESTIONS){
-                break;
+            if (!isAnyFullMatch && classMatchType.equals(ClassMatchType.PARTIAL_MATCH)){
+                classMatchTypeToClassNameMap.get(classMatchType).add(className);
             }
         }
+        if (isAnyFullMatch){
+            addMatchedClasses(classMatchTypeToClassNameMap, ClassMatchType.FULL_MATCH, classToPackageNamesMap, addedElementsSize);
+        }
+        else{
+            addMatchedClasses(classMatchTypeToClassNameMap, ClassMatchType.PARTIAL_MATCH, classToPackageNamesMap, addedElementsSize);
+        }
         return classToPackageNamesMap;
+    }
+
+    private void addMatchedClasses(Map<ClassMatchType, List<String>> classMatchTypeToClassNameMap, ClassMatchType matchType, Map<String, Collection<ClassNavigationDTO>> classToPackageNamesMap, int addedElementsSize) {
+        List<String> fullMatched = classMatchTypeToClassNameMap.get(matchType);
+        for (String className : fullMatched) {
+            Collection<ClassNavigationDTO> packageNames = applicationState.getPackageNamesForClass(className);
+            classToPackageNamesMap.put(className, packageNames);
+            addedElementsSize++;
+            if (addedElementsSize>MAXIMUM_SUGGESTIONS){
+                return;
+            }
+        }
     }
 
 }
