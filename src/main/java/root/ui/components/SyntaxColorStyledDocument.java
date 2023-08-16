@@ -107,7 +107,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
 
         if (!isTextSettingInProgress){
-            if (!textToAdd.equals("\n") && !textToAdd.equals(" ")){
+            if (textToAdd.length()==1 && Character.isLetterOrDigit(textToAdd.charAt(0))){
                 wordBeingTyped.append(textToAdd);
                 Map<String, Collection<ClassNavigationDTO>> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
                 codeCompletionPopup.clear();
