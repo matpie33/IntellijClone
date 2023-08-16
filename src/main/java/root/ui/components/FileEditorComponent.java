@@ -27,9 +27,9 @@ public class FileEditorComponent extends JTextPane {
 
     @Override
     public void setText(String t) {
-        syntaxColorStyledDocument.showSuggestions(false);
+        syntaxColorStyledDocument.setIsTextSettingInProgress(true);
         super.setText(t);
-        syntaxColorStyledDocument.showSuggestions(true);
+        syntaxColorStyledDocument.setIsTextSettingInProgress(false);
         syntaxColorStyledDocument.clearChanges();
     }
 

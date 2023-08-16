@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import root.core.codecompletion.AvailableClassesFilter;
 import root.core.constants.SyntaxModifiers;
 import root.core.dto.*;
+import root.core.fileio.FileAutoSaver;
 import root.core.undoredo.UndoRedoManager;
 
 import javax.swing.*;
@@ -44,18 +45,23 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private AvailableClassesFilter availableClassesFilter;
 
     private StringBuilder wordBeingTyped = new StringBuilder();
-    private boolean showSuggestions;
 
-    public SyntaxColorStyledDocument(ApplicationState applicationState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter) {
+    private boolean isTextSettingInProgress;
+
+    private FileAutoSaver fileAutoSaver;
+
+    public void setIsTextSettingInProgress(boolean setTextInProgress) {
+        this.isTextSettingInProgress = setTextInProgress;
+    }
+
+    public SyntaxColorStyledDocument(ApplicationState applicationState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter, FileAutoSaver fileAutoSaver) {
         this.applicationState = applicationState;
         this.undoRedoManager = undoRedoManager;
         this.codeCompletionPopup = codeCompletionPopup;
         this.availableClassesFilter = availableClassesFilter;
+        this.fileAutoSaver = fileAutoSaver;
     }
 
-    public void showSuggestions (boolean show){
-        showSuggestions = show;
-    }
 
     public void clearChanges (){
         insertChangeDTO = null;
@@ -99,29 +105,41 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (textToAdd.equals("\n") && codeCompletionPopup.isVisible()){
             return;
         }
-        if (removeChangeDTO != null){
-            undoRedoManager.addNewChange(removeChangeDTO);
-            removeChangeDTO = null;
-        }
-        if ( insertChangeDTO == null){
-            insertChangeDTO = new InsertChangeDTO(offset);
+
+        if (!isTextSettingInProgress){
+            if (!textToAdd.equals("\n") && !textToAdd.equals(" ")){
+                wordBeingTyped.append(textToAdd);
+                Map<String, Collection<ClassNavigationDTO>> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+                codeCompletionPopup.clear();
+                codeCompletionPopup.addSuggestions(suggestedClasses);
+                if (!suggestedClasses.isEmpty()){
+                    codeCompletionPopup.show(textComponent);
+                }
+                else{
+                    codeCompletionPopup.hide();
+                }
+            }
+
+
+            if (removeChangeDTO != null){
+                undoRedoManager.addNewChange(removeChangeDTO);
+                removeChangeDTO = null;
+            }
+            if ( insertChangeDTO == null){
+                insertChangeDTO = new InsertChangeDTO(offset);
+            }
+            insertChangeDTO.appendText(textToAdd);
         }
 
-        if (showSuggestions && !textToAdd.equals("\n") && !textToAdd.equals(" ")){
-            wordBeingTyped.append(textToAdd);
-            Map<String, Collection<ClassNavigationDTO>> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
-            codeCompletionPopup.clear();
-            codeCompletionPopup.addSuggestions(suggestedClasses);
-            if (!suggestedClasses.isEmpty()){
-                codeCompletionPopup.show(textComponent);
-            }
-            else{
-                codeCompletionPopup.hide();
-            }
-        }
-
-        insertChangeDTO.appendText(textToAdd);
         insertInternal(offset, textToAdd);
+
+        if (!isTextSettingInProgress){
+            String text = getText(0, getLength());
+            fileAutoSaver.textInserted(text);
+            applicationState.addCurrentFileToClassesToRecompile();
+        }
+
+
 
     }
 
@@ -199,7 +217,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (wordBeingTyped.length()>0){
             wordBeingTyped.setLength(Math.max(wordBeingTyped.length()-length, 0));
         }
-        if (showSuggestions){
+        if (!isTextSettingInProgress){
             Map<String, Collection<ClassNavigationDTO>> suggestions = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
             codeCompletionPopup.clear();
             codeCompletionPopup.addSuggestions(suggestions);

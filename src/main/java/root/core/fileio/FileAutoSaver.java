@@ -15,7 +15,7 @@ public class FileAutoSaver {
 
     private int idleTimeBeforeSave = 2000;
 
-    private long lastKeyReleasedTime;
+    private long lastTextChangeTime;
 
     private boolean isDirty = false;
     private String currentText;
@@ -30,7 +30,7 @@ public class FileAutoSaver {
             @Override
             public void run() {
                 long now = System.currentTimeMillis();
-                if (isDirty && now-lastKeyReleasedTime>idleTimeBeforeSave){
+                if (isDirty && now- lastTextChangeTime >idleTimeBeforeSave){
                     saveInternal();
                 }
             }
@@ -49,8 +49,8 @@ public class FileAutoSaver {
         }
     }
 
-    public void recordKeyRelease (String currentText){
-        lastKeyReleasedTime = System.currentTimeMillis();
+    public void textInserted(String currentText){
+        lastTextChangeTime = System.currentTimeMillis();
         isDirty = true;
         this.currentText = currentText;
     }

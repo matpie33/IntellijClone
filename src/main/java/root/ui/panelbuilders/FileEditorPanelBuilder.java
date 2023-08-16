@@ -100,11 +100,6 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         editorText.getCaret().setBlinkRate(500);
         editorText.setFont(editorFont);
         editorText.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                fileAutoSaver.recordKeyRelease(editorText.getText());
-                applicationState.addCurrentFileToClassesToRecompile();
-            }
 
             @Override
             public void keyPressed(KeyEvent e) {
