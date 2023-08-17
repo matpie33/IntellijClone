@@ -70,13 +70,17 @@ public class ImprovedCaret extends DefaultCaret {
         Document document = source.getDocument();
         int wordStartIndex = caretPosition;
         int wordEndIndex = caretPosition;
-        while (wordStartIndex > 0 && Character.isLetterOrDigit(letterAtOffset(document, wordStartIndex))){
+        while (wordStartIndex > 0 && isLetterOrDigitOrUnderscore(letterAtOffset(document, wordStartIndex))){
             wordStartIndex--;
         }
-        while (wordEndIndex < document.getLength() && Character.isLetterOrDigit(letterAtOffset(document, wordEndIndex))){
+        while (wordEndIndex < document.getLength() && isLetterOrDigitOrUnderscore(letterAtOffset(document, wordEndIndex))){
             wordEndIndex++;
         }
         source.select(wordStartIndex>0?wordStartIndex+1: wordStartIndex, wordEndIndex);
+    }
+
+    private boolean isLetterOrDigitOrUnderscore (char character){
+        return Character.isLetterOrDigit(character) || character=='_';
     }
 
     private char letterAtOffset(Document document, int offset) throws BadLocationException {
