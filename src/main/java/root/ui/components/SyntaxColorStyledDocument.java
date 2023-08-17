@@ -135,7 +135,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
         if (!isTextSettingInProgress){
             String text = getText(0, getLength());
-            fileAutoSaver.textInserted(text);
+            fileAutoSaver.textModified(text);
             applicationState.addCurrentFileToClassesToRecompile();
         }
 
@@ -233,6 +233,12 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         removeChangeDTO.appendText(removedText);
         removeChangeDTO.setStartingOffset(offset);
         removeInternal(offset, length);
+
+        if (!isTextSettingInProgress){
+            String text = getText(0, getLength());
+            fileAutoSaver.textModified(text);
+            applicationState.addCurrentFileToClassesToRecompile();
+        }
 
     }
 

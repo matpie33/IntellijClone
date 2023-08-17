@@ -17,7 +17,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -49,7 +48,7 @@ public class TabPaneBuilderUI {
         return ((EditorScrollPane) tabbedPane.getSelectedComponent());
     }
 
-    public void addTab(EditorScrollPane scrollPane, File file, List<String> lines, ClassOrigin classOrigin) {
+    public void addTab(EditorScrollPane scrollPane, File file, ClassOrigin classOrigin) {
         tabbedPane.add(scrollPane);
         JPanel tabHeaderPanel = createTabHeader(scrollPane, file);
         tabHeaderPanel.addMouseListener(new MouseAdapter() {
@@ -58,7 +57,6 @@ public class TabPaneBuilderUI {
                 fileAutoSaver.save();
                 FileReadResultDTO readResult = new FileReadResultDTO();
                 readResult.setFile(file);
-                readResult.setContentLines(lines);
                 readResult.setClassOrigin(classOrigin);
                 readResult.setReadSuccessfully(true);
                 readResult.setPathFromRoot(file.toString());
@@ -134,15 +132,9 @@ public class TabPaneBuilderUI {
         return selectedComponent.getTextEditor();
     }
 
-    public EditorScrollPane selectTab(File file, String text) {
+    public void selectTab(File file) {
         EditorScrollPane editorScrollPane = openedTabs.get(file);
-        JTextPane textEditor = editorScrollPane.getTextEditor();
-        editorScrollPane.setUpdateCaret(false);
-        textEditor.setText(text);
-        editorScrollPane.setUpdateCaret(true);
         tabbedPane.setSelectedComponent(editorScrollPane);
-        editorScrollPane.revalidate();
-        return editorScrollPane;
     }
 
     public void addTabChangeListener(ChangeListener changeListener) {

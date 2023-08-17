@@ -49,7 +49,7 @@ public class FileAutoSaver {
         }
     }
 
-    public void textInserted(String currentText){
+    public void textModified(String currentText){
         lastTextChangeTime = System.currentTimeMillis();
         isDirty = true;
         this.currentText = currentText;

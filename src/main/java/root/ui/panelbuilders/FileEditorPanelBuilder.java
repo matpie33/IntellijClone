@@ -38,7 +38,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -86,7 +85,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         rootPanel = new JPanel(new BorderLayout());
 
         EditorScrollPane scrollPane = createScrollableTextEditor("", true);
-        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), new ArrayList<>(), ClassOrigin.SOURCES);
+        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), ClassOrigin.SOURCES);
         JTabbedPane tabbedPane = tabPaneBuilderUI.getTabbedPane();
         rootPanel.add(tabbedPane, BorderLayout.CENTER);
         fileEditorShortcuts.assignShortcuts(tabbedPane);
@@ -213,11 +212,11 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         }
         Position classDeclarationPosition = classStructure == null? new Position(1,1): classStructure.getClassDeclarationPosition();
         if (tabPaneBuilderUI.containsTab(file)){
-            tabPaneBuilderUI.selectTab(file, text);
+            tabPaneBuilderUI.selectTab(file);
         }
         else{
             EditorScrollPane editorScrollPane = createScrollableTextEditor(text, classOrigin.isEditable());
-            tabPaneBuilderUI.addTab(editorScrollPane, file, lines, classOrigin);
+            tabPaneBuilderUI.addTab(editorScrollPane, file, classOrigin);
             scrollTextPaneToPosition(editorScrollPane.getTextEditor(), classDeclarationPosition);
         }
     }
