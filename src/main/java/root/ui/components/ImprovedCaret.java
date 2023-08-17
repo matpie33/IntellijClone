@@ -2,14 +2,23 @@ package root.ui.components;
 
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultCaret;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
 public class ImprovedCaret extends DefaultCaret {
+
+    private JTextComponent textComponent;
+
+    private Integer dragPositionStart;
+
+
+    @Override
+    public void install(JTextComponent c) {
+        super.install(c);
+        textComponent = c;
+    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -28,6 +37,32 @@ public class ImprovedCaret extends DefaultCaret {
             }
         }
     }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        Point point = new Point(e.getX(), e.getY());
+        Position.Bias[] biasRet = new Position.Bias[1];
+        int newPosition = textComponent.getUI().viewToModel2D(textComponent, point, biasRet);
+        if (dragPositionStart == null){
+            dragPositionStart = newPosition;
+        }
+        setDot(newPosition);
+        if (newPosition< dragPositionStart){
+            textComponent.setSelectionStart(newPosition);
+            textComponent.setSelectionEnd(dragPositionStart);
+        }
+        else if (newPosition>dragPositionStart){
+            textComponent.setSelectionStart(dragPositionStart);
+            textComponent.setSelectionEnd(newPosition);
+        }
+
+    }
+
+
+
+
+
+
 
     private void selectWordInternal(MouseEvent e) throws BadLocationException {
         JTextComponent source = (JTextComponent) e.getSource();
@@ -50,12 +85,12 @@ public class ImprovedCaret extends DefaultCaret {
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        dragPositionStart = null;
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
         adjustFocus();
-
     }
 
     private void adjustCaret(MouseEvent e) {

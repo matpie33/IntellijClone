@@ -130,7 +130,7 @@ public class ApplicationState {
     }
 
     public File getOpenedFile() {
-        return openedFile;
+        return Optional.ofNullable(openedFile).orElse(new File("temp"));
     }
 
     public void setOpenedFile(File openedFile) {
