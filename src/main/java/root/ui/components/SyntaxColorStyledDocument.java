@@ -110,18 +110,8 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (!isTextSettingInProgress){
             if (textToAdd.length()==1 && Character.isLetterOrDigit(textToAdd.charAt(0))){
                 wordBeingTyped.append(textToAdd);
-                Map<String, Collection<ClassNavigationDTO>> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
-                codeCompletionPopup.clear();
-                codeCompletionPopup.addSuggestions(suggestedClasses);
-                if (!suggestedClasses.isEmpty()){
-                    codeCompletionPopup.show(textComponent);
-                }
-                else{
-                    codeCompletionPopup.hide();
-                }
+                showCodeCompletionPopup();
             }
-
-
             if (removeChangeDTO != null){
                 undoRedoManager.addNewChange(removeChangeDTO);
                 removeChangeDTO = null;
@@ -133,35 +123,28 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
 
         insertInternal(offset, textToAdd);
+        handleFileChanged();
 
-        if (!isTextSettingInProgress){
-            String text = getText(0, getLength());
-            fileAutoSaver.textModified(text);
-            applicationState.addCurrentFileToClassesToRecompile();
+
+    }
+
+    private void showCodeCompletionPopup() throws BadLocationException {
+
+        Map<String, Collection<ClassNavigationDTO>> suggestedClasses = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
+        codeCompletionPopup.clear();
+        codeCompletionPopup.addSuggestions(suggestedClasses);
+        if (!suggestedClasses.isEmpty()){
+            codeCompletionPopup.show(textComponent);
         }
-
-
-
+        else{
+            codeCompletionPopup.hide();
+        }
     }
 
     private void insertInternal(int offset, String textToAdd) throws BadLocationException {
         super.insertString(offset, textToAdd, defaultColorAttribute);
 
-        Element rootElement = getDefaultRootElement();
-        int lineNumber = rootElement.getElementIndex(offset);
-        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
-        if (classStructure == null){
-            return;
-        }
-        List<Range> fieldAccessPositions = classStructure.getFieldAccessPositionsAtLine(lineNumber);
-        if (!fieldAccessPositions.isEmpty()){
-            for (Range fieldAccessPosition : fieldAccessPositions) {
-                int startOffset = rootElement.getElement(lineNumber).getStartOffset() + fieldAccessPosition.begin.column;
-                int length = fieldAccessPosition.end.column - fieldAccessPosition.begin.column + 1;
-                setCharacterAttributes(startOffset,length, fieldColorAttribute, false);
 
-            }
-        }
         if (textToAdd.equals("\n")){
             return;
         }
@@ -179,12 +162,27 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
     }
 
-    public void colorCommentSections() {
+    private void colorFieldAccess(Element rootElement, ClassStructureDTO classStructure) {
+        List<Range> fieldAccessPositions = classStructure.getFieldAccessPositions();
+        for (Range fieldAccessPosition : fieldAccessPositions) {
+            int startOffset = rootElement.getElement(fieldAccessPosition.begin.line).getStartOffset() + fieldAccessPosition.begin.column;
+            int length = fieldAccessPosition.end.column - fieldAccessPosition.begin.column + 1;
+            setCharacterAttributes(startOffset,length, fieldColorAttribute, false);
+
+        }
+    }
+
+    public void doWordsColoring() {
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
         if (classStructure==null){
             return;
         }
         Element rootElement = getDefaultRootElement();
+        colorComments(classStructure, rootElement);
+        colorFieldAccess(rootElement, classStructure);
+    }
+
+    private void colorComments(ClassStructureDTO classStructure, Element rootElement) {
         List<Range> commentSections = classStructure.getCommentsSections();
         for (Range range : commentSections) {
             int startOffset = rootElement.getElement(range.begin.line).getStartOffset() + range.begin.column;
@@ -234,28 +232,34 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             wordBeingTyped.setLength(Math.max(wordBeingTyped.length()-length, 0));
         }
         if (!isTextSettingInProgress){
-            Map<String, Collection<ClassNavigationDTO>> suggestions = availableClassesFilter.getClassesStartingWith(wordBeingTyped.toString());
-            codeCompletionPopup.clear();
-            codeCompletionPopup.addSuggestions(suggestions);
+            showCodeCompletionPopup();
+            if (insertChangeDTO != null){
+                undoRedoManager.addNewChange(insertChangeDTO);
+                insertChangeDTO = null;
+            }
+            if (removeChangeDTO == null){
+                removeChangeDTO = new RemoveChangeDTO(offset);
+            }
+            updateRemoveChangeDTO(offset, length);
         }
-        if (insertChangeDTO != null){
-            undoRedoManager.addNewChange(insertChangeDTO);
-            insertChangeDTO = null;
-        }
-        if (removeChangeDTO == null){
-            removeChangeDTO = new RemoveChangeDTO(offset);
-        }
+
+        removeInternal(offset, length);
+        handleFileChanged();
+
+    }
+
+    private void updateRemoveChangeDTO(int offset, int length) throws BadLocationException {
         String removedText = getText(offset, length);
         removeChangeDTO.appendText(removedText);
         removeChangeDTO.setStartingOffset(offset);
-        removeInternal(offset, length);
+    }
 
+    private void handleFileChanged() throws BadLocationException {
         if (!isTextSettingInProgress){
             String text = getText(0, getLength());
             fileAutoSaver.textModified(text);
             applicationState.addCurrentFileToClassesToRecompile();
         }
-
     }
 
     private void removeInternal(int offset, int length) throws BadLocationException {

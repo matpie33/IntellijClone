@@ -31,7 +31,7 @@ public class FileEditorComponent extends JTextPane {
         super.setText(t);
         syntaxColorStyledDocument.setIsTextSettingInProgress(false);
         syntaxColorStyledDocument.clearChanges();
-        syntaxColorStyledDocument.colorCommentSections();
+        syntaxColorStyledDocument.doWordsColoring();
     }
 
 }
