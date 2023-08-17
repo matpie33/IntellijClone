@@ -28,6 +28,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private final StyleContext context = StyleContext.getDefaultStyleContext();
     private final AttributeSet keywordColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(161, 74, 44));
     private final AttributeSet fieldColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(101, 63, 226));
+    private final AttributeSet commentColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, Color.GRAY);
     private final AttributeSet defaultColorAttribute = context.addAttribute(context.getEmptySet(), StyleConstants.Foreground, new Color(169, 183, 198));
     private Pattern keywordsPattern = Pattern.compile(SyntaxModifiers.KEYWORDS_REGEXP);
 
@@ -175,6 +176,21 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
         else{
             colorWord(offset, textToAdd);
+        }
+    }
+
+    public void colorCommentSections() {
+        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
+        if (classStructure==null){
+            return;
+        }
+        Element rootElement = getDefaultRootElement();
+        List<Range> commentSections = classStructure.getCommentsSections();
+        for (Range range : commentSections) {
+            int startOffset = rootElement.getElement(range.begin.line).getStartOffset() + range.begin.column;
+            int endOffset = rootElement.getElement(range.end.line).getStartOffset() + range.end.column;
+            int length = endOffset- startOffset + 1;
+            setCharacterAttributes(startOffset,length, commentColorAttribute, false);
         }
     }
 

@@ -9,6 +9,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
@@ -105,11 +106,20 @@ public class ClassStructureParser {
             }
             classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName, origin, rootDirectory);
         }
+        getCommentsSections(cu, classStructureDTO);
         Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
         Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
         checkForFieldsAccess(cu, classStructureDTO, fieldNames, variablesHidingFields);
         return classStructureDTO;
     }
+
+    private void getCommentsSections(CompilationUnit cu, ClassStructureDTO classStructureDTO) {
+        for (Comment lineComment : cu.getAllComments()) {
+            Range range = lineComment.getRange().get();
+            classStructureDTO.addCommentRange(range);
+        }
+    }
+
 
     private int findPackageDeclarationLine(File file) throws IOException {
         List<String> lines = Files.readAllLines(file.toPath());

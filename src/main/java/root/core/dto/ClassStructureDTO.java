@@ -9,11 +9,23 @@ public class ClassStructureDTO {
 
     private Map<Integer, List<Range>> lineNumberToFieldAccessPositions = new HashMap<>();
 
+    private List<Range> commentsSections = new ArrayList<>();
+
     private Position packageDeclarationPosition;
 
     private Position classDeclarationPosition;
 
     private Set<String> imports = new HashSet<>();
+
+    public void addCommentRange(Range range){
+        Range modifiedRange = new Range(new Position(range.begin.line - 1, range.begin.column - 1),
+                new Position(range.end.line - 1, range.end.column - 1));
+        commentsSections.add(modifiedRange);
+    }
+
+    public List<Range> getCommentsSections() {
+        return commentsSections;
+    }
 
     public Position getClassDeclarationPosition() {
         return classDeclarationPosition;
