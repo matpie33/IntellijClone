@@ -160,15 +160,17 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             return;
         }
         if (textToAdd.length()==1){
-            String result = findWordEndingAtOffset(offset, textToAdd).stripTrailing();
-            if ((result).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
-                setCharacterAttributes(offset +1-result.length(),result.length(), keywordColorAttribute, false);
+            WordOffsetDTO wordOffset = findWordEndingAtOffset(offset);
+            String word = wordOffset.getWord();
+            int startOffset = wordOffset.getStartingOffset();
+            if ((word).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
+                setCharacterAttributes(startOffset, word.length(), keywordColorAttribute, false);
             }
             else if (isInsideComment(offset)){
-                setCharacterAttributes(offset +1-result.length(),result.length(), commentColorAttribute, false);
+                setCharacterAttributes(startOffset, word.length(), commentColorAttribute, false);
             }
             else{
-                setCharacterAttributes(offset +1-result.length(),result.length(), defaultColorAttribute, false);
+                setCharacterAttributes(startOffset, word.length(), defaultColorAttribute, false);
             }
         }
         else{
@@ -258,15 +260,26 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     }
 
 
-    private String findWordEndingAtOffset(int offset, String str) throws BadLocationException {
+    private WordOffsetDTO findWordEndingAtOffset(int offset) throws BadLocationException {
         StringBuilder word = new StringBuilder();
-        String text = getText(0, offset);
+        String text = getText(0, getLength());
         int currentIndex = offset -1;
-        while (currentIndex>=0 && (Character.isLetter(text.charAt(currentIndex)) || text.charAt(currentIndex)=='_')){
+        while (currentIndex>=0 && isLetterOrUnderscore(text, currentIndex)){
             word.append(text.charAt(currentIndex));
             currentIndex--;
         }
-        return word.reverse() + str;
+        int startingOffset = currentIndex+1;
+        currentIndex = offset;
+        word.reverse();
+        while (currentIndex < getLength() && isLetterOrUnderscore(text, currentIndex) ){
+            word.append(text.charAt(currentIndex));
+            currentIndex++;
+        }
+        return new WordOffsetDTO(word.toString(), startingOffset );
+    }
+
+    private boolean isLetterOrUnderscore(String text, int currentIndex) {
+        return Character.isLetter(text.charAt(currentIndex)) || text.charAt(currentIndex) == '_';
     }
 
 
@@ -309,13 +322,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private void removeInternal(int offset, int length) throws BadLocationException {
 
         super.remove(offset, length);
-        String word = findWordEndingAtOffset(offset, "");
+        WordOffsetDTO wordOffsetDTO = findWordEndingAtOffset(offset);
+        String word = wordOffsetDTO.getWord();
         Matcher matcher = keywordsPattern.matcher(word);
         if (matcher.matches()){
-            setCharacterAttributes(offset -word.length(), word.length(), keywordColorAttribute, false);
+            setCharacterAttributes(wordOffsetDTO.getStartingOffset(), word.length(), keywordColorAttribute, false);
         }
         else if (!isInsideComment(offset)){
-            setCharacterAttributes(offset -word.length(), word.length(), defaultColorAttribute, false);
+            setCharacterAttributes(wordOffsetDTO.getStartingOffset(), word.length(), defaultColorAttribute, false);
         }
     }
 
