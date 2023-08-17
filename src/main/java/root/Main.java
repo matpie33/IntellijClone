@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import root.core.directory.changesdetecting.DirectoryChangesDetector;
 import root.core.dto.ApplicationState;
+import root.core.fileio.FileAutoSaver;
 import root.core.nodehandling.ProjectStructureNodesHandler;
 import root.core.shortcuts.ApplicationShortcuts;
 import root.core.uievents.UIEventObserver;
@@ -25,10 +26,6 @@ public class Main implements UIEventObserver {
 
     private ProjectStructureNodesHandler projectStructureNodesHandler;
 
-    private CodeCompletionPopup codeCompletionPopup;
-
-
-
     public static void main(String[] args) {
         FlatNordIJTheme.setup();
         UIManager.put("TabbedPane.selectedBackground", new Color(71, 73, 99));
@@ -38,9 +35,8 @@ public class Main implements UIEventObserver {
 
     }
 
-    public Main (MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicationState applicationState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts, CodeCompletionPopup codeCompletionPopup) throws IOException {
+    public Main (FileAutoSaver fileAutoSaver, MenuBuilderUI menuBuilderUI, RootPanelBuilder rootPanelBuilder, DirectoryChangesDetector directoryChangesDetector, ApplicationState applicationState, ProjectStructureNodesHandler projectStructureNodesHandler, ApplicationShortcuts applicationShortcuts, CodeCompletionPopup codeCompletionPopup) throws IOException {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
-        this.codeCompletionPopup = codeCompletionPopup;
 
         JMenuBar menu = menuBuilderUI.createMenu();
         FRAME.setJMenuBar(menu);
@@ -54,6 +50,7 @@ public class Main implements UIEventObserver {
         applicationShortcuts.assignShortcuts(mainPanel);
 
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
+            fileAutoSaver.save();
             for (Process runningProcess : applicationState.getRunningProcesses()) {
                 runningProcess.destroy();
             }

@@ -1,5 +1,6 @@
 package root.ui.components;
 
+import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -101,6 +102,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
     }
 
+    private boolean isAfterLetterOrDigit (int offset) throws BadLocationException {
+        if (offset>0){
+            String previousCharacter = getText(offset - 1, 1);
+            return Character.isLetterOrDigit(previousCharacter.charAt(0));
+        }
+        return false;
+    }
+
     @Override
     public void insertString (int offset, String textToAdd, AttributeSet attributeSet) throws BadLocationException {
         if (textToAdd.equals("\n") && codeCompletionPopup.isVisible()){
@@ -109,8 +118,10 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
         if (!isTextSettingInProgress){
             if (textToAdd.length()==1 && Character.isLetterOrDigit(textToAdd.charAt(0))){
-                wordBeingTyped.append(textToAdd);
-                showCodeCompletionPopup();
+                if (!isInsideComment(offset) && (wordBeingTyped.length() > 0 || !isAfterLetterOrDigit(offset))) {
+                    wordBeingTyped.append(textToAdd);
+                    showCodeCompletionPopup();
+                }
             }
             if (removeChangeDTO != null){
                 undoRedoManager.addNewChange(removeChangeDTO);
@@ -153,6 +164,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             if ((result).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
                 setCharacterAttributes(offset +1-result.length(),result.length(), keywordColorAttribute, false);
             }
+            else if (isInsideComment(offset)){
+                setCharacterAttributes(offset +1-result.length(),result.length(), commentColorAttribute, false);
+            }
             else{
                 setCharacterAttributes(offset +1-result.length(),result.length(), defaultColorAttribute, false);
             }
@@ -160,6 +174,36 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         else{
             colorWord(offset, textToAdd);
         }
+    }
+
+    private boolean isInsideComment(int offset) {
+        Position position = offsetToLine0Based(offset);
+        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
+        if (classStructure == null){
+            return false;
+        }
+        for (Range commentRange : classStructure.getCommentsSections()) {
+            if (commentRange.begin.line==position.line && commentRange.begin.column <= position.column){
+                return true;
+            }
+            if (commentRange.begin.line<position.line && commentRange.end.line > position.line){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Position offsetToLine0Based(int offset) {
+        Element rootElement = getDefaultRootElement();
+        for (int i = 0; i < rootElement.getElementCount(); i++) {
+            Element element = rootElement.getElement(i);
+            int startOffset = element.getStartOffset();
+            int endOffset = element.getEndOffset();
+            if (endOffset>=offset){
+                return new Position(i, offset - startOffset-1);
+            }
+        }
+        throw new IllegalArgumentException("Invalid offset: "+ offset);
     }
 
     private void colorFieldAccess(Element rootElement, ClassStructureDTO classStructure) {
@@ -270,7 +314,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (matcher.matches()){
             setCharacterAttributes(offset -word.length(), word.length(), keywordColorAttribute, false);
         }
-        else{
+        else if (!isInsideComment(offset)){
             setCharacterAttributes(offset -word.length(), word.length(), defaultColorAttribute, false);
         }
     }
