@@ -164,7 +164,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             }
         }
         else{
-            colorWord(offset, textToAdd);
+             doKeywordsColoring(offset, textToAdd);
         }
     }
 
@@ -228,25 +228,16 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
     }
 
-    private void colorWord(int offset, String str) {
+    private void doKeywordsColoring(int offsetInDocument, String str) {
         Matcher matcher = keywordsPattern.matcher(str);
-        boolean anyMatch = false;
         while (matcher.find()){
-            int start = matcher.start();
-            int end = matcher.end();
-            String word = matcher.group();
-            int indexOfFirstLetter = 0;
-            while (!Character.isLetter(word.charAt(indexOfFirstLetter))){
-                indexOfFirstLetter++;
-            }
-            start += indexOfFirstLetter + offset;
-            end += offset;
-            setCharacterAttributes(start, end - start , keywordColorAttribute, false);
-            anyMatch = true;
+            int startingOffset = matcher.start();
+            int endOffset = matcher.end();
+            startingOffset += offsetInDocument;
+            endOffset += offsetInDocument;
+            setCharacterAttributes(startingOffset, endOffset - startingOffset , keywordColorAttribute, false);
         }
-        if (!anyMatch){
-            setCharacterAttributes(offset, str.length(), defaultColorAttribute, false);
-        }
+
     }
 
 
