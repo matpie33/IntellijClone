@@ -17,6 +17,10 @@ public class RemoveChangeDTO implements TextChangeDTO{
         return startingOffset;
     }
 
+    public void setStartingOffset(int startingOffset) {
+        this.startingOffset = startingOffset;
+    }
+
     public void appendText (String text){
         removedTextBuilder.insert(0, text);
     }

@@ -355,22 +355,29 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         remove(offset - preTypedWordsLength, preTypedWordsLength);
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
 
-        int lineAfterPackageDeclaration = classStructure.getPackageDeclarationPosition() == null? 0: classStructure.getPackageDeclarationPosition().line;
-        Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);
-        int offsetForImport = element.getStartOffset();
-        String fullyQualifiedClassName = String.format("%s.%s", suggestionSelected.getPackageName(), suggestionSelected.getClassName());
-        String importText = String.format("import %s;\n", fullyQualifiedClassName);
-        boolean classAlreadyHasThisImport = classStructure.containsImport(fullyQualifiedClassName);
         insertString(offset-preTypedWordsLength, suggestionSelected.getClassName(), defaultColorAttribute);
         undoRedoManager.addCurrentChangesToList();
 
+        String fullyQualifiedClassName = String.format("%s.%s", suggestionSelected.getPackageName(), suggestionSelected.getClassName());
+        String importText = String.format("import %s;\n", fullyQualifiedClassName);
+        boolean classAlreadyHasThisImport = classStructure.containsImport(fullyQualifiedClassName);
+
         if (!classAlreadyHasThisImport){
             classStructure.addImport(fullyQualifiedClassName);
+
+            int lineAfterPackageDeclaration = classStructure.getPackageDeclarationPosition() == null? 0: classStructure.getPackageDeclarationPosition().line;
+            int offsetForImport = lineNumberToOffset(lineAfterPackageDeclaration);
             undoRedoManager.createImportInsertChange(offsetForImport, fullyQualifiedClassName);
             insertString(offsetForImport, importText, defaultColorAttribute);
             undoRedoManager.addCurrentChangesToList();
         }
 
         wordBeingTyped.setLength(0);
+    }
+
+    private int lineNumberToOffset(int lineAfterPackageDeclaration) {
+        Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);
+        int offsetForImport = element.getStartOffset();
+        return offsetForImport;
     }
 }

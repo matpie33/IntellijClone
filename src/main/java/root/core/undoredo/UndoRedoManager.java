@@ -63,6 +63,7 @@ public class UndoRedoManager {
             removeChangeDTO = new RemoveChangeDTO(offset);
         }
         removeChangeDTO.appendText(removedText);
+        removeChangeDTO.setStartingOffset(offset);
     }
 
 
