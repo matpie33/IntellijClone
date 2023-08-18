@@ -150,7 +150,6 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     private void insertInternal(int offset, String textToAdd) throws BadLocationException {
         super.insertString(offset, textToAdd, defaultColorAttribute);
 
-
         if (textToAdd.equals("\n")){
             return;
         }
@@ -158,11 +157,11 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             WordOffsetDTO wordOffset = findWordEndingAtOffset(offset);
             String word = wordOffset.getWord();
             int startOffset = wordOffset.getStartingOffset();
-            if ((word).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
-                setCharacterAttributes(startOffset, word.length(), keywordColorAttribute, false);
-            }
-            else if (isInsideComment(offset)){
+            if (isInsideComment(offset)){
                 setCharacterAttributes(startOffset, word.length(), commentColorAttribute, false);
+            }
+            else if ((word).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
+                setCharacterAttributes(startOffset, word.length(), keywordColorAttribute, false);
             }
             else{
                 setCharacterAttributes(startOffset, word.length(), defaultColorAttribute, false);
