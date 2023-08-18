@@ -1,6 +1,5 @@
 package root.ui.components;
 
-import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -173,30 +172,30 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
     }
 
     private boolean isInsideComment(int offset) {
-        Position position = offsetToLine0Based(offset);
+        TextPositionDTO position = offsetToLine0Based(offset);
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
         if (classStructure == null){
             return false;
         }
         for (Range commentRange : classStructure.getCommentsSections()) {
-            if (commentRange.begin.line==position.line && commentRange.begin.column <= position.column){
+            if (commentRange.begin.line==position.getLineNumber() && commentRange.begin.column <= position.getColumnNumber()){
                 return true;
             }
-            if (commentRange.begin.line<position.line && commentRange.end.line > position.line){
+            if (commentRange.begin.line<position.getLineNumber() && commentRange.end.line > position.getLineNumber()){
                 return true;
             }
         }
         return false;
     }
 
-    private Position offsetToLine0Based(int offset) {
+    private TextPositionDTO offsetToLine0Based(int offset) {
         Element rootElement = getDefaultRootElement();
         for (int i = 0; i < rootElement.getElementCount(); i++) {
             Element element = rootElement.getElement(i);
             int startOffset = element.getStartOffset();
             int endOffset = element.getEndOffset();
             if (endOffset>=offset){
-                return new Position(i, offset - startOffset-1);
+                return new TextPositionDTO(i, offset - startOffset-1, startOffset, endOffset);
             }
         }
         throw new IllegalArgumentException("Invalid offset: "+ offset);
@@ -374,5 +373,20 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);
         int offsetForImport = element.getStartOffset();
         return offsetForImport;
+    }
+
+    public int duplicateLines(int selectionStart, int selectionEnd) {
+        try {
+            TextPositionDTO startPosition = offsetToLine0Based(selectionStart);
+            TextPositionDTO endPosition = offsetToLine0Based(selectionEnd);
+            int startOffset = startPosition.getStartOffset();
+            int endOffset = endPosition.getEndOffset();
+            String text = getText(startOffset, endOffset-startOffset);
+            endOffset = Math.min(endOffset, getLength());
+            insertString(endOffset, text, defaultColorAttribute);
+            return text.length();
+        } catch (BadLocationException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
