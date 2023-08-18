@@ -1,7 +1,7 @@
 package root.core.utility;
 
 import org.springframework.stereotype.Component;
-import root.core.jdk.manipulating.JDKConfigurationHolder;
+import root.core.configuration.ConfigurationHolder;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventsQueue;
 
@@ -11,10 +11,10 @@ import java.util.Set;
 @Component
 public class UIObserversInitializer {
 
-    public UIObserversInitializer(UIEventsQueue uiEventsQueue, Set<UIEventObserver> uiEventObservers, JDKConfigurationHolder JDKConfigurationHolder) {
+    public UIObserversInitializer(UIEventsQueue uiEventsQueue, Set<UIEventObserver> uiEventObservers, ConfigurationHolder configurationHolder) {
         uiEventObservers.forEach(uiEventsQueue::addObserver);
         try {
-            JDKConfigurationHolder.init();
+            configurationHolder.init();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,6 +1,7 @@
 package root.core.jdk.manipulating;
 
 import org.springframework.stereotype.Component;
+import root.core.configuration.ConfigurationHolder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,7 +17,7 @@ public class JavaSourcesExtractor {
     private static final String LIB = "lib";
     private static final String SRC = "src.zip";
 
-    private static final String DESTINATION_DIRECTORY = JDKConfigurationHolder.CONFIG_DIRECTORY_NAME + "/javasrc";
+    private static final String DESTINATION_DIRECTORY = ConfigurationHolder.CONFIG_DIRECTORY_NAME + "/javasrc";
 
     public void extractSources (String pathToJDK) throws IOException {
         Path pathToJDKObject     = Path.of(pathToJDK);

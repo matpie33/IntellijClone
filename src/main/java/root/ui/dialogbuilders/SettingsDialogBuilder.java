@@ -1,9 +1,10 @@
 package root.ui.dialogbuilders;
 
 import org.springframework.stereotype.Component;
-import root.core.dto.JDKPathValidationDTO;
-import root.core.jdk.manipulating.JDKConfigurationHolder;
+import root.core.configuration.ConfigurationHolder;
+import root.core.configuration.ConfigurationHolderType;
 import root.core.jdk.manipulating.JDKPathBrowseActionListener;
+import root.core.jdk.manipulating.JDKPathValidator;
 import root.core.shortcuts.DialogShortcuts;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
@@ -14,6 +15,8 @@ import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
+import java.io.File;
+import java.nio.file.Path;
 
 @Component
 public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
@@ -22,7 +25,7 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
     private JDialog dialog;
     private JTextField jdkInputField;
 
-    private JDKConfigurationHolder JDKConfigurationHolder;
+    private ConfigurationHolder configurationHolder;
 
     private JLabel errorLabel;
 
@@ -30,11 +33,13 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
 
     private DialogShortcuts dialogShortcuts;
 
+    private JDKPathValidator jdkPathValidator;
 
-    public SettingsDialogBuilder(JDKConfigurationHolder JDKConfigurationHolder, JDKPathBrowseActionListener jdkPathBrowseActionListener, DialogShortcuts dialogShortcuts) {
-        this.JDKConfigurationHolder = JDKConfigurationHolder;
+    public SettingsDialogBuilder(ConfigurationHolder ConfigurationHolder, JDKPathBrowseActionListener jdkPathBrowseActionListener, DialogShortcuts dialogShortcuts, JDKPathValidator jdkPathValidator) {
+        this.configurationHolder = ConfigurationHolder;
         this.jdkPathBrowseActionListener = jdkPathBrowseActionListener;
         this.dialogShortcuts = dialogShortcuts;
+        this.jdkPathValidator = jdkPathValidator;
         jdkPathBrowseActionListener.setViewUpdater(this);
     }
 
@@ -57,12 +62,11 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
                 if (dialog.isVisible()){
                     jdkInputField.setText("");
                     dialog.dispose();
-
                 }
                 break;
             case DIALOG_ACCEPT_REQUEST:
-                if (dialog.isVisible()){
-                    saveOptions();
+                if (dialog.isVisible() ){
+                    validateAndSave();
                 }
                 break;
         }
@@ -70,16 +74,18 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
 
     @Override
     public void updateNeeded(Object data) {
-        JDKPathValidationDTO pathValidationDTO = (JDKPathValidationDTO) data;
-        if (!pathValidationDTO.isPathValid()){
-            errorLabel.setText("Wrong jdk path.");
+        File selectedDirectory = (File) data;
+        jdkInputField.setText(selectedDirectory.toString());
+        jdkPathValidator.validate(selectedDirectory);
+        if (!jdkPathValidator.isValid()){
+            errorLabel.setText("JDK path is incorrect.");
             errorLabel.setForeground(Color.RED);
         }
-        else {
-            jdkInputField.setText(pathValidationDTO.getSelectedDirectory().toString());
-            errorLabel.setText("JDK path is correct.");
-            errorLabel.setForeground(Color.WHITE);
+        else{
+            errorLabel.setText("JDK path is correct");
+            errorLabel.setForeground(Color.GREEN);
         }
+
     }
 
     @Override
@@ -111,7 +117,7 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
         FlowLayout layout = (FlowLayout) panel.getLayout();
         layout.setAlignment(FlowLayout.RIGHT);
         JButton saveButton = new JButton("Save");
-        saveButton.addActionListener(e -> saveOptions());
+        saveButton.addActionListener(e -> validateAndSave());
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e->cancel());
         panel.add(saveButton);
@@ -123,11 +129,17 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
         dialog.dispose();
     }
 
-    private void saveOptions() {
-        if (jdkPathBrowseActionListener.isCorrectJDK()){
-            JDKConfigurationHolder.saveConfiguration(jdkInputField.getText());
+    private void validateAndSave() {
+        jdkPathValidator.validate(Path.of(jdkInputField.getText()).toFile());
+        boolean isJdkPathValid = jdkPathValidator.isValid();
+        if (isJdkPathValid){
+            configurationHolder.saveConfiguration(jdkInputField.getText(), ConfigurationHolderType.JDK);
+            dialog.dispose();
         }
-        dialog.dispose();
+        else{
+            errorLabel.setText("Wrong jdk path.");
+            errorLabel.setForeground(Color.RED);
+        }
     }
 
     private JPanel getOptionsConfigurationPanel() {
@@ -135,7 +147,7 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
         optionsConfigurationPanel.setLayout(new BoxLayout(optionsConfigurationPanel, BoxLayout.PAGE_AXIS));
 
         JLabel jdkPathLabel = new JLabel("JDK path: ");
-        jdkInputField = new JTextField(JDKConfigurationHolder.getJdkPath(), 30);
+        jdkInputField = new JTextField(configurationHolder.getJdkPath(), 30);
         JButton browseButton = new JButton("browse");
         browseButton.addActionListener(jdkPathBrowseActionListener);
         errorLabel = new JLabel("Select jdk path");
@@ -155,9 +167,9 @@ public class SettingsDialogBuilder implements UIViewUpdater, UIEventObserver {
         JPanel panel = new JPanel();
         panel.add(tree);
         return panel;
-
-
-
     }
 
+    public void focusInputField() {
+        jdkInputField.requestFocusInWindow();
+    }
 }

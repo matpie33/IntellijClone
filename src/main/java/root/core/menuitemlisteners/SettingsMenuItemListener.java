@@ -23,6 +23,7 @@ public class SettingsMenuItemListener extends AbstractAction implements MenuItem
     @Override
     public void actionPerformed(ActionEvent e) {
         JDialog dialog = settingsDialogBuilder.getDialog();
+        settingsDialogBuilder.focusInputField();
         dialog.setVisible(true);
     }
 }
