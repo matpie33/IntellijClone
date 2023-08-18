@@ -9,11 +9,11 @@ import java.util.TimerTask;
 public class FileAutoSaver {
 
     private final Timer saveTimer;
-    private final int firstCheckDelay;
-    private final int checkPeriod;
+    private final int firstCheckDelay = 1000;
+    private final int checkPeriod = 500;
+    private int idleTimeBeforeSave = 500;
     private final FileIO fileIO;
 
-    private int idleTimeBeforeSave = 2000;
 
     private long lastTextChangeTime;
 
@@ -24,8 +24,6 @@ public class FileAutoSaver {
     public FileAutoSaver(FileIO fileIO) {
         this.fileIO = fileIO;
         saveTimer = new Timer();
-        firstCheckDelay = 1000;
-        checkPeriod = 1000;
         saveTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {

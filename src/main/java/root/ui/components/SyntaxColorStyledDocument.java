@@ -114,12 +114,17 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
 
         if (!isTextSettingInProgress){
-            if (textToAdd.length()==1 && Character.isLetterOrDigit(textToAdd.charAt(0))){
-                if (!isInsideComment(offset) && (wordBeingTyped.length() > 0 || !isAfterLetterOrDigit(offset))) {
+            if (textToAdd.length()==1){
+                char singleCharacter = textToAdd.charAt(0);
+                if (Character.isLetterOrDigit(singleCharacter) && !isInsideComment(offset) && (wordBeingTyped.length() > 0 || (!Character.isDigit(singleCharacter) && !isAfterLetterOrDigit(offset)))) {
                     wordBeingTyped.append(textToAdd);
                     showCodeCompletionPopup();
                 }
+                else {
+                    codeCompletionPopup.hide();
+                }
             }
+
             undoRedoManager.handleInsertChange(textToAdd,offset);
         }
 

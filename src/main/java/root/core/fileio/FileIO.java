@@ -98,14 +98,14 @@ public class FileIO {
         }
         try {
             Files.writeString(openedFile.toPath(), text);
+            boolean isMain = classStructureParser.parseClassStructure(openedFile, ClassOrigin.SOURCES);
             uiEventsQueue.dispatchEvent(UIEventType.AUTOSAVE_DONE, new Object());
-            if (applicationState.getClassesWithCompilationErrors().contains(openedFile)){
-                boolean isMain = classStructureParser.parseClassStructure(openedFile, ClassOrigin.SOURCES);
-                if (isMain){
-                    applicationState.addClassWithMainMethod(openedFile);
-                    applicationState.removeClassWithCompilationError(openedFile);
-                    uiEventsQueue.dispatchEvent(UIEventType.COMPILATION_ERROR_FIXED_IN_OPENED_FILE, openedFile);
-                }
+            if (isMain){
+                applicationState.addClassWithMainMethod(openedFile);
+            }
+            if (applicationState.getClassesWithCompilationErrors().contains(openedFile)) {
+                applicationState.removeClassWithCompilationError(openedFile);
+                uiEventsQueue.dispatchEvent(UIEventType.COMPILATION_ERROR_FIXED_IN_OPENED_FILE, openedFile);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

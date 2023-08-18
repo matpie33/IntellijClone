@@ -81,11 +81,11 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
     }
 
     @PostConstruct
-    public void init (){
+    public void init() {
         rootPanel = new JPanel(new BorderLayout());
 
         EditorScrollPane scrollPane = createScrollableTextEditor("", true);
-        tabPaneBuilderUI.addTab( scrollPane, new File("untitled.java"), ClassOrigin.SOURCES);
+        tabPaneBuilderUI.addTab(scrollPane, new File("untitled.java"), ClassOrigin.SOURCES);
         JTabbedPane tabbedPane = tabPaneBuilderUI.getTabbedPane();
         rootPanel.add(tabbedPane, BorderLayout.CENTER);
         fileEditorShortcuts.assignShortcuts(tabbedPane);
@@ -93,7 +93,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
 
     private EditorScrollPane createScrollableTextEditor(String text, boolean editable) {
         SyntaxColorStyledDocument document = applicationContext.getBean(SyntaxColorStyledDocument.class);
-        FileEditorComponent editorText = new FileEditorComponent (document);
+        FileEditorComponent editorText = new FileEditorComponent(document);
         editorText.setEditable(editable);
         editorText.setCaret(new ImprovedCaret());
         editorText.getCaret().setBlinkRate(500);
@@ -131,7 +131,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         switch (eventType) {
             case FILE_OPENED_FOR_EDIT:
                 @SuppressWarnings("unchecked")
-                FileReadResultDTO resultDTO = (FileReadResultDTO)data;
+                FileReadResultDTO resultDTO = (FileReadResultDTO) data;
                 applicationState.setOpenedFile(resultDTO.getFile());
                 try {
                     openFile(resultDTO.getContentLines(), resultDTO.getFile(), resultDTO.getClassOrigin());
@@ -140,19 +140,19 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 }
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
-                Position position = (Position)data;
+                Position position = (Position) data;
                 EditorScrollPane editorScrollPane = tabPaneBuilderUI.getScrollPaneFromActiveTab();
                 JTextPane editorText = editorScrollPane.getTextEditor();
                 scrollTextPaneToPosition(editorText, position);
                 break;
             case PROJECT_STRUCTURE_CHANGED:
-                if (applicationState.getOpenedFile()== null){
+                if (applicationState.getOpenedFile() == null) {
                     return;
                 }
                 FileSystemChangeDTO fileSystemChange = (FileSystemChangeDTO) data;
                 List<Path> modifiedFiles = fileSystemChange.getModifiedFiles();
                 Path openedFile = applicationState.getOpenedFile().toPath();
-                if (modifiedFiles.contains(openedFile)){
+                if (modifiedFiles.contains(openedFile)) {
                     try {
                         List<String> content = fileIO.getContent(openedFile);
                         openFile(content, openedFile.toFile(), ClassOrigin.SOURCES);
@@ -166,6 +166,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 EditorScrollPane scrollPane = tabPaneBuilderUI.getScrollPaneFromActiveTab();
                 SyntaxColorStyledDocument syntaxColorDocument = (SyntaxColorStyledDocument) scrollPane.getTextEditor().getDocument();
                 syntaxColorDocument.checkForTextChanges();
+                syntaxColorDocument.doWordsColoring();
                 break;
 
         }
@@ -177,18 +178,17 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         Element rootElement = editorText.getDocument().getDefaultRootElement();
         Element elementForGivenLine = rootElement.getElement(position.line - 1);
         editorText.requestFocusInWindow();
-        SwingUtilities.invokeLater(()->{
+        SwingUtilities.invokeLater(() -> {
             try {
                 Rectangle2D rectangleForDestinationLine = editorText.modelToView2D(elementForGivenLine.getStartOffset() + position.column - 1);
                 int viewportHeight = editorText.getParent().getHeight();
                 Rectangle visibleRectangular = editorText.getVisibleRect();
                 Rectangle destinationRectangular = new Rectangle((int) rectangleForDestinationLine.getX(), (int) rectangleForDestinationLine.getY(), (int) rectangleForDestinationLine.getWidth(), (int) rectangleForDestinationLine.getHeight());
                 int destinationYPosition = destinationRectangular.y;
-                if (destinationIsBelowVisibleRectangular(visibleRectangular, destinationRectangular)){
-                    destinationYPosition += 4*viewportHeight/5;
-                }
-                else{
-                    destinationYPosition -= viewportHeight/5;
+                if (destinationIsBelowVisibleRectangular(visibleRectangular, destinationRectangular)) {
+                    destinationYPosition += 4 * viewportHeight / 5;
+                } else {
+                    destinationYPosition -= viewportHeight / 5;
                 }
                 destinationRectangular.y = destinationYPosition;
                 editorText.scrollRectToVisible(destinationRectangular);
