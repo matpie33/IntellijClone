@@ -37,10 +37,6 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     private UndoRedoManager undoRedoManager;
 
-    private InsertChangeDTO insertChangeDTO;
-
-    private RemoveChangeDTO removeChangeDTO;
-
     private CodeCompletionPopup codeCompletionPopup;
     private JTextPane textComponent;
 
@@ -66,12 +62,11 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
 
     public void clearChanges (){
-        insertChangeDTO = null;
-        removeChangeDTO = null;
+        undoRedoManager.clearChanges();
     }
 
     public void undo () throws BadLocationException {
-        checkForTextChanges();
+        undoRedoManager.addCurrentChangesToList();
         TextChangeDTO undoAction = undoRedoManager.getNextUndoAction();
         if (undoAction instanceof InsertChangeDTO){
             InsertChangeDTO insert = (InsertChangeDTO) undoAction;
@@ -84,6 +79,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
             insertInternal(removeAction.getStartingOffset(), removeAction.getRemovedText());
         }
+        handleFileChanged();
     }
 
     public void redo () throws BadLocationException {
@@ -100,6 +96,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             RemoveChangeDTO removeAction = (RemoveChangeDTO) undoAction;
             removeInternal(removeAction.getStartingOffset(), removeAction.getRemovedText().length());
         }
+        handleFileChanged();
     }
 
     private boolean isAfterLetterOrDigit (int offset) throws BadLocationException {
@@ -123,14 +120,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
                     showCodeCompletionPopup();
                 }
             }
-            if (removeChangeDTO != null){
-                undoRedoManager.addNewChange(removeChangeDTO);
-                removeChangeDTO = null;
-            }
-            if ( insertChangeDTO == null){
-                insertChangeDTO = new InsertChangeDTO(offset);
-            }
-            insertChangeDTO.appendText(textToAdd);
+            undoRedoManager.handleInsertChange(textToAdd,offset);
         }
 
         insertInternal(offset, textToAdd);
@@ -290,25 +280,12 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
         if (!isTextSettingInProgress){
             showCodeCompletionPopup();
-            if (insertChangeDTO != null){
-                undoRedoManager.addNewChange(insertChangeDTO);
-                insertChangeDTO = null;
-            }
-            if (removeChangeDTO == null){
-                removeChangeDTO = new RemoveChangeDTO(offset);
-            }
-            updateRemoveChangeDTO(offset, length);
+            undoRedoManager.handleRemoveChange(getText(offset, length), offset);
         }
 
         removeInternal(offset, length);
         handleFileChanged();
 
-    }
-
-    private void updateRemoveChangeDTO(int offset, int length) throws BadLocationException {
-        String removedText = getText(offset, length);
-        removeChangeDTO.appendText(removedText);
-        removeChangeDTO.setStartingOffset(offset);
     }
 
     private void handleFileChanged() throws BadLocationException {
@@ -349,14 +326,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
 
     public void checkForTextChanges() {
-        if (insertChangeDTO != null){
-            undoRedoManager.addNewChange(insertChangeDTO);
-            insertChangeDTO = null;
-        }
-        if (removeChangeDTO != null){
-            undoRedoManager.addNewChange(removeChangeDTO);
-            removeChangeDTO = null;
-        }
+        undoRedoManager.addCurrentChangesToList();
     }
 
     public void clearWordBeingTyped (){
@@ -379,9 +349,10 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
 
     public void insertSuggestedText(int offset, ClassSuggestionDTO suggestionSelected) throws BadLocationException {
-        insertChangeDTO = null;
+
+        undoRedoManager.addCurrentChangesToList();
         int preTypedWordsLength = wordBeingTyped.length();
-        removeInternal(offset - preTypedWordsLength, preTypedWordsLength);
+        remove(offset - preTypedWordsLength, preTypedWordsLength);
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
 
         int lineAfterPackageDeclaration = classStructure.getPackageDeclarationPosition() == null? 0: classStructure.getPackageDeclarationPosition().line;
@@ -390,15 +361,14 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         String fullyQualifiedClassName = String.format("%s.%s", suggestionSelected.getPackageName(), suggestionSelected.getClassName());
         String importText = String.format("import %s;\n", fullyQualifiedClassName);
         boolean classAlreadyHasThisImport = classStructure.containsImport(fullyQualifiedClassName);
-
         insertString(offset-preTypedWordsLength, suggestionSelected.getClassName(), defaultColorAttribute);
-        checkForTextChanges();
+        undoRedoManager.addCurrentChangesToList();
 
         if (!classAlreadyHasThisImport){
             classStructure.addImport(fullyQualifiedClassName);
-            insertChangeDTO = new InsertImportChangeDTO(offsetForImport, fullyQualifiedClassName);
+            undoRedoManager.createImportInsertChange(offsetForImport, fullyQualifiedClassName);
             insertString(offsetForImport, importText, defaultColorAttribute);
-            checkForTextChanges();
+            undoRedoManager.addCurrentChangesToList();
         }
 
         wordBeingTyped.setLength(0);

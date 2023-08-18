@@ -23,7 +23,7 @@ public class InsertChangeDTO implements TextChangeDTO {
     @Override
     public String toString() {
         return "InsertChangeDTO{" +
-                "singleChangeBuilder=" + changedTextBuilder +
+                "singleChangeBuilder=" + changedTextBuilder + " offset : "+offsetWhereChangeStarted+
                 '}';
     }
 }
