@@ -194,7 +194,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             Element element = rootElement.getElement(i);
             int startOffset = element.getStartOffset();
             int endOffset = element.getEndOffset();
-            if (endOffset>=offset){
+            if (endOffset>offset){
                 return new TextPositionDTO(i, offset - startOffset-1, startOffset, endOffset);
             }
         }
@@ -373,6 +373,17 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);
         int offsetForImport = element.getStartOffset();
         return offsetForImport;
+    }
+
+    public void deleteLine (int caretPosition){
+        TextPositionDTO textPositionDTO = offsetToLine0Based(caretPosition);
+        int startOffset = textPositionDTO.getStartOffset();
+        int endOffset = textPositionDTO.getEndOffset();
+        try {
+            remove(startOffset, endOffset-startOffset);
+        } catch (BadLocationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public int duplicateLines(int selectionStart, int selectionEnd) {
