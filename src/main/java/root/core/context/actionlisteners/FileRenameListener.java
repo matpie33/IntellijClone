@@ -38,8 +38,8 @@ public class FileRenameListener extends ContextAction<ProjectStructureSelectionC
             return;
         }
         TreePath selectedPath = selectedPaths[0];
-        String projectPath = applicationState.getProjectPath().getParent();
-        String[] paths = Arrays.stream(firstSelection).map(ProjectStructureTreeElementDTO::getDisplayName).toArray(String [] :: new);
+        String projectPath = applicationState.getProjectPath().toString();
+        String[] paths = Arrays.stream(firstSelection).map(ProjectStructureTreeElementDTO::getPath).toArray(String [] :: new);
         Path path = Path.of(projectPath, paths);
         File file = path.toFile();
         Point position = context.getPosition();

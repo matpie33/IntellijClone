@@ -7,11 +7,11 @@ import root.core.classmanipulating.ClassStructureParser;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.dto.ProjectStructureTreeElementDTO;
+import root.core.jdk.manipulating.JavaSourcesExtractor;
 
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class ProjectFileOpener {
@@ -24,21 +24,49 @@ public class ProjectFileOpener {
 
     private ClassStructureParser classStructureParser;
 
-    public ProjectFileOpener(ApplicationState applicationState, FileIO fileIO, ClassDecompiler classDecompiler, ClassStructureParser classStructureParser) {
+    private JavaSourcesExtractor javaSourcesExtractor;
+
+    public ProjectFileOpener(ApplicationState applicationState, FileIO fileIO, ClassDecompiler classDecompiler, ClassStructureParser classStructureParser, JavaSourcesExtractor javaSourcesExtractor) {
         this.applicationState = applicationState;
         this.fileIO = fileIO;
         this.classDecompiler = classDecompiler;
         this.classStructureParser = classStructureParser;
+        this.javaSourcesExtractor = javaSourcesExtractor;
     }
 
     public FileReadResultDTO openNode (ProjectStructureTreeElementDTO[] nodesPath){
-        List<String> nodeNames = Arrays.stream(nodesPath).map(ProjectStructureTreeElementDTO::getPath).collect(Collectors.toList());
-        ClassOrigin classOrigin = nodeNames.contains("JDK")? ClassOrigin.JDK: nodeNames.contains("maven")? ClassOrigin.MAVEN: ClassOrigin.SOURCES;
+        String rootDirectory;
+        ClassOrigin classOrigin = ClassOrigin.SOURCES;
+        List<String> nodeNames = new ArrayList<>();
+        for (ProjectStructureTreeElementDTO treeElement : nodesPath) {
+            String displayName = treeElement.getDisplayName();
+            if (displayName.equals("JDK")){
+                classOrigin = ClassOrigin.JDK;
+            }
+            else if (displayName.equals("maven")){
+                classOrigin = ClassOrigin.MAVEN;
+            }
+            String projectStructureTreeElementDTOPath = treeElement.getPath();
+            nodeNames.add(projectStructureTreeElementDTOPath);
+        }
         nodeNames = removeRootNodeIfItsMavenOrJDKPath(nodeNames);
         String[] nodes = nodeNames.toArray(new String[]{});
 
+        switch (classOrigin){
+            case SOURCES:
+                rootDirectory = applicationState.getProjectPath().toString();
+                break;
+            case JDK:
+                rootDirectory = javaSourcesExtractor.getJavaSourcesDirectory().toString();
+                break;
+            case MAVEN:
+                rootDirectory = "";
+                break;
+            default: throw new RuntimeException();
 
-        Path path = Path.of("", nodes);
+        }
+
+        Path path = Path.of(rootDirectory, nodes);
         return readFile(classOrigin, path);
     }
 

@@ -40,9 +40,16 @@ public class FileIO {
     }
 
     public File getFile(ProjectStructureTreeElementDTO[] directories ){
-        String projectPath = applicationState.getProjectPath().getParent();
-        String [] paths = Arrays.stream(directories).map(ProjectStructureTreeElementDTO::getDisplayName).toArray(String[]::new);
-        Path path = Path.of(projectPath, paths);
+        boolean isMavenDependency  = false;
+        for (ProjectStructureTreeElementDTO directory : directories) {
+            if (directory.getDisplayName().equals("maven")){
+                isMavenDependency = true;
+                break;
+            }
+        }
+        String rootDirectory = isMavenDependency? "" : applicationState.getProjectPath().toString();
+        String [] paths = Arrays.stream(directories).map(ProjectStructureTreeElementDTO::getPath).toArray(String[]::new);
+        Path path = Path.of(rootDirectory, paths);
         return path.toFile();
     }
 
@@ -76,9 +83,9 @@ public class FileIO {
                 .map(DefaultMutableTreeNode.class::cast)
                 .map(DefaultMutableTreeNode::getUserObject)
                 .map(ProjectStructureTreeElementDTO.class::cast)
-                .map(ProjectStructureTreeElementDTO::getDisplayName)
+                .map(ProjectStructureTreeElementDTO::getPath)
                 .toArray(String[]::new);
-        String projectPath = applicationState.getProjectPath().getParent();
+        String projectPath = applicationState.getProjectPath().toString();
         Path path = Path.of(projectPath, nodeNames);
         try (Stream<Path> filesStream = Files.walk(path)){
             Set<Boolean> deletedStatuses = filesStream

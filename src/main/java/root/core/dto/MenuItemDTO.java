@@ -3,11 +3,16 @@ package root.core.dto;
 import root.core.context.actionlisteners.ContextAction;
 import root.core.context.conditionalmenu.ConditionChecker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MenuItemDTO {
 
     private ConditionChecker conditionChecker;
 
     private String menuValue;
+
+    private List<MenuItemDTO> subMenus = new ArrayList<>();
 
     private ContextAction actionListener;
 
@@ -20,6 +25,15 @@ public class MenuItemDTO {
         this.conditionChecker = conditionChecker;
         this.menuValue = menuValue;
         this.actionListener = actionListener;
+    }
+
+    public List<MenuItemDTO> getSubMenus() {
+        return subMenus;
+    }
+
+    public MenuItemDTO addSubMenu (MenuItemDTO menuItemDTO){
+        subMenus.add(menuItemDTO);
+        return this;
     }
 
     public ConditionChecker getConditionChecker() {

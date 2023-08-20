@@ -19,13 +19,26 @@ public class ContextMenu extends JPopupMenu {
                 if (menu.getConditionChecker() != null && !menu.getConditionChecker().isConditionFulfilled(context)){
                     continue;
                 }
-                JMenuItem menuItem = new JMenuItem(menu.getMenuValue());
-                ContextAction action = menu.getAction();
-                action.setContext(context);
-                menuItem.addActionListener(action);
+
+                List<MenuItemDTO> subMenus = menu.getSubMenus();
+                boolean hasSubmenus = !subMenus.isEmpty();
+                JMenuItem menuItem = createMenuItem(context, menu, hasSubmenus);
+                for (MenuItemDTO subMenu : subMenus) {
+                    boolean subMenuHasSubmenus = !subMenu.getSubMenus().isEmpty();
+                    JMenuItem subMenuItem = createMenuItem(context, subMenu, subMenuHasSubmenus);
+                    menuItem.add(subMenuItem);
+                }
                 add(menuItem);
             }
 
         }
+    }
+
+    private JMenuItem createMenuItem(Object context, MenuItemDTO menuDTO, boolean hasSubmenus) {
+        JMenuItem menuItem = hasSubmenus? new JMenu(menuDTO.getMenuValue()): new JMenuItem(menuDTO.getMenuValue());
+        ContextAction action = menuDTO.getAction();
+        action.setContext(context);
+        menuItem.addActionListener(action);
+        return menuItem;
     }
 }

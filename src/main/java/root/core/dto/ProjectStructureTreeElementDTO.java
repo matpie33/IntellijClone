@@ -1,5 +1,7 @@
 package root.core.dto;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ProjectStructureTreeElementDTO {
@@ -7,6 +9,8 @@ public class ProjectStructureTreeElementDTO {
     public enum Type {
         CLASS_FROM_JAR, SOURCE_CLASS, DIRECTORY, EMPTY
     }
+
+    private List<String> mergedDirectories = new ArrayList<>();
 
     private Type type;
 
@@ -16,6 +20,14 @@ public class ProjectStructureTreeElementDTO {
 
     public String getPath() {
         return path;
+    }
+
+    public void addMergedDirectory (String directory){
+        mergedDirectories.add(directory);
+    }
+
+    public List<String> getMergedDirectories() {
+        return mergedDirectories;
     }
 
     public Type getType() {
@@ -34,6 +46,10 @@ public class ProjectStructureTreeElementDTO {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     @Override

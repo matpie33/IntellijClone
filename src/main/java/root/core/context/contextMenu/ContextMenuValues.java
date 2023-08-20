@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import root.core.context.actionlisteners.*;
 import root.core.context.conditionalmenu.ConditionChecker;
+import root.core.context.conditionalmenu.FileCreateConditionChecker;
 import root.core.context.conditionalmenu.MainMethodConditionChecker;
 import root.core.dto.MenuItemDTO;
 
@@ -23,7 +24,7 @@ public class ContextMenuValues implements ApplicationContextAware {
 
     @PostConstruct
     public void init (){
-        menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList(new MenuItemDTO("New", getContextAction(EmptyActionListener.class)), new MenuItemDTO("-", getContextAction(EmptyActionListener.class)), new MenuItemDTO("New", getContextAction(EmptyActionListener.class)),
+        menuItemsMap.put(ContextType.PROJECT_STRUCTURE, Arrays.asList(createMenuNew(), new MenuItemDTO("-", getContextAction(EmptyActionListener.class)),
                 new MenuItemDTO("Rename", getContextAction(FileRenameListener.class)),
                 new MenuItemDTO("Run main method", getContextAction(MainMethodRunListener.class), getConditionChecker(MainMethodConditionChecker.class)),
                 new MenuItemDTO("Delete", getContextAction(FileDeleteRequestListener.class))));
@@ -33,6 +34,12 @@ public class ContextMenuValues implements ApplicationContextAware {
         menuItemsMap.put(ContextType.CONSOLE, Arrays.asList(new MenuItemDTO("Pause output", getContextAction(EmptyActionListener.class)), new MenuItemDTO("Fold lines", getContextAction(EmptyActionListener.class))));
         menuItemsMap.put(ContextType.CLASS_STRUCTURE, Arrays.asList(new MenuItemDTO("Open in", getContextAction(EmptyActionListener.class)),
                 new MenuItemDTO("Find usages", getContextAction(EmptyActionListener.class)), new MenuItemDTO("Jump to source", getContextAction(EmptyActionListener.class))));
+    }
+
+    private MenuItemDTO createMenuNew() {
+        return new MenuItemDTO("New", new EmptyActionListener(), getConditionChecker(FileCreateConditionChecker.class))
+                .addSubMenu(new MenuItemDTO("Java class", getContextAction(CreateJavaClassListener.class)))
+                .addSubMenu(new MenuItemDTO("File", getContextAction(EmptyActionListener.class)));
     }
 
     public List<MenuItemDTO> getValues (ContextType contextType){

@@ -56,7 +56,7 @@ public class ProjectOpener {
         mavenCommandsController.init();
         threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
         threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Maven tasks finished"));
-        DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, false);
+        DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, true);
         File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory().toFile();
         projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
         parseJdkSources(jdkSourcesRoot);
