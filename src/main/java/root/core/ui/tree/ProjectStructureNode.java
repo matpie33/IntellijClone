@@ -4,6 +4,7 @@ import root.core.classmanipulating.ClassOrigin;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.nio.file.Path;
 
 public class ProjectStructureNode extends DefaultMutableTreeNode {
 
@@ -36,15 +37,33 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
     }
 
     public ProjectStructureNode getOrCreateChild(DefaultTreeModel model, String displayName, ProjectStructureNodeType type){
+        ProjectStructureNode node = getNode(displayName);
+        if (node != null) {
+            return node;
+        }
+        ProjectStructureNode projectStructureNode = new ProjectStructureNode(classOrigin, type, displayName, displayName, isInsideJavaSources);
+        model.insertNodeInto(projectStructureNode, this, getChildCount());
+        return projectStructureNode;
+    }
+
+    public boolean containsChildWithName(String displayName){
+        return getNode(displayName) != null;
+    }
+
+    public ProjectStructureNode getNode(String displayName) {
         for (int i = 0; i < getChildCount(); i++) {
             ProjectStructureNode node = (ProjectStructureNode) getChildAt(i);
+
             if (node.getDisplayName().equals(displayName)){
                 return node;
             }
+            for (Path path : Path.of(node.filePath)) {
+                if (path.toString().equals(displayName)){
+                    return node;
+                }
+            }
         }
-        ProjectStructureNode projectStructureNode = new ProjectStructureNode(classOrigin, type, displayName, filePath, isInsideJavaSources);
-        model.insertNodeInto(projectStructureNode, this, getChildCount());
-        return projectStructureNode;
+        return null;
     }
 
     public String getDisplayName() {

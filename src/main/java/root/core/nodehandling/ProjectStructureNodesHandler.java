@@ -198,7 +198,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         Point point = e.getLocationOnScreen();
         if (tree.getSelectionPaths()==null || tree.getSelectionPaths().length==1){
             tree.setSelectionPath(path);
-            ProjectStructureNode[] paths = extractNodes(path);
+            ProjectStructureNode[] paths = getNodes(path);
             List<ProjectStructureNode[]> pathsList = new ArrayList<>();
             pathsList.add(paths);
             File file = fileIO.getFile(paths); //TODO move it outside this class
@@ -208,7 +208,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
             TreePath[] selectionPaths = tree.getSelectionPaths();
             List<ProjectStructureNode[]> nodeNamesList = new ArrayList<>();
             for (TreePath selectionPath : selectionPaths) {
-                ProjectStructureNode[] paths = extractNodes(selectionPath);
+                ProjectStructureNode[] paths = getNodes(selectionPath);
                 nodeNamesList.add(paths);
             }
             return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point, null);
@@ -217,7 +217,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     }
 
-    private ProjectStructureNode[] extractNodes(TreePath path) {
+    private ProjectStructureNode[] getNodes(TreePath path) {
         ProjectStructureNode[] paths = new ProjectStructureNode[path.getPathCount()];
         for (int i=0; i<paths.length; i++){
             ProjectStructureNode pathComponent = (ProjectStructureNode) path.getPathComponent(i);
@@ -266,93 +266,45 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         File file = path.toFile();
         if (file.isDirectory() && lastNode != null){
             for (File child : file.listFiles()) {
-                extractNodes(child, lastNode, model, lastNode);
+                createNodesForFileAndSubdirectories(child, lastNode, model, lastNode);
             }
         }
     }
 
-    private ProjectStructureNode createNode(boolean isDirectory, String name, DefaultTreeModel model, ProjectStructureNode parentNode) {
-        ProjectStructureNode node = createProjectStructureNode(parentNode.getClassOrigin(), isDirectory, name, name, parentNode.isInsideJavaSources());
-        model.insertNodeInto(node, parentNode, parentNode.getChildCount());
-        return node;
-    }
 
     private ProjectStructureNode getNodesForPathAndCreateOptionally(ProjectStructureNode parentNode, Path filePath, DefaultTreeModel model, boolean isDirectory, boolean createIfNotExist) {
 
-        Iterator<Path> iterator = filePath.iterator();
-        ProjectStructureNode foundChild = null;
-        if (!iterator.hasNext()){
+        Iterator<Path> pathIterator = filePath.iterator();
+        if (!pathIterator.hasNext()){
             return null;
         }
-        String pathPartString = iterator.next().toString();
-        boolean isFoundChild = false;
-        while (!pathPartString.isEmpty() && (iterator.hasNext() || isFoundChild)){
-            isFoundChild = false;
-            for (int i = 0; i < parentNode.getChildCount(); i++) {
-                ProjectStructureNode child = (ProjectStructureNode) parentNode.getChildAt(i);
-                String nodeName = child.getDisplayName();
-                if (nodeName.equals(pathPartString)) {
-                    parentNode = child;
-                    isFoundChild = true;
-                    pathPartString = iterator.hasNext()? iterator.next().toString() : "";
-                    break;
-                }
-
-                Path path = Path.of(child.getFilePath());
-                boolean mergedNodesContainPath = pathContainsString(pathPartString, path);
-                if (mergedNodesContainPath) {
-                    while (mergedNodesContainPath && iterator.hasNext()){
-                        pathPartString = iterator.next().toString();
-                        mergedNodesContainPath = pathContainsString(pathPartString, path);
-                    }
-                    if (mergedNodesContainPath){
-                        pathPartString = "";
-                    }
-                    parentNode = child;
-                    isFoundChild = true;
-                    break;
-                }
-
+        ProjectStructureNode node = null;
+        while (pathIterator.hasNext() ){
+            String pathPart = pathIterator.next().toString();
+            node = createIfNotExist? parentNode.getOrCreateChild(model, pathPart, isDirectory ? ProjectStructureNodeType.FILE : ProjectStructureNodeType.DIRECTORY):
+                    parentNode.getNode(pathPart);
+            if (node == null){
+                return null;
             }
-            if (!isFoundChild && createIfNotExist){
-                foundChild = createNode(isDirectory, pathPartString, model, parentNode);
+            else{
+                parentNode = node;
             }
         }
 
-        return foundChild;
+        return node;
     }
 
-    private boolean pathContainsString(String pathPartString, Path path) {
-        boolean mergedNodesContainPath = false;
-        for (Path subpath : path) {
-            if (subpath.toString().equals(pathPartString)){
-                mergedNodesContainPath = true;
-            }
-        }
-        return mergedNodesContainPath;
-    }
-
-    private void extractNodes(File directory, ProjectStructureNode parent, DefaultTreeModel model, ProjectStructureNode lastNode) {
-        boolean isDirectory = directory.isDirectory();
-        ProjectStructureNode childNode = createProjectStructureNode(lastNode.getClassOrigin(), isDirectory, directory.getName(), directory.getName(), lastNode.isInsideJavaSources());
-        if (!parentContainsNode(parent, childNode)){
+    private void createNodesForFileAndSubdirectories(File rootFile, ProjectStructureNode parent, DefaultTreeModel model, ProjectStructureNode lastNode) {
+        boolean isDirectory = rootFile.isDirectory();
+        ProjectStructureNode childNode = createProjectStructureNode(lastNode.getClassOrigin(), isDirectory, rootFile.getName(), rootFile.getName(), lastNode.isInsideJavaSources());
+        if (!parent.containsChildWithName(rootFile.getName())){
             model.insertNodeInto(childNode, parent, parent.getChildCount());
         }
         if(isDirectory){
-            for (File file : directory.listFiles()) {
-                extractNodes(file, childNode, model, lastNode);
+            for (File file : rootFile.listFiles()) {
+                createNodesForFileAndSubdirectories(file, childNode, model, lastNode);
             }
         }
-    }
-
-    private boolean parentContainsNode(ProjectStructureNode parent, ProjectStructureNode childNode) {
-        for (int i=0; i<parent.getChildCount(); i++){
-            ProjectStructureNode node = (ProjectStructureNode) parent.getChildAt(i);
-            if (node.equals(childNode)){
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -366,7 +318,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         Point point = null;
         for (TreePath selectionPath : selectionPaths) {
             point = tree.getPathBounds(selectionPath).getLocation();
-            ProjectStructureNode[] nodeNames = extractNodes(selectionPath);
+            ProjectStructureNode[] nodeNames = getNodes(selectionPath);
             nodeNamesList.add(nodeNames);
         }
         return new ProjectStructureSelectionContextDTO(selectionPaths, nodeNamesList, point, null);
