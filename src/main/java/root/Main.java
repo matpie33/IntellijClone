@@ -8,6 +8,7 @@ import root.core.dto.ApplicationState;
 import root.core.fileio.FileAutoSaver;
 import root.core.nodehandling.ProjectStructureNodesHandler;
 import root.core.shortcuts.ApplicationShortcuts;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 import root.ui.components.CodeCompletionPopup;
@@ -15,7 +16,6 @@ import root.ui.panelbuilders.RootPanelBuilder;
 import root.ui.uibuilders.MenuBuilderUI;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.io.IOException;
 
@@ -63,7 +63,7 @@ public class Main implements UIEventObserver {
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
         if (eventType.equals(UIEventType.PROJECT_OPENED)){
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) data;
+            ProjectStructureNode node = (ProjectStructureNode) data;
             String title = projectStructureNodesHandler.getText(node);
             FRAME.setTitle(title);
         }

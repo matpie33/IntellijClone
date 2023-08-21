@@ -4,13 +4,12 @@ import org.springframework.stereotype.Component;
 import root.core.dto.CreateClassDTO;
 import root.core.dto.FileSystemChangeDTO;
 import root.core.dto.ProjectStructureSelectionContextDTO;
-import root.core.dto.ProjectStructureTreeElementDTO;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 import root.ui.components.CreateClassPopup;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -122,9 +121,8 @@ public class CreateJavaClassListener extends ContextAction<ProjectStructureSelec
 
     private List<String> getNodePath(TreePath selectedPath) {
         return Arrays.stream(selectedPath.getPath()).map(node -> {
-            DefaultMutableTreeNode mutableNode = (DefaultMutableTreeNode) node;
-            ProjectStructureTreeElementDTO userObject = (ProjectStructureTreeElementDTO) mutableNode.getUserObject();
-            return userObject.getDisplayName();
+            ProjectStructureNode projectNode = (ProjectStructureNode) node;
+            return projectNode.getDisplayName();
         }).collect(Collectors.toList());
     }
 }

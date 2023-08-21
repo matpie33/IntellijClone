@@ -1,6 +1,7 @@
 package root.core.dto;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import root.core.ui.tree.ProjectStructureNode;
+
 import java.io.File;
 
 public class RenamedFileDTO {
@@ -9,16 +10,16 @@ public class RenamedFileDTO {
 
     private String newName;
 
-    private DefaultMutableTreeNode node;
+    private ProjectStructureNode node;
 
-    public RenamedFileDTO(File file, String newName, DefaultMutableTreeNode node) {
+    public RenamedFileDTO(File file, String newName, ProjectStructureNode node) {
         this.file = file;
         this.newName = newName;
         this.node = node;
     }
 
 
-    public DefaultMutableTreeNode getNode() {
+    public ProjectStructureNode getNode() {
         return node;
     }
 

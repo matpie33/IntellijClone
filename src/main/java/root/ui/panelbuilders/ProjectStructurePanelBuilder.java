@@ -12,6 +12,7 @@ import root.core.mouselisteners.PopupMenuRequestListener;
 import root.core.nodehandling.ProjectStructureNodesHandler;
 import root.core.nodehandling.TreeNodeDoubleClickListener;
 import root.core.shortcuts.ProjectStructureTreeShortcuts;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 
@@ -74,7 +75,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
         DefaultTreeModel model = (DefaultTreeModel) projectStructureTree.getModel();
-        final DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) model.getRoot();
+        final ProjectStructureNode rootNode = (ProjectStructureNode) model.getRoot();
         switch (eventType) {
             case MAVEN_CLASSPATH_READED:
                 Map<String, List<File>> jarToClassesMap = (Map<String, List<File>>) data;

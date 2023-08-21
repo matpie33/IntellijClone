@@ -4,9 +4,9 @@ import org.springframework.stereotype.Component;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.dto.ProjectStructureSelectionContextDTO;
-import root.core.dto.ProjectStructureTreeElementDTO;
 import root.core.fileio.FileAutoSaver;
 import root.core.fileio.ProjectFileOpener;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
@@ -42,7 +42,7 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
         if (e.getClickCount() == 2) {
 
             ProjectStructureSelectionContextDTO context = projectStructureNodesHandler.getContext(e);
-            List<ProjectStructureTreeElementDTO[]> nodeNames = context.getNodesPaths();
+            List<ProjectStructureNode[]> nodeNames = context.getNodesPaths();
             FileReadResultDTO resultDTO = projectFileOpener.openNode(nodeNames.get(0));
             if (resultDTO.isReadSuccessfully()){
                 fileAutoSaver.save();

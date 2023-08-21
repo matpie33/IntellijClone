@@ -3,13 +3,13 @@ package root.ui.dialogbuilders;
 import org.springframework.stereotype.Component;
 import root.core.dto.RenamedFileDTO;
 import root.core.shortcuts.DialogShortcuts;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -25,7 +25,7 @@ public class RenameFileDialogBuilder implements UIEventObserver {
     private JTextField textInput;
 
     private DialogShortcuts dialogShortcuts;
-    private DefaultMutableTreeNode treeNode;
+    private ProjectStructureNode treeNode;
 
     public RenameFileDialogBuilder(UIEventsQueue uiEventsQueue, DialogShortcuts dialogShortcuts) {
         this.uiEventsQueue = uiEventsQueue;
@@ -40,7 +40,7 @@ public class RenameFileDialogBuilder implements UIEventObserver {
 
     }
 
-    public void showDialog(Point position, File file, DefaultMutableTreeNode treeNode) {
+    public void showDialog(Point position, File file, ProjectStructureNode treeNode) {
         this.file = file;
         this.treeNode = treeNode;
         textInput.setText(file.getName());

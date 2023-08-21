@@ -8,11 +8,11 @@ import root.core.dto.ApplicationState;
 import root.core.jdk.manipulating.JavaSourcesExtractor;
 import root.core.mavencommands.MavenCommandsController;
 import root.core.nodehandling.ProjectStructureNodesHandler;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 import root.core.utility.ThreadExecutor;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +56,7 @@ public class ProjectOpener {
         mavenCommandsController.init();
         threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
         threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Maven tasks finished"));
-        DefaultMutableTreeNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, true);
+        ProjectStructureNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, ClassOrigin.SOURCES, true);
         File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory().toFile();
         projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
         parseJdkSources(jdkSourcesRoot);

@@ -6,12 +6,11 @@ import root.core.classmanipulating.ClassStructureParser;
 import root.core.directory.changesdetecting.DirectoriesWatcher;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
-import root.core.dto.ProjectStructureTreeElementDTO;
 import root.core.dto.RenamedFileDTO;
+import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.io.File;
 import java.io.IOException;
@@ -39,16 +38,16 @@ public class FileIO {
         this.uiEventsQueue = uiEventsQueue;
     }
 
-    public File getFile(ProjectStructureTreeElementDTO[] directories ){
+    public File getFile(ProjectStructureNode[] nodes ){
         boolean isMavenDependency  = false;
-        for (ProjectStructureTreeElementDTO directory : directories) {
-            if (directory.getDisplayName().equals("maven")){
+        for (ProjectStructureNode node : nodes) {
+            if (node.getClassOrigin().equals(ClassOrigin.MAVEN)){
                 isMavenDependency = true;
                 break;
             }
         }
         String rootDirectory = isMavenDependency? "" : applicationState.getProjectPath().toString();
-        String [] paths = Arrays.stream(directories).map(ProjectStructureTreeElementDTO::getPath).toArray(String[]::new);
+        String [] paths = Arrays.stream(nodes).map(ProjectStructureNode::getFilePath).toArray(String[]::new);
         Path path = Path.of(rootDirectory, paths);
         return path.toFile();
     }
@@ -80,10 +79,8 @@ public class FileIO {
 
     public boolean removeFile(TreePath nodePaths) throws IOException {
         String[] nodeNames = Arrays.stream(nodePaths.getPath())
-                .map(DefaultMutableTreeNode.class::cast)
-                .map(DefaultMutableTreeNode::getUserObject)
-                .map(ProjectStructureTreeElementDTO.class::cast)
-                .map(ProjectStructureTreeElementDTO::getPath)
+                .map(ProjectStructureNode.class::cast)
+                .map(ProjectStructureNode::getFilePath)
                 .toArray(String[]::new);
         String projectPath = applicationState.getProjectPath().toString();
         Path path = Path.of(projectPath, nodeNames);
