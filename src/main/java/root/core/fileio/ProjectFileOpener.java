@@ -34,22 +34,12 @@ public class ProjectFileOpener {
         this.javaSourcesExtractor = javaSourcesExtractor;
     }
 
-    public FileReadResultDTO openNode (ProjectStructureNode[] nodesPath){
+    public FileReadResultDTO openNode (ProjectStructureNode[] nodesPath, ClassOrigin classOrigin){
         String rootDirectory;
-        ClassOrigin classOrigin = ClassOrigin.SOURCES;
         List<String> paths = new ArrayList<>();
         for (ProjectStructureNode node : nodesPath) {
-            String displayName = node.getDisplayName();
-            if (displayName.equals("JDK")){
-                classOrigin = ClassOrigin.JDK;
-            }
-            else if (displayName.equals("maven")){
-                classOrigin = ClassOrigin.MAVEN;
-            }
-            String path = node.getFilePath();
-            paths.add(path);
+            paths.add(node.getFilePath());
         }
-        paths = removeRootNodeIfItsMavenOrJDKPath(paths);
         String[] nodes = paths.toArray(new String[]{});
 
         switch (classOrigin){

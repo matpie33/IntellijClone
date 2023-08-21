@@ -16,8 +16,6 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
 
     private String filePath;
 
-    private boolean isFileNode = true;
-
     private boolean isInsideJavaSources;
 
     public ProjectStructureNode(ClassOrigin classOrigin, ProjectStructureNodeType projectStructureNodeType, String displayName, String filePath, boolean isInsideJavaSources) {
@@ -41,7 +39,7 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
         if (node != null) {
             return node;
         }
-        ProjectStructureNode projectStructureNode = new ProjectStructureNode(classOrigin, type, displayName, displayName, isInsideJavaSources);
+        ProjectStructureNode projectStructureNode = new ProjectStructureNode(classOrigin, type, displayName, filePath, isInsideJavaSources);
         model.insertNodeInto(projectStructureNode, this, getChildCount());
         return projectStructureNode;
     }
@@ -72,10 +70,6 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
 
     public String getFilePath() {
         return filePath;
-    }
-
-    public boolean isFileNode() {
-        return isFileNode;
     }
 
     public boolean isInsideJavaSources() {

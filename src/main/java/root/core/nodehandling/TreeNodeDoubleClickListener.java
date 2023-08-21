@@ -1,12 +1,14 @@
 package root.core.nodehandling;
 
 import org.springframework.stereotype.Component;
+import root.core.classmanipulating.ClassOrigin;
 import root.core.dto.ApplicationState;
 import root.core.dto.FileReadResultDTO;
 import root.core.dto.ProjectStructureSelectionContextDTO;
 import root.core.fileio.FileAutoSaver;
 import root.core.fileio.ProjectFileOpener;
 import root.core.ui.tree.ProjectStructureNode;
+import root.core.ui.tree.ProjectStructureNodeType;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
@@ -43,7 +45,14 @@ public class TreeNodeDoubleClickListener extends MouseAdapter {
 
             ProjectStructureSelectionContextDTO context = projectStructureNodesHandler.getContext(e);
             List<ProjectStructureNode[]> nodeNames = context.getNodesPaths();
-            FileReadResultDTO resultDTO = projectFileOpener.openNode(nodeNames.get(0));
+            ProjectStructureNode[] firstSelectionPath = nodeNames.get(0);
+            ProjectStructureNode lastNode = firstSelectionPath[firstSelectionPath.length - 1];
+            ClassOrigin classOrigin = lastNode.getClassOrigin();
+            ProjectStructureNodeType nodeType = lastNode.getProjectStructureNodeType();
+            if (nodeType.equals(ProjectStructureNodeType.EMPTY) || nodeType.equals(ProjectStructureNodeType.DIRECTORY)){
+                return;
+            }
+            FileReadResultDTO resultDTO = projectFileOpener.openNode(firstSelectionPath, classOrigin);
             if (resultDTO.isReadSuccessfully()){
                 fileAutoSaver.save();
                 uiEventsQueue.dispatchEvent(UIEventType.FILE_OPENED_FOR_EDIT, resultDTO);

@@ -55,12 +55,12 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         }
         if (subdirectories.length==1 && subdirectories[0].isDirectory()){
             nodesToMerge.add(rootDirectory.getName());
-            addNode(Optional.empty(), subdirectories[0], nodesToMerge, isInsideJavaSources);
+            addNode(Optional.empty(), subdirectories[0], nodesToMerge, isInsideJavaSources, classOrigin);
         }
         else{
             for (File file : subdirectories) {
                 nodesToMerge.clear();
-                addNode(Optional.of(top), file, nodesToMerge, isInsideJavaSources);
+                addNode(Optional.of(top), file, nodesToMerge, isInsideJavaSources, classOrigin);
             }
         }
         return top;
@@ -82,7 +82,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     }
 
-    private void addNode(Optional<ProjectStructureNode> parentNode, File file, List<String> nodesToMerge, boolean isInsideJavaSources) {
+    private void addNode(Optional<ProjectStructureNode> parentNode, File file, List<String> nodesToMerge, boolean isInsideJavaSources, ClassOrigin classOrigin) {
         if (directoriesThatShouldMergeNodes.contains(file.getName())){
             isInsideJavaSources = true;
         }
@@ -90,7 +90,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
             File[] children = file.listFiles();
             nodesToMerge.add(file.getName());
             if (isInsideJavaSources && children.length==1 && children[0].isDirectory()){
-                addNode(parentNode, children[0], nodesToMerge, true);
+                addNode(parentNode, children[0], nodesToMerge, true, classOrigin);
             }
             else {
                 String displayName = String.join(".", nodesToMerge);
@@ -99,13 +99,13 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                 nodesToMerge.clear();
                 parentNode.ifPresent(parent->parent.add(fileNode));
                 for (File child : children) {
-                    addNode(Optional.of(fileNode), child, nodesToMerge, isInsideJavaSources);
+                    addNode(Optional.of(fileNode), child, nodesToMerge, isInsideJavaSources, classOrigin);
                 }
             }
         }
         else{
             assert(parentNode.isPresent());
-            ProjectStructureNode fileNode = new ProjectStructureNode(ClassOrigin.JDK, ProjectStructureNodeType.FILE, file.getName(), file.getName(), isInsideJavaSources);
+            ProjectStructureNode fileNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.FILE, file.getName(), file.getName(), isInsideJavaSources);
             parentNode.get().add(fileNode);
         }
     }
@@ -114,7 +114,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
     public void addExternalDependencies(DefaultTreeModel model, Map<String, List<File>> jarToClassesMap, ProjectStructureNode rootNode) {
 
         ClassOrigin classOrigin = ClassOrigin.MAVEN;
-        ProjectStructureNode mavenNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.EMPTY,  "maven", "", true);
+        ProjectStructureNode mavenNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.EMPTY,  "maven", "", false);
         model.insertNodeInto(mavenNode, rootNode, rootNode.getChildCount());
         for (Map.Entry<String, List<File>> jarToClassesEntry : jarToClassesMap.entrySet()) {
             String fullPathToJar = jarToClassesEntry.getKey();
@@ -153,7 +153,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     private ProjectStructureNode createJarNode(String fullPathToJar, ClassOrigin classOrigin) {
         String pathFromRepoToJar = fullPathToJar.replace(applicationState.getLocalRepositoryPath(), "").replace("\\", ".").replaceFirst(".", "");
-        return new ProjectStructureNode(classOrigin, ProjectStructureNodeType.EMPTY, pathFromRepoToJar, fullPathToJar, false);
+        return new ProjectStructureNode(classOrigin, ProjectStructureNodeType.DIRECTORY, pathFromRepoToJar, fullPathToJar, false);
     }
 
     private void createTreeNodesFromDTOs(DefaultTreeModel model, JarPathNode parentJarPathNode, List<String> nodesToMerge, ProjectStructureNode parentNode, ClassOrigin classOrigin) {
@@ -218,12 +218,15 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
     }
 
     private ProjectStructureNode[] getNodes(TreePath path) {
-        ProjectStructureNode[] paths = new ProjectStructureNode[path.getPathCount()];
-        for (int i=0; i<paths.length; i++){
+        int pathCount = path.getPathCount();
+        List<ProjectStructureNode> paths = new ArrayList<>();
+        for (int i=0; i< pathCount; i++){
             ProjectStructureNode pathComponent = (ProjectStructureNode) path.getPathComponent(i);
-            paths[i] = pathComponent;
+            if (!pathComponent.getProjectStructureNodeType().equals(ProjectStructureNodeType.EMPTY)){
+                paths.add(pathComponent);
+            }
         }
-        return paths;
+        return paths.toArray(new ProjectStructureNode[]{});
     }
 
     public void updateTreeStructure(FileSystemChangeDTO fileSystemChangeDTO, ProjectStructureNode rootNode,
