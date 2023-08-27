@@ -76,16 +76,5 @@ public class ProjectFileOpener {
         return fileReadResultDTO;
     }
 
-    private List<String> removeRootNodeIfItsMavenOrJDKPath(List<String> nodeNames) {
-        int jdkIndex = nodeNames.indexOf("JDK");
-        int mavenIndex = nodeNames.indexOf("maven");
-        if (jdkIndex != -1){
-            nodeNames = nodeNames.subList(jdkIndex+1, nodeNames.size());
-        }
-        else if (mavenIndex != -1){
-            nodeNames = nodeNames.subList(mavenIndex+1, nodeNames.size());
-        }
-        return nodeNames;
-    }
 
 }

@@ -3,7 +3,6 @@ package root.ui.panelbuilders;
 import org.springframework.stereotype.Component;
 import root.core.dto.FileReadResultDTO;
 import root.core.nodehandling.ProjectStructureNodesHandler;
-import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 
@@ -47,8 +46,8 @@ public class NavigationPanelBuilder implements UIEventObserver {
                 navigation.setText(pathFromRoot.replace(File.separator, ">"));
                 break;
             case PROJECT_OPENED:
-                ProjectStructureNode rootNode = (ProjectStructureNode) data;
-                navigation.setText(projectStructureNodesHandler.getText(rootNode));
+                File rootDirectory = (File) data;
+                navigation.setText(rootDirectory.getAbsolutePath());
                 break;
         }
     }

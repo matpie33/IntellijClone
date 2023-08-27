@@ -8,14 +8,11 @@ import root.core.dto.ApplicationState;
 import root.core.jdk.manipulating.JavaSourcesExtractor;
 import root.core.mavencommands.MavenCommandsController;
 import root.core.nodehandling.ProjectStructureNodesHandler;
-import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 import root.core.utility.ThreadExecutor;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class ProjectOpener {
@@ -36,8 +33,6 @@ public class ProjectOpener {
 
     private JavaSourcesExtractor javaSourcesExtractor;
 
-    public static final int CLASSES_TO_PARSE_PER_THREAD = 50;
-
     public ProjectOpener(ProjectStructureNodesHandler projectStructureNodesHandler, UIEventsQueue uiEventsQueue, ApplicationState applicationState, DirectoriesWatcher directoriesWatcher, ClassStructureParser classStructureParser, ThreadExecutor threadExecutor, MavenCommandsController mavenCommandsController, JavaSourcesExtractor javaSourcesExtractor) {
         this.projectStructureNodesHandler = projectStructureNodesHandler;
         this.uiEventsQueue = uiEventsQueue;
@@ -56,49 +51,8 @@ public class ProjectOpener {
         mavenCommandsController.init();
         threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
         threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()->uiEventsQueue.dispatchEvent(UIEventType.CONSOLE_DATA_AVAILABLE, "Maven tasks finished"));
-        ProjectStructureNode rootNode = projectStructureNodesHandler.addNodesForSources(rootDirectory, ClassOrigin.SOURCES, true);
-        File jdkSourcesRoot = javaSourcesExtractor.getJavaSourcesDirectory().toFile();
-        projectStructureNodesHandler.addNodesForJDKSources(rootNode, jdkSourcesRoot);
-        parseJdkSources(jdkSourcesRoot);
-        uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootNode);
+        uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootDirectory);
     }
-
-    private void parseJdkSources(File jdkSourcesRoot) {
-
-        List<File> classesGroup = new ArrayList<>();
-        groupClassesToParseByThread(jdkSourcesRoot, CLASSES_TO_PARSE_PER_THREAD, classesGroup);
-        if (!classesGroup.isEmpty()){
-            final ArrayList<File> files = new ArrayList<>(classesGroup);
-            threadExecutor.runTaskInJdkPoolAfterMavenTaskDone(()-> parseClasses(files, ClassOrigin.JDK));
-        }
-    }
-
-    private void groupClassesToParseByThread(File jdkSourcesRoot, int groupSize, List<File> fileGroup) {
-        for (File file : jdkSourcesRoot.listFiles()) {
-            if (file.isFile()){
-                if (fileGroup.size()< groupSize){
-                    fileGroup.add(file);
-                }
-                else{
-                    ArrayList<File> finalList = new ArrayList<>(fileGroup);
-                    threadExecutor.runTaskInMainPoolAfterMavenTaskDone(()-> parseClasses(finalList, ClassOrigin.JDK));
-                    fileGroup.clear();
-                    fileGroup.add(file);
-                }
-            }
-            else{
-                groupClassesToParseByThread(file, groupSize, fileGroup);
-            }
-
-        }
-    }
-
-    private void parseClasses(List<File> classesGroup, ClassOrigin origin) {
-        for (File classFile : classesGroup) {
-            classStructureParser.parseClassStructure(classFile, origin);
-        }
-    }
-
 
     private void parseClasses(File rootDirectory, ClassOrigin origin) {
         for (File file : rootDirectory.listFiles()) {

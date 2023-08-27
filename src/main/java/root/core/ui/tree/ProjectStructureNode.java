@@ -3,8 +3,8 @@ package root.core.ui.tree;
 import root.core.classmanipulating.ClassOrigin;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProjectStructureNode extends DefaultMutableTreeNode {
 
@@ -18,12 +18,25 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
 
     private boolean isInsideJavaSources;
 
+    private List<String> mergedNodes = new ArrayList<>();
+
     public ProjectStructureNode(ClassOrigin classOrigin, ProjectStructureNodeType projectStructureNodeType, String displayName, String filePath, boolean isInsideJavaSources) {
         this.classOrigin = classOrigin;
         this.projectStructureNodeType = projectStructureNodeType;
         this.displayName = displayName;
         this.filePath = filePath;
         this.isInsideJavaSources = isInsideJavaSources;
+        if (!displayName.isEmpty()){
+            mergedNodes.add(displayName);
+        }
+    }
+
+    public void addMergedNode (String nodeName){
+        mergedNodes.add(nodeName);
+    }
+
+    public List<String> getMergedNodes() {
+        return mergedNodes;
     }
 
     public ClassOrigin getClassOrigin() {
@@ -32,36 +45,6 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
 
     public ProjectStructureNodeType getProjectStructureNodeType() {
         return projectStructureNodeType;
-    }
-
-    public ProjectStructureNode getOrCreateChild(DefaultTreeModel model, String displayName, ProjectStructureNodeType type){
-        ProjectStructureNode node = getNode(displayName);
-        if (node != null) {
-            return node;
-        }
-        ProjectStructureNode projectStructureNode = new ProjectStructureNode(classOrigin, type, displayName, filePath, isInsideJavaSources);
-        model.insertNodeInto(projectStructureNode, this, getChildCount());
-        return projectStructureNode;
-    }
-
-    public boolean containsChildWithName(String displayName){
-        return getNode(displayName) != null;
-    }
-
-    public ProjectStructureNode getNode(String displayName) {
-        for (int i = 0; i < getChildCount(); i++) {
-            ProjectStructureNode node = (ProjectStructureNode) getChildAt(i);
-
-            if (node.getDisplayName().equals(displayName)){
-                return node;
-            }
-            for (Path path : Path.of(node.filePath)) {
-                if (path.toString().equals(displayName)){
-                    return node;
-                }
-            }
-        }
-        return null;
     }
 
     public String getDisplayName() {
@@ -87,5 +70,9 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
     @Override
     public String toString() {
         return displayName;
+    }
+
+    public void clearMergedNodes() {
+        mergedNodes.clear();
     }
 }

@@ -4,9 +4,10 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.springframework.stereotype.Component;
 import root.core.codecompletion.ClassNamesCollector;
+import root.core.dto.FileDTO;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -20,8 +21,8 @@ public class ClassesFromJarsExtractor {
         this.classNamesCollector = classNamesCollector;
     }
 
-    public Map<String, List<File>> extractClassesFromJars (String classpath){
-        Map<String, List<File>> classFilesPerJar = new HashMap<>();
+    public Map<String, List<FileDTO>> extractClassesFromJars (String classpath){
+        Map<String, List<FileDTO>> classFilesPerJar = new HashMap<>();
         for (String pathToJar : classpath.split(";")) {
             try {
                 if (!pathToJar.endsWith(".jar")){
@@ -29,16 +30,20 @@ public class ClassesFromJarsExtractor {
                 }
                 try (ZipFile zipFile = new ZipFile(pathToJar)) {
                     Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                    List<File> classes = new ArrayList<>();
+                    List<FileDTO> classes = new ArrayList<>();
                     classFilesPerJar.put(pathToJar, classes);
                     while (entries.hasMoreElements()) {
                         ZipEntry zipEntry = entries.nextElement();
                         String fileName = zipEntry.getName();
-                        if (fileName.endsWith(".class") && !fileName.contains("$")){
-                            JavaClass parsedClass = new ClassParser(zipFile.getName(), fileName).parse();
-                            classNamesCollector.addClassIfAccessible(parsedClass, pathToJar);
-                            File e = new File(fileName);
-                            classes.add(e);
+                        boolean isClassFile = fileName.endsWith(".class");
+                        boolean isDirectory = zipEntry.isDirectory();
+                        if (isDirectory || !fileName.contains("$")){
+                            if (isClassFile){
+                                JavaClass parsedClass = new ClassParser(zipFile.getName(), fileName).parse();
+                                classNamesCollector.addClassIfAccessible(parsedClass, pathToJar);
+                            }
+                            Path path = Path.of(fileName);
+                            classes.add(new FileDTO(path));
                         }
 
                     }

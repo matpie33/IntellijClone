@@ -4,12 +4,12 @@ import org.springframework.stereotype.Component;
 import root.core.directory.changesdetecting.DirectoryChangesDetector;
 import root.core.dto.ApplicationState;
 import root.core.dto.ErrorDTO;
+import root.core.dto.FileDTO;
 import root.core.dto.MavenCommandResultDTO;
 import root.core.jdk.manipulating.ClassesFromJarsExtractor;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +75,7 @@ public class MavenCommandsController {
         String outputDirectory = classPath.substring(outputDirectoryIndex, classPath.indexOf(";", outputDirectoryIndex));
         applicationState.setBuildOutputDirectory(outputDirectory);
         applicationState.setClassPath(classPath);
-        Map<String, List<File>> jarToClassesMap = classesFromJarsExtractor.extractClassesFromJars(classPath);
+        Map<String, List<FileDTO>> jarToClassesMap = classesFromJarsExtractor.extractClassesFromJars(classPath);
         uiEventsQueue.dispatchEvent(UIEventType.MAVEN_CLASSPATH_READED, jarToClassesMap);
     }
 

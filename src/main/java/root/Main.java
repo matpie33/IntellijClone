@@ -8,7 +8,6 @@ import root.core.dto.ApplicationState;
 import root.core.fileio.FileAutoSaver;
 import root.core.nodehandling.ProjectStructureNodesHandler;
 import root.core.shortcuts.ApplicationShortcuts;
-import root.core.ui.tree.ProjectStructureNode;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 import root.ui.components.CodeCompletionPopup;
@@ -17,6 +16,7 @@ import root.ui.uibuilders.MenuBuilderUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 
 @SpringBootApplication
@@ -63,8 +63,8 @@ public class Main implements UIEventObserver {
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
         if (eventType.equals(UIEventType.PROJECT_OPENED)){
-            ProjectStructureNode node = (ProjectStructureNode) data;
-            String title = projectStructureNodesHandler.getText(node);
+            File rootDirectory = (File) data;
+            String title = rootDirectory.getName();
             FRAME.setTitle(title);
         }
     }
