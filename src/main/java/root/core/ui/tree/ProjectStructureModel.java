@@ -25,17 +25,12 @@ public class ProjectStructureModel extends DefaultTreeModel {
             if (foundChild.getMergedNodes().contains(subPathValue)) {
                 continue;
             }
-            boolean isFoundChildInIteration = false;
-            for (int i = 0; i < foundChild.getChildCount(); i++) {
-                ProjectStructureNode child = (ProjectStructureNode) foundChild.getChildAt(i);
-                if (child.getDisplayName().equals(subPathValue) || child.getMergedNodes().contains(subPathValue)) {
-                    foundChild = child;
-                    isFoundChildInIteration = true;
-                    break;
-                }
-            }
-            if (!isFoundChildInIteration) {
+            Optional<ProjectStructureNode> childMaybe = findChildWithDisplayName(subPathValue, foundChild);
+            if (childMaybe.isEmpty()) {
                 return Optional.empty();
+            }
+            else{
+                foundChild = childMaybe.get();
             }
         }
         return Optional.of(foundChild);
@@ -50,24 +45,29 @@ public class ProjectStructureModel extends DefaultTreeModel {
             Path subPath = pathIterator.next();
             String subPathValue = subPath.toString();
             pathBuilder = pathBuilder.resolve(subPathValue);
-            boolean isFoundChildInIteration = false;
             if (foundChild.getMergedNodes().contains(subPathValue)){
                 continue;
             }
-            for (int i = 0; i < foundChild.getChildCount(); i++) {
-                ProjectStructureNode child = (ProjectStructureNode) foundChild.getChildAt(i);
-                if (child.getDisplayName().equals(subPathValue) || child.getMergedNodes().contains(subPathValue)) {
-                    foundChild = child;
-                    isFoundChildInIteration = true;
-                    break;
-                }
-            }
-            if (!isFoundChildInIteration) {
+            Optional<ProjectStructureNode> childMaybe = findChildWithDisplayName(subPathValue, foundChild);
+            if (childMaybe.isPresent()) {
+                foundChild = childMaybe.get();
+            } else {
                 foundChild = addChildWithPath(foundChild, pathBuilder.toString(), isFile);
             }
 
         }
         return foundChild;
+
+    }
+
+    private Optional<ProjectStructureNode> findChildWithDisplayName (String subPathValue, ProjectStructureNode foundChild){
+        for (int i = 0; i < foundChild.getChildCount(); i++) {
+            ProjectStructureNode child = (ProjectStructureNode) foundChild.getChildAt(i);
+            if (child.getDisplayName().equals(subPathValue) || child.getMergedNodes().contains(subPathValue)) {
+                return Optional.of(child);
+            }
+        }
+        return Optional.empty();
 
     }
 
@@ -83,7 +83,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
         boolean parentHasMergedNodes = parent.getMergedNodes().size() > 1;
         boolean newNodeContainsAllMergedPathsFromParent = new HashSet<>(subPaths).containsAll(parent.getMergedNodes());
         if (isInJavaSources && parentHasMergedNodes && !newNodeContainsAllMergedPathsFromParent)  {
-            return splitNode(parent, subPaths, false, true);
+            return splitNode(parent, subPaths, isFile);
         }
         if (isFile || !isInJavaSources){
             return addToParent(parent, pathValue, isFile, isInJavaSources);
@@ -97,17 +97,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
 
     }
 
-    private boolean nodeHasDirectories (ProjectStructureNode node){
-        for (int i = 0; i < node.getChildCount(); i++) {
-            ProjectStructureNode child = (ProjectStructureNode) node.getChildAt(i);
-            if (child.getProjectStructureNodeType().equals(ProjectStructureNodeType.DIRECTORY)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private ProjectStructureNode splitNode(ProjectStructureNode parentNode, List<String> newNodesSubPaths, boolean isFile, boolean isInJavaSources) {
+    private ProjectStructureNode splitNode(ProjectStructureNode parentNode, List<String> newNodesSubPaths, boolean isFile) {
         List<String> parentMergedNodes = parentNode.getMergedNodes();
         List<String> matchingNodes = new ArrayList<>();
         List<String> nonMatchingNodesFromParent = new ArrayList<>();
@@ -137,6 +127,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
         parentNode.clearMergedNodes();
         addToMergedNodes(parentNode, matchingNodes);
 
+        boolean isInJavaSources = true;
         if (!nonMatchingNodesFromParent.isEmpty()){
             List<TreeNode> nodesToCopy = new ArrayList<>();
             parentNode.children().asIterator().forEachRemaining(nodesToCopy::add);
@@ -184,7 +175,5 @@ public class ProjectStructureModel extends DefaultTreeModel {
         path.forEach(subPath->subPaths.add(subPath.toString()));
         return subPaths;
     }
-
-
 
 }
