@@ -59,12 +59,15 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                 Path rootDirectoryPath = rootDirectory.toPath();
                 Path path = file.toPath();
                 Path fileRelativeToRootDirectory = rootDirectoryPath.relativize(path);
-                ProjectStructureNode localParent = model.addChildWithPath(parent, fileRelativeToRootDirectory.toString());
+                ProjectStructureNode localParent = model.addChildWithPath(parent, fileRelativeToRootDirectory.toString(), false);
                 File[] list = file.listFiles();
                 createNodesForSubdirectories(rootDirectory, model, localParent, list);
             }
             else{
-                model.addChildWithPath(parent, file.getName());
+                Path rootDirectoryPath = rootDirectory.toPath();
+                Path path = file.toPath();
+                Path fileRelativeToRootDirectory = rootDirectoryPath.relativize(path);
+                model.addChildWithPath(parent, fileRelativeToRootDirectory.toString(), true);
             }
         }
     }
@@ -97,7 +100,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
             List<FileDTO> files = jarToClassesEntry.getValue();
             for (FileDTO aFile : files) {
                 Path path = aFile.getPath();
-                model.getOrCreateChildWithPath(jarNode, path.toString());
+                model.getOrCreateChildWithPath(jarNode, path.toString(), !aFile.isDirectory());
             }
 
 
@@ -177,7 +180,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         Path projectPath = applicationState.getProjectPath().toPath();
         Path fileRelativeToProjectPath = projectPath.relativize(deletedFile);
         boolean isDirectory = deletedFile.toFile().isDirectory();
-        ProjectStructureNode node = getNodesForPathAndCreateOptionally(rootNode, fileRelativeToProjectPath, model, false);
+        ProjectStructureNode node = getNodesForPathAndCreateOptionally(rootNode, fileRelativeToProjectPath, model, false, isDirectory);
         if (node!=null){
             model.removeNodeFromParent(node);
         }
@@ -188,7 +191,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
         Path projectPath = applicationState.getProjectPath().toPath();
         Path fileRelativeToProjectPath = projectPath.relativize(path);
         boolean isDirectory = path.toFile().isDirectory();
-        ProjectStructureNode lastNode = getNodesForPathAndCreateOptionally(rootNode, fileRelativeToProjectPath, model, true);
+        ProjectStructureNode lastNode = getNodesForPathAndCreateOptionally(rootNode, fileRelativeToProjectPath, model, true, isDirectory);
         File file = path.toFile();
         if (file.isDirectory() && lastNode != null){
             for (File child : file.listFiles()) {
@@ -198,14 +201,14 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
     }
 
 
-    private ProjectStructureNode getNodesForPathAndCreateOptionally(ProjectStructureNode parentNode, Path filePath, ProjectStructureModel model, boolean createIfNotExist) {
+    private ProjectStructureNode getNodesForPathAndCreateOptionally(ProjectStructureNode parentNode, Path filePath, ProjectStructureModel model, boolean createIfNotExist, boolean isDirectory) {
 
         Iterator<Path> pathIterator = filePath.iterator();
         if (!pathIterator.hasNext()){
             return null;
         }
         if (createIfNotExist){
-            return model.getOrCreateChildWithPath(parentNode, filePath.toString());
+            return model.getOrCreateChildWithPath(parentNode, filePath.toString(), isDirectory);
         }
         else{
             return model.getChildByPath(parentNode, filePath.toString()).orElse(null);

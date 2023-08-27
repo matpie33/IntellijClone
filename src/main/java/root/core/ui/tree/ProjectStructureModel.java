@@ -41,7 +41,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
         return Optional.of(foundChild);
     }
 
-    public ProjectStructureNode getOrCreateChildWithPath(ProjectStructureNode parent, String pathValue ){
+    public ProjectStructureNode getOrCreateChildWithPath(ProjectStructureNode parent, String pathValue, boolean isFile){
         Path path = Path.of(pathValue);
         ProjectStructureNode foundChild = parent;
         Iterator<Path> pathIterator = path.iterator();
@@ -63,7 +63,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
                 }
             }
             if (!isFoundChildInIteration) {
-                foundChild = addChildWithPath(foundChild, pathBuilder.toString());
+                foundChild = addChildWithPath(foundChild, pathBuilder.toString(), isFile);
             }
 
         }
@@ -72,23 +72,21 @@ public class ProjectStructureModel extends DefaultTreeModel {
     }
 
 
-    public ProjectStructureNode addChildWithPath(ProjectStructureNode parent, String pathValue) {
+    public ProjectStructureNode addChildWithPath(ProjectStructureNode parent, String pathValue, boolean isFile) {
 
         if (!pathValue.equals(JAVA_SRC_DIRECTORY)){
             pathValue = pathValue.replace(JAVA_SRC_DIRECTORY, "");
         }
         List<String> subPaths = splitPathToSubPaths(pathValue);
-        boolean isFile = isFile(pathValue);
-        boolean parentHasDirectories = nodeHasDirectories(parent);
+        boolean parentHasDirectories = parent.getChildCount() >0;
         boolean isInJavaSources = isInJavaSources(parent);
         boolean parentHasMergedNodes = parent.getMergedNodes().size() > 1;
-        boolean newNodeContainsAllMergedPathsFromParent = !new HashSet<>(subPaths).containsAll(parent.getMergedNodes());
+        boolean newNodeContainsAllMergedPathsFromParent = new HashSet<>(subPaths).containsAll(parent.getMergedNodes());
+        if (isInJavaSources && parentHasMergedNodes && !newNodeContainsAllMergedPathsFromParent)  {
+            return splitNode(parent, subPaths, false, true);
+        }
         if (isFile || !isInJavaSources){
             return addToParent(parent, pathValue, isFile, isInJavaSources);
-        }
-        //is directory and is in java sources
-        if (parentHasMergedNodes && newNodeContainsAllMergedPathsFromParent)  {
-            return splitNode(parent, subPaths, false, true);
         }
         if (!parentHasDirectories) {
             List<String> nodes = List.of(subPaths.get(subPaths.size()-1));
@@ -187,9 +185,6 @@ public class ProjectStructureModel extends DefaultTreeModel {
         return subPaths;
     }
 
-    private  boolean isFile (String pathName){
-        return pathName.contains(".");
-    }
 
 
 }

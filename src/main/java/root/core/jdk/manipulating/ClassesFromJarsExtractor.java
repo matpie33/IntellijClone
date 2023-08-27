@@ -43,7 +43,7 @@ public class ClassesFromJarsExtractor {
                                 classNamesCollector.addClassIfAccessible(parsedClass, pathToJar);
                             }
                             Path path = Path.of(fileName);
-                            classes.add(new FileDTO(path));
+                            classes.add(new FileDTO(path, isDirectory));
                         }
 
                     }
