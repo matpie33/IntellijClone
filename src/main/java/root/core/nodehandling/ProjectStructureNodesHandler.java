@@ -208,7 +208,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
             return null;
         }
         if (createIfNotExist){
-            return model.getOrCreateChildWithPath(parentNode, filePath.toString(), isDirectory);
+            return model.getOrCreateChildWithPath(parentNode, filePath.toString(), !isDirectory);
         }
         else{
             return model.getChildByPath(parentNode, filePath.toString()).orElse(null);

@@ -180,6 +180,9 @@ public class ProjectStructureModel extends DefaultTreeModel {
                 indexForNode = i;
                 break;
             }
+            else if (!childType.equals(ProjectStructureNodeType.DIRECTORY) && !childType.equals(ProjectStructureNodeType.FILE)){
+                break;
+            }
 
             indexForNode++;
         }
