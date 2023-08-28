@@ -74,7 +74,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     public void addNodesForJDKSources(ProjectStructureModel model, ProjectStructureNode rootNode, File rootFile){
         ClassOrigin classOrigin = ClassOrigin.JDK;
-        ProjectStructureNode jdkNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.EMPTY, "JDK", "", false);
+        ProjectStructureNode jdkNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.JDK_ROOT, "JDK", "", false);
         File[] files = rootFile.listFiles();
         if (files==null){
             throw new RuntimeException("JDK sources directory is empty");
@@ -90,7 +90,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
     public void addExternalDependencies(ProjectStructureModel model, Map<String, List<FileDTO>> jarToClassesMap, ProjectStructureNode rootNode) {
 
         ClassOrigin classOrigin = ClassOrigin.MAVEN;
-        ProjectStructureNode mavenNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.EMPTY,  "maven", "", false);
+        ProjectStructureNode mavenNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.MAVEN_ROOT,  "maven", "", false);
         model.insertNodeInto(mavenNode, rootNode, rootNode.getChildCount());
         for (Map.Entry<String, List<FileDTO>> jarToClassesEntry : jarToClassesMap.entrySet()) {
             String fullPathToJar = jarToClassesEntry.getKey();

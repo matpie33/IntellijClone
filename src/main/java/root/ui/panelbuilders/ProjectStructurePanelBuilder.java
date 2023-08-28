@@ -18,6 +18,7 @@ import root.core.nodehandling.TreeNodeDoubleClickListener;
 import root.core.shortcuts.ProjectStructureTreeShortcuts;
 import root.core.ui.tree.ProjectStructureModel;
 import root.core.ui.tree.ProjectStructureNode;
+import root.core.ui.tree.ProjectStructureTreeNodeRenderer;
 import root.core.uievents.UIEventObserver;
 import root.core.uievents.UIEventType;
 import root.core.utility.ThreadExecutor;
@@ -78,6 +79,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     public void init (){
         projectStructurePanel = new JPanel(new BorderLayout());
         projectStructureTree = new JTree(new ProjectStructureModel(projectStructureNodesHandler.createEmptyRootNode()));
+        projectStructureTree.setCellRenderer(new ProjectStructureTreeNodeRenderer());
         projectStructureTree.addMouseListener(new PopupMenuRequestListener(ContextType.PROJECT_STRUCTURE, contextConfiguration));
         projectStructureTree.addMouseListener(treeNodeDoubleClickListener);
         projectStructureTree.addMouseListener(directoryChangesDetector);
