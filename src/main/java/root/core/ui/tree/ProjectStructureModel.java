@@ -126,10 +126,15 @@ public class ProjectStructureModel extends DefaultTreeModel {
         if (!nonMatchingNodesFromParent.isEmpty()){
             List<TreeNode> nodesToCopy = new ArrayList<>();
             parentNode.children().asIterator().forEachRemaining(nodesToCopy::add);
-            ProjectStructureNode node = addToParent(parentNode, "", isFile, isInJavaSources);
-            node.clearMergedNodes();
-            addToMergedNodes(node, nonMatchingNodesFromParent);
-            nodesToCopy.forEach(nodeToCopy->super.insertNodeInto((MutableTreeNode) nodeToCopy,node, node.getChildCount()));
+            ProjectStructureNode nodeToAdd = addToParent(parentNode, "", isFile, isInJavaSources);
+            nodeToAdd.clearMergedNodes();
+            addToMergedNodes(nodeToAdd, nonMatchingNodesFromParent);
+            nodesToCopy.forEach(currentNode-> {
+                ProjectStructureNode currentProjectStructureNode = (ProjectStructureNode) currentNode;
+                boolean currentNodeIsFile = currentProjectStructureNode.getProjectStructureNodeType().equals(ProjectStructureNodeType.FILE);
+                findIndexForNewNode(nodeToAdd, currentNodeIsFile, currentProjectStructureNode.getDisplayName());
+                super.insertNodeInto((MutableTreeNode) currentNode, nodeToAdd, nodeToAdd.getChildCount());
+            });
         }
         if (!nonMatchingNodesFromNewNode.isEmpty()){
             String pathName = String.join("/", nonMatchingNodesFromNewNode);
@@ -153,8 +158,32 @@ public class ProjectStructureModel extends DefaultTreeModel {
         }
         ProjectStructureNode node = new ProjectStructureNode(parent.getClassOrigin(),
                 isFile ? ProjectStructureNodeType.FILE : ProjectStructureNodeType.DIRECTORY, lastPath, lastPath, isInJavaSources);
-        super.insertNodeInto(node, parent, parent.getChildCount());
+        int indexForNode = findIndexForNewNode(parent, isFile, lastPath);
+        super.insertNodeInto(node, parent, indexForNode);
         return node;
+    }
+
+    private int findIndexForNewNode(ProjectStructureNode parent, boolean isFile, String newNodeName) {
+        int indexForNode = 0;
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            ProjectStructureNode child = (ProjectStructureNode) parent.getChildAt(i);
+            ProjectStructureNodeType childType = child.getProjectStructureNodeType();
+            String childName = child.getDisplayName();
+
+            if (!isFile){
+                if (!childType.equals(ProjectStructureNodeType.DIRECTORY) || newNodeName.compareTo(childName) < 0){
+                    indexForNode = i;
+                    break;
+                }
+            }
+            else if (childType.equals(ProjectStructureNodeType.FILE) && newNodeName.compareTo(childName) <0){
+                indexForNode = i;
+                break;
+            }
+
+            indexForNode++;
+        }
+        return indexForNode;
     }
 
     private boolean isInJavaSources(ProjectStructureNode parent) {
