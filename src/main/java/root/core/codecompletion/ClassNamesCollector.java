@@ -1,6 +1,6 @@
 package root.core.codecompletion;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import org.apache.bcel.classfile.JavaClass;
 import org.springframework.stereotype.Component;
 import root.core.classmanipulating.ClassOrigin;
@@ -15,7 +15,7 @@ public class ClassNamesCollector {
         this.applicationState = applicationState;
     }
 
-    public void addClassIfAccessible(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, String packageName, ClassOrigin origin, String rootDirectory){
+    public void addClassIfAccessible(TypeDeclaration classOrInterfaceDeclaration, String packageName, ClassOrigin origin, String rootDirectory){
         if (classOrInterfaceDeclaration.isPublic()){
             applicationState.addClassWithPackage(classOrInterfaceDeclaration.getNameAsString(), packageName, origin, rootDirectory);
         }

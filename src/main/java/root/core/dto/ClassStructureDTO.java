@@ -2,6 +2,7 @@ package root.core.dto;
 
 import com.github.javaparser.Position;
 import com.github.javaparser.Range;
+import root.core.constants.ClassType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 public class ClassStructureDTO {
+
+    private ClassType classType;
 
     private List<Range> fieldAccessPositions = new ArrayList<>();
 
@@ -19,6 +22,14 @@ public class ClassStructureDTO {
     private Position classDeclarationPosition;
 
     private Set<String> imports = new HashSet<>();
+
+    public ClassType getClassType() {
+        return classType;
+    }
+
+    public void setClassType(ClassType classType) {
+        this.classType = classType;
+    }
 
     public void addCommentRange(Range range){
         Range modifiedRange = new Range(new Position(range.begin.line - 1, range.begin.column - 1),

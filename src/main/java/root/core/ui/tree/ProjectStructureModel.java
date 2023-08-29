@@ -1,6 +1,7 @@
 package root.core.ui.tree;
 
 import root.core.classmanipulating.ClassOrigin;
+import root.core.constants.ClassType;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -38,7 +39,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
                 foundChild = childMaybe.get();
             } else {
                 if (createIfNotExists){
-                    foundChild = addChildWithPath(foundChild, pathBuilder.toString(), isFile);
+                    foundChild = addChildWithPath(foundChild, pathBuilder.toString(), isFile, null);
                 }
                 else{
                     return null;
@@ -67,7 +68,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
     }
 
 
-    public ProjectStructureNode addChildWithPath(ProjectStructureNode parent, String pathValue, boolean isFile) {
+    public ProjectStructureNode addChildWithPath(ProjectStructureNode parent, String pathValue, boolean isFile, ClassType classType) {
 
         if (!pathValue.equals(JAVA_SRC_DIRECTORY)){
             pathValue = pathValue.replace(JAVA_SRC_DIRECTORY, "");
@@ -78,21 +79,21 @@ public class ProjectStructureModel extends DefaultTreeModel {
         boolean parentHasMergedNodes = parent.getMergedNodes().size() > 1;
         boolean newNodeContainsAllMergedPathsFromParent = new HashSet<>(newNodeSubPaths).containsAll(parent.getMergedNodes());
         if (isInJavaSources && parentHasMergedNodes && !newNodeContainsAllMergedPathsFromParent)  {
-            return splitNode(parent, newNodeSubPaths, isFile);
+            return splitNode(parent, newNodeSubPaths, isFile, classType);
         }
         if (isFile || !isInJavaSources){
-            return addToParent(parent, pathValue, isFile, isInJavaSources);
+            return addToParent(parent, pathValue, isFile, isInJavaSources, classType);
         }
         if (!parentHasChildren) {
             List<String> nodes = List.of(newNodeSubPaths.get(newNodeSubPaths.size()-1));
             addToMergedNodes(parent, nodes);
             return parent;
         }
-        return addToParent(parent, pathValue, false, true);
+        return addToParent(parent, pathValue, false, true, classType);
 
     }
 
-    private ProjectStructureNode splitNode(ProjectStructureNode parentNode, List<String> newNodesSubPaths, boolean isFile) {
+    private ProjectStructureNode splitNode(ProjectStructureNode parentNode, List<String> newNodesSubPaths, boolean isFile, ClassType classType) {
         List<String> parentMergedNodes = parentNode.getMergedNodes();
         List<String> matchingNodes = new ArrayList<>();
         List<String> nonMatchingNodesFromParent = new ArrayList<>();
@@ -126,7 +127,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
         if (!nonMatchingNodesFromParent.isEmpty()){
             List<TreeNode> nodesToCopy = new ArrayList<>();
             parentNode.children().asIterator().forEachRemaining(nodesToCopy::add);
-            ProjectStructureNode nodeToAdd = addToParent(parentNode, "", isFile, isInJavaSources);
+            ProjectStructureNode nodeToAdd = addToParent(parentNode, "", isFile, isInJavaSources, classType);
             nodeToAdd.clearMergedNodes();
             addToMergedNodes(nodeToAdd, nonMatchingNodesFromParent);
             nodesToCopy.forEach(currentNode-> {
@@ -138,7 +139,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
         }
         if (!nonMatchingNodesFromNewNode.isEmpty()){
             String pathName = String.join("/", nonMatchingNodesFromNewNode);
-            return addToParent(parentNode,  pathName, isFile, isInJavaSources);
+            return addToParent(parentNode,  pathName, isFile, isInJavaSources, classType);
         }
         throw new IllegalArgumentException();
     }
@@ -150,14 +151,21 @@ public class ProjectStructureModel extends DefaultTreeModel {
         parent.setFilePath(String.join("/", mergedNodes));
     }
 
-    private ProjectStructureNode addToParent(ProjectStructureNode parent, String pathValue, boolean isFile, boolean isInJavaSources) {
+    private ProjectStructureNode addToParent(ProjectStructureNode parent, String pathValue, boolean isFile, boolean isInJavaSources, ClassType classType) {
 
         String lastPath = "";
         for (Path path : Path.of(pathValue)) {
             lastPath= path.toString();
         }
+        ProjectStructureNodeType nodeType;
+        if (classType!=null){
+            nodeType = ProjectStructureNodeType.valueOf(classType.toString());
+        }
+        else {
+            nodeType = isFile? ProjectStructureNodeType.FILE : ProjectStructureNodeType.DIRECTORY;
+        }
         ProjectStructureNode node = new ProjectStructureNode(parent.getClassOrigin(),
-                isFile ? ProjectStructureNodeType.FILE : ProjectStructureNodeType.DIRECTORY, lastPath, lastPath, isInJavaSources);
+                nodeType, lastPath, lastPath, isInJavaSources);
         int indexForNode = findIndexForNewNode(parent, isFile, lastPath);
         super.insertNodeInto(node, parent, indexForNode);
         return node;

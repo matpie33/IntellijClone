@@ -17,6 +17,7 @@ import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
 import org.springframework.stereotype.Component;
 import root.core.codecompletion.ClassNamesCollector;
+import root.core.constants.ClassType;
 import root.core.dto.ApplicationState;
 import root.core.dto.ClassStructureDTO;
 import root.core.jdk.manipulating.JavaSourcesExtractor;
@@ -94,23 +95,50 @@ public class ClassStructureParser {
         cu.getImports().forEach(importDeclaration -> classStructureDTO.addImport(importDeclaration.getNameAsString()));
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration){
             ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) typeDeclaration;
+            ClassType classType = getClassType(classOrInterfaceDeclaration);
+            classStructureDTO.setClassType(classType);
             Position declarationPosition = classOrInterfaceDeclaration.getName().getRange().get().begin;
             classStructureDTO.setClassDeclarationPosition(declarationPosition);
-            Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
-            String packageName = "";
-            if (packageDeclaration.isPresent()){
-                PackageDeclaration declaration = packageDeclaration.get();
-                Range range = declaration.getRange().get();
-                classStructureDTO.setPackageDeclarationPosition(range.begin);
-                packageName = declaration.getNameAsString();
-            }
+            String packageName = getPackageName(cu, classStructureDTO);
             classNamesCollector.addClassIfAccessible(classOrInterfaceDeclaration, packageName, origin, rootDirectory);
+        }
+        else if (typeDeclaration instanceof EnumDeclaration){
+            EnumDeclaration enumDeclaration = (EnumDeclaration) typeDeclaration;
+            classStructureDTO.setClassType(ClassType.ENUM);
+            String packageName = getPackageName(cu, classStructureDTO);
+            classNamesCollector.addClassIfAccessible(enumDeclaration, packageName, origin, rootDirectory);
         }
         getCommentsSections(cu, classStructureDTO);
         Set<String> fieldNames = getFieldNames(cu, classStructureDTO);
         Map<String, List<Range>> variablesHidingFields = getVariablesHidingFields(cu, fieldNames);
         checkForFieldsAccess(cu, classStructureDTO, fieldNames, variablesHidingFields);
         return classStructureDTO;
+    }
+
+    private String getPackageName(CompilationUnit cu, ClassStructureDTO classStructureDTO) {
+        Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
+        String packageName = "";
+        if (packageDeclaration.isPresent()){
+            PackageDeclaration declaration = packageDeclaration.get();
+            Range range = declaration.getRange().get();
+            classStructureDTO.setPackageDeclarationPosition(range.begin);
+            packageName = declaration.getNameAsString();
+        }
+        return packageName;
+    }
+
+    private ClassType getClassType(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
+        ClassType classType;
+        if (classOrInterfaceDeclaration.isInterface()){
+            classType = ClassType.INTERFACE;
+        }
+        else if (classOrInterfaceDeclaration.isEnumDeclaration()){
+            classType = ClassType.ENUM;
+        }
+        else{
+            classType = ClassType.CLASS;
+        }
+        return classType;
     }
 
     private void getCommentsSections(CompilationUnit cu, ClassStructureDTO classStructureDTO) {

@@ -2,12 +2,10 @@ package root.core.nodehandling;
 
 import org.springframework.stereotype.Component;
 import root.core.classmanipulating.ClassOrigin;
+import root.core.constants.ClassType;
 import root.core.context.contextMenu.ContextType;
 import root.core.context.providers.ContextProvider;
-import root.core.dto.ApplicationState;
-import root.core.dto.FileDTO;
-import root.core.dto.FileSystemChangeDTO;
-import root.core.dto.ProjectStructureSelectionContextDTO;
+import root.core.dto.*;
 import root.core.fileio.FileIO;
 import root.core.ui.tree.ProjectStructureModel;
 import root.core.ui.tree.ProjectStructureNode;
@@ -59,7 +57,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                 Path rootDirectoryPath = rootDirectory.toPath();
                 Path path = file.toPath();
                 Path fileRelativeToRootDirectory = rootDirectoryPath.relativize(path);
-                ProjectStructureNode localParent = model.addChildWithPath(parent, fileRelativeToRootDirectory.toString(), false);
+                ProjectStructureNode localParent = model.addChildWithPath(parent, fileRelativeToRootDirectory.toString(), false, null);
                 File[] list = file.listFiles();
                 createNodesForSubdirectories(rootDirectory, model, localParent, list);
             }
@@ -67,7 +65,12 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
                 Path rootDirectoryPath = rootDirectory.toPath();
                 Path path = file.toPath();
                 Path fileRelativeToRootDirectory = rootDirectoryPath.relativize(path);
-                model.addChildWithPath(parent, fileRelativeToRootDirectory.toString(), true);
+                ClassStructureDTO classStructure = applicationState.getClassStructure(file);
+                ClassType classType = null;
+                if (classStructure != null){
+                    classType = classStructure.getClassType();
+                }
+                model.addChildWithPath(parent, fileRelativeToRootDirectory.toString(), true, classType);
             }
         }
     }

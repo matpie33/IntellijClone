@@ -29,6 +29,15 @@ public class ProjectStructureTreeNodeRenderer extends DefaultTreeCellRenderer {
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.MAVEN_ROOT)){
             iconName = "/maven root.png";
         }
+        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.CLASS)){
+            iconName = "/class file.png";
+        }
+        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.INTERFACE)){
+            iconName = "/interface file.png";
+        }
+        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.ENUM)){
+            iconName = "/enum file.png";
+        }
         else{
             iconName = "/unknown.png";
         }

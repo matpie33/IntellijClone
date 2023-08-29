@@ -74,6 +74,10 @@ public class ApplicationState {
         return classStructureDTOs.get(getOpenedFile());
     }
 
+    public ClassStructureDTO getClassStructure(File file){
+        return classStructureDTOs.get(file);
+    }
+
     public void putClassStructure (File file, ClassStructureDTO classStructure){
         classStructureDTOs.put(file, classStructure);
     }
