@@ -39,14 +39,15 @@ public class FileIO {
     }
 
     public File getFile(ProjectStructureNode[] nodes ){
-        boolean isMavenDependency  = false;
+        boolean isMavenOrJDK  = false;
         for (ProjectStructureNode node : nodes) {
-            if (node.getClassOrigin().equals(ClassOrigin.MAVEN)){
-                isMavenDependency = true;
+            ClassOrigin classOrigin = node.getClassOrigin();
+            if (classOrigin.equals(ClassOrigin.MAVEN) || classOrigin.equals(ClassOrigin.JDK)){
+                isMavenOrJDK = true;
                 break;
             }
         }
-        String rootDirectory = isMavenDependency? "" : applicationState.getProjectPath().toString();
+        String rootDirectory = isMavenOrJDK? "" : applicationState.getProjectPath().toString();
         String [] paths = Arrays.stream(nodes).map(ProjectStructureNode::getFilePath).toArray(String[]::new);
         Path path = Path.of(rootDirectory, paths);
         return path.toFile();

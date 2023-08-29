@@ -6,10 +6,7 @@ import root.core.classmanipulating.ClassStructureParser;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
 import root.core.directory.changesdetecting.DirectoryChangesDetector;
-import root.core.dto.FileDTO;
-import root.core.dto.FileSystemChangeDTO;
-import root.core.dto.ProjectStructureSelectionContextDTO;
-import root.core.dto.RenamedFileDTO;
+import root.core.dto.*;
 import root.core.fileio.FileIO;
 import root.core.jdk.manipulating.JavaSourcesExtractor;
 import root.core.mouselisteners.PopupMenuRequestListener;
@@ -60,10 +57,12 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     private ClassStructureParser classStructureParser;
 
+    private ApplicationState applicationState;
+
 
     public static final int CLASSES_TO_PARSE_PER_THREAD = 50;
 
-    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, DirectoryChangesDetector directoryChangesDetector, ProjectStructureTreeShortcuts projectStructureTreeShortcuts, ProjectStructureNodesHandler projectStructureNodesHandler, FileIO fileIO, JavaSourcesExtractor javaSourcesExtractor, ThreadExecutor threadExecutor, ClassStructureParser classStructureParser) {
+    public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, DirectoryChangesDetector directoryChangesDetector, ProjectStructureTreeShortcuts projectStructureTreeShortcuts, ProjectStructureNodesHandler projectStructureNodesHandler, FileIO fileIO, JavaSourcesExtractor javaSourcesExtractor, ThreadExecutor threadExecutor, ClassStructureParser classStructureParser, ApplicationState applicationState) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
         this.contextConfiguration = contextConfiguration;
         this.directoryChangesDetector = directoryChangesDetector;
@@ -73,6 +72,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         this.javaSourcesExtractor = javaSourcesExtractor;
         this.threadExecutor = threadExecutor;
         this.classStructureParser = classStructureParser;
+        this.applicationState = applicationState;
     }
 
     @PostConstruct
@@ -93,7 +93,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
 
     @Override
     public void handleEvent(UIEventType eventType, Object data) {
-        ProjectStructureModel model = (ProjectStructureModel) projectStructureTree.getModel();
+        ProjectStructureModel model = getTreeModel();
         final ProjectStructureNode rootNode = (ProjectStructureNode) model.getRoot();
         switch (eventType) {
             case MAVEN_CLASSPATH_READED:
@@ -134,6 +134,10 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
         }
     }
 
+    private ProjectStructureModel getTreeModel() {
+        return (ProjectStructureModel) projectStructureTree.getModel();
+    }
+
     private void groupClassesToParseByThread(File jdkSourcesRoot, int groupSize, List<File> fileGroup) {
         for (File file : jdkSourcesRoot.listFiles()) {
             if (file.isFile()){
@@ -157,6 +161,8 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     private void parseClasses(List<File> classesGroup, ClassOrigin origin) {
         for (File classFile : classesGroup) {
             classStructureParser.parseClassStructure(classFile, origin);
+            ClassStructureDTO classStructure = applicationState.getClassStructure(classFile);
+            projectStructureNodesHandler.updateJdkNode(classFile, classStructure.getClassType(), getTreeModel());
         }
     }
 

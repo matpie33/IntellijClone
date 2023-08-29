@@ -59,7 +59,7 @@ public class ProjectStructureModel extends DefaultTreeModel {
     private Optional<ProjectStructureNode> findChildWithDisplayName (String subPathValue, ProjectStructureNode parent){
         for (int i = 0; i < parent.getChildCount(); i++) {
             ProjectStructureNode child = (ProjectStructureNode) parent.getChildAt(i);
-            if (child.getDisplayName().equals(subPathValue) || child.getMergedNodes().contains(subPathValue)) {
+            if (child.getDisplayName().equals(subPathValue) || child.getMergedNodes().get(0).equals(subPathValue)) {
                 return Optional.of(child);
             }
         }

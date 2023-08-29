@@ -77,7 +77,7 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     public void addNodesForJDKSources(ProjectStructureModel model, ProjectStructureNode rootNode, File rootFile){
         ClassOrigin classOrigin = ClassOrigin.JDK;
-        ProjectStructureNode jdkNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.JDK_ROOT, "JDK", "", false);
+        ProjectStructureNode jdkNode = new ProjectStructureNode(classOrigin, ProjectStructureNodeType.JDK_ROOT, "JDK", rootFile.getAbsolutePath(), false);
         File[] files = rootFile.listFiles();
         if (files==null){
             throw new RuntimeException("JDK sources directory is empty");
@@ -259,5 +259,18 @@ public class ProjectStructureNodesHandler implements ContextProvider<ProjectStru
 
     public ProjectStructureNode createEmptyRootNode() {
         return new ProjectStructureNode(ClassOrigin.SOURCES, ProjectStructureNodeType.EMPTY, "No projects loaded", "", false);
+    }
+
+    public void updateJdkNode(File classFile, ClassType classType, ProjectStructureModel model) {
+        ProjectStructureNode rootNode = (ProjectStructureNode) model.getRoot();
+        ProjectStructureNode jdkNode = model.getChildByPath(rootNode, "JDK").get();
+        String pathToJdkString = jdkNode.getFilePath();
+        Path pathToJdk = Path.of(pathToJdkString);
+        Path classRelativeToJdkPath = pathToJdk.relativize(classFile.toPath());
+        ProjectStructureNode parent = jdkNode;
+        for (Path subpath : classRelativeToJdkPath) {
+            parent = model.getChildByPath(parent, subpath.toString()).get();
+        }
+        parent.setProjectStructureNodeType(ProjectStructureNodeType.valueOf(classType.toString()));
     }
 }

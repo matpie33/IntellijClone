@@ -64,7 +64,9 @@ public class ClassStructureParser {
                 rootDirectory = rootDirectoryObject + "/";
             }
             ClassStructureDTO classStructureDTO = extractStructureFromCompilationUnit(cu, origin,rootDirectory);
-            if (classStructureDTO == null) return false;
+            if (classStructureDTO == null) {
+                return false;
+            }
 
             applicationState.putClassStructure(file, classStructureDTO);
             return containsMainMethod(file, cu);
@@ -88,7 +90,19 @@ public class ClassStructureParser {
     private ClassStructureDTO extractStructureFromCompilationUnit(CompilationUnit cu, ClassOrigin origin, String rootDirectory) {
         NodeList<TypeDeclaration<?>> types = cu.getTypes();
         if (types.isEmpty()){
-            return null;
+            if (cu.getPackageDeclaration().isPresent()){
+                ClassStructureDTO classStructureDTO = new ClassStructureDTO();
+                classStructureDTO.setClassType(ClassType.PACKAGE_DECLARATION);
+                return classStructureDTO;
+            }
+            else if (cu.getModule().isPresent()){
+                ClassStructureDTO classStructureDTO = new ClassStructureDTO();
+                classStructureDTO.setClassType(ClassType.MODULE_DECLARATION);
+                return classStructureDTO;
+            }
+            else{
+                return null;
+            }
         }
         TypeDeclaration<?> typeDeclaration = types.get(0);
         ClassStructureDTO classStructureDTO = new ClassStructureDTO();
@@ -107,6 +121,12 @@ public class ClassStructureParser {
             classStructureDTO.setClassType(ClassType.ENUM);
             String packageName = getPackageName(cu, classStructureDTO);
             classNamesCollector.addClassIfAccessible(enumDeclaration, packageName, origin, rootDirectory);
+        }
+        else if (typeDeclaration instanceof AnnotationDeclaration){
+            AnnotationDeclaration annotationDeclaration = (AnnotationDeclaration) typeDeclaration;
+            classStructureDTO.setClassType(ClassType.ANNOTATION);
+            String packageName = getPackageName(cu, classStructureDTO);
+            classNamesCollector.addClassIfAccessible(annotationDeclaration, packageName, origin, rootDirectory);
         }
         getCommentsSections(cu, classStructureDTO);
         Set<String> fieldNames = getFieldNames(cu, classStructureDTO);

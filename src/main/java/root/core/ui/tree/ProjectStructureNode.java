@@ -31,6 +31,10 @@ public class ProjectStructureNode extends DefaultMutableTreeNode {
         }
     }
 
+    public void setProjectStructureNodeType(ProjectStructureNodeType projectStructureNodeType) {
+        this.projectStructureNodeType = projectStructureNodeType;
+    }
+
     public void addMergedNode (String nodeName){
         mergedNodes.add(nodeName);
     }

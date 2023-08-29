@@ -47,8 +47,6 @@ public class ProjectFileOpener {
                 rootDirectory = applicationState.getProjectPath().toString();
                 break;
             case JDK:
-                rootDirectory = javaSourcesExtractor.getJavaSourcesDirectory().toString();
-                break;
             case MAVEN:
                 rootDirectory = "";
                 break;
