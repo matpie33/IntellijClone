@@ -3,8 +3,8 @@ package root.core.constants;
 import java.util.Arrays;
 
 public enum ClassType {
-    CLASS("Class"), INTERFACE("Interface"), ANNOTATION("Annotation"), ENUM ("Enum"), PACKAGE_DECLARATION("Package"),
-    MODULE_DECLARATION("Module");
+    CLASS("Class"), INTERFACE("Interface"), ANNOTATION_TYPE("Annotation"), ENUM ("Enum"), PACKAGE_DECLARATION("Package"),
+    MODULE("Module");
 
     private String uiValue;
 

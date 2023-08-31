@@ -1,6 +1,5 @@
 package root.ui.panelbuilders;
 
-import com.github.javaparser.Position;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -11,10 +10,7 @@ import root.core.codecompletion.CodeCompletionNavigator;
 import root.core.constants.FontsConstants;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
-import root.core.dto.ApplicationState;
-import root.core.dto.ClassStructureDTO;
-import root.core.dto.FileReadResultDTO;
-import root.core.dto.FileSystemChangeDTO;
+import root.core.dto.*;
 import root.core.fileio.FileAutoSaver;
 import root.core.fileio.FileIO;
 import root.core.mouselisteners.PopupMenuRequestListener;
@@ -27,7 +23,6 @@ import root.ui.uibuilders.TabPaneBuilderUI;
 import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -38,6 +33,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -140,7 +136,7 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
                 }
                 break;
             case CLASS_STRUCTURE_NODE_CLICKED:
-                Position position = (Position) data;
+                TokenPositionDTO position = (TokenPositionDTO) data;
                 EditorScrollPane editorScrollPane = tabPaneBuilderUI.getScrollPaneFromActiveTab();
                 JTextPane editorText = editorScrollPane.getTextEditor();
                 scrollTextPaneToPosition(editorText, position);
@@ -172,15 +168,13 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         }
     }
 
-    private void scrollTextPaneToPosition(JTextPane editorText, Position position) {
+    private void scrollTextPaneToPosition(JTextPane editorText, TokenPositionDTO position) {
 
 
-        Element rootElement = editorText.getDocument().getDefaultRootElement();
-        Element elementForGivenLine = rootElement.getElement(position.line - 1);
         editorText.requestFocusInWindow();
         SwingUtilities.invokeLater(() -> {
             try {
-                Rectangle2D rectangleForDestinationLine = editorText.modelToView2D(elementForGivenLine.getStartOffset() + position.column - 1);
+                Rectangle2D rectangleForDestinationLine = editorText.modelToView2D(position.getStartOffset() + position.getLength() - 1);
                 int viewportHeight = editorText.getParent().getHeight();
                 Rectangle visibleRectangular = editorText.getVisibleRect();
                 Rectangle destinationRectangular = new Rectangle((int) rectangleForDestinationLine.getX(), (int) rectangleForDestinationLine.getY(), (int) rectangleForDestinationLine.getWidth(), (int) rectangleForDestinationLine.getHeight());
@@ -207,10 +201,10 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         String text = String.join(System.lineSeparator(), lines);
         ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
         if (classStructure == null && classOrigin.isSourceFile()){
-            classStructureParser.parseClassStructure(file, ClassOrigin.SOURCES);
+            classStructureParser.parseClassStructure(Collections.singletonList(file), ClassOrigin.SOURCES);
             classStructure = applicationState.getClassStructureOfOpenedFile();
         }
-        Position classDeclarationPosition = classStructure == null? new Position(1,1): classStructure.getClassDeclarationPosition();
+        TokenPositionDTO classDeclarationPosition = classStructure == null? new TokenPositionDTO(1,1): classStructure.getClassDeclarationPosition();
         if (tabPaneBuilderUI.containsTab(file)){
             tabPaneBuilderUI.selectTab(file);
         }

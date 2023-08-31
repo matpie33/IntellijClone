@@ -13,13 +13,13 @@ public class ClassStructureDTO {
 
     private ClassType classType;
 
-    private List<Range> fieldAccessPositions = new ArrayList<>();
+    private List<TokenPositionDTO> fieldAccessPositions = new ArrayList<>();
 
     private List<Range> commentsSections = new ArrayList<>();
 
     private Position packageDeclarationPosition;
 
-    private Position classDeclarationPosition;
+    private TokenPositionDTO classDeclarationPosition;
 
     private Set<String> imports = new HashSet<>();
 
@@ -41,11 +41,11 @@ public class ClassStructureDTO {
         return commentsSections;
     }
 
-    public Position getClassDeclarationPosition() {
+    public TokenPositionDTO getClassDeclarationPosition() {
         return classDeclarationPosition;
     }
 
-    public void setClassDeclarationPosition(Position classDeclarationPosition) {
+    public void setClassDeclarationPosition(TokenPositionDTO classDeclarationPosition) {
         this.classDeclarationPosition = classDeclarationPosition;
     }
 
@@ -65,14 +65,11 @@ public class ClassStructureDTO {
         this.packageDeclarationPosition = packageDeclarationPosition;
     }
 
-    public void addFieldAccess(Range tokenRange){
-        Position start = new Position(tokenRange.begin.line-1, tokenRange.begin.column-1);
-        Position end = new Position(tokenRange.end.line-1, tokenRange.end.column-1);
-        Range modifiedRange = new Range(start, end);
-        fieldAccessPositions.add(modifiedRange);
+    public void addFieldAccess(TokenPositionDTO tokenRange){
+        fieldAccessPositions.add(tokenRange);
     }
 
-    public List<Range> getFieldAccessPositions(){
+    public List<TokenPositionDTO> getFieldAccessPositions(){
         return fieldAccessPositions;
 
     }

@@ -201,12 +201,10 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         throw new IllegalArgumentException("Invalid offset: "+ offset);
     }
 
-    private void colorFieldAccess(Element rootElement, ClassStructureDTO classStructure) {
-        List<Range> fieldAccessPositions = classStructure.getFieldAccessPositions();
-        for (Range fieldAccessPosition : fieldAccessPositions) {
-            int startOffset = rootElement.getElement(fieldAccessPosition.begin.line).getStartOffset() + fieldAccessPosition.begin.column;
-            int length = fieldAccessPosition.end.column - fieldAccessPosition.begin.column + 1;
-            setCharacterAttributes(startOffset,length, fieldColorAttribute, false);
+    private void colorFieldAccess(ClassStructureDTO classStructure) {
+        List<TokenPositionDTO> fieldAccessPositions = classStructure.getFieldAccessPositions();
+        for (TokenPositionDTO fieldAccessPosition : fieldAccessPositions) {
+            setCharacterAttributes(fieldAccessPosition.getStartOffset(), fieldAccessPosition.getLength(), fieldColorAttribute, false);
 
         }
     }
@@ -218,7 +216,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
         Element rootElement = getDefaultRootElement();
         colorComments(classStructure, rootElement);
-        colorFieldAccess(rootElement, classStructure);
+        colorFieldAccess(classStructure);
     }
 
     private void colorComments(ClassStructureDTO classStructure, Element rootElement) {

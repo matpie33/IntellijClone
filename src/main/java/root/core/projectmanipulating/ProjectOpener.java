@@ -13,6 +13,8 @@ import root.core.uievents.UIEventsQueue;
 import root.core.utility.ThreadExecutor;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class ProjectOpener {
@@ -46,7 +48,8 @@ public class ProjectOpener {
 
     public void openProject (File rootDirectory){
         applicationState.setProjectPath(rootDirectory);
-        parseClasses(rootDirectory, ClassOrigin.SOURCES);
+        List<File> files = getClasses(rootDirectory);
+        classStructureParser.parseClassStructure(files, ClassOrigin.SOURCES);
         directoriesWatcher.watchProjectDirectoryForChanges();
         mavenCommandsController.init();
         threadExecutor.runTasksInMainPool(mavenCommandsController.getMavenTasks());
@@ -54,17 +57,20 @@ public class ProjectOpener {
         uiEventsQueue.dispatchEvent(UIEventType.PROJECT_OPENED, rootDirectory);
     }
 
-    private void parseClasses(File rootDirectory, ClassOrigin origin) {
+    private List<File> getClasses(File rootDirectory) {
+        List<File> classes = new ArrayList<>();
+        extractFiles(rootDirectory, classes);
+        return classes;
+    }
+
+    private void extractFiles(File rootDirectory, List<File> classes) {
         for (File file : rootDirectory.listFiles()) {
             if (file.isDirectory()){
-                parseClasses(file, ClassOrigin.SOURCES);
+                extractFiles(file, classes);
             }
             else{
                 if (file.getName().endsWith(".java")){
-                    boolean isMain = classStructureParser.parseClassStructure(file, origin);
-                    if (isMain){
-                        applicationState.addClassWithMainMethod(file);
-                    }
+                    classes.add(file);
                 }
             }
         }

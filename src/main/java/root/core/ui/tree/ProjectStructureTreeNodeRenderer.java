@@ -38,13 +38,13 @@ public class ProjectStructureTreeNodeRenderer extends DefaultTreeCellRenderer {
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.ENUM)){
             iconName = "/enum file.png";
         }
-        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.ANNOTATION)){
+        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.ANNOTATION_TYPE)){
             iconName = "/annotation file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.PACKAGE_DECLARATION)){
             iconName = "/package file.png";
         }
-        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.MODULE_DECLARATION)){
+        else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.MODULE)){
             iconName = "/module file.png";
         }
         else{

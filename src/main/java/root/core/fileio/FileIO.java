@@ -103,7 +103,7 @@ public class FileIO {
         }
         try {
             Files.writeString(openedFile.toPath(), text);
-            boolean isMain = classStructureParser.parseClassStructure(openedFile, ClassOrigin.SOURCES);
+            boolean isMain = classStructureParser.parseClassStructure(List.of(openedFile), ClassOrigin.SOURCES);
             uiEventsQueue.dispatchEvent(UIEventType.AUTOSAVE_DONE, new Object());
             if (isMain){
                 applicationState.addClassWithMainMethod(openedFile);

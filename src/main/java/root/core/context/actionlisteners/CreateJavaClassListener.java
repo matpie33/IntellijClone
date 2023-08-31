@@ -94,7 +94,7 @@ public class CreateJavaClassListener extends ContextAction<ProjectStructureSelec
             case INTERFACE:
                 templateFile = "/InterfaceTemplate.txt";
                 break;
-            case ANNOTATION:
+            case ANNOTATION_TYPE:
                 templateFile = "/AnnotationTemplate.txt";
                 break;
             default:throw new RuntimeException();

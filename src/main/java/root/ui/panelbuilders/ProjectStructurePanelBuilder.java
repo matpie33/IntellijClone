@@ -60,7 +60,7 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     private ApplicationState applicationState;
 
 
-    public static final int CLASSES_TO_PARSE_PER_THREAD = 50;
+    public static final int CLASSES_TO_PARSE_PER_THREAD = 600;
 
     public ProjectStructurePanelBuilder(TreeNodeDoubleClickListener treeNodeDoubleClickListener, ContextConfiguration contextConfiguration, DirectoryChangesDetector directoryChangesDetector, ProjectStructureTreeShortcuts projectStructureTreeShortcuts, ProjectStructureNodesHandler projectStructureNodesHandler, FileIO fileIO, JavaSourcesExtractor javaSourcesExtractor, ThreadExecutor threadExecutor, ClassStructureParser classStructureParser, ApplicationState applicationState) {
         this.treeNodeDoubleClickListener = treeNodeDoubleClickListener;
@@ -159,10 +159,10 @@ public class ProjectStructurePanelBuilder implements UIEventObserver {
     }
 
     private void parseClasses(List<File> classesGroup, ClassOrigin origin) {
-        for (File classFile : classesGroup) {
-            classStructureParser.parseClassStructure(classFile, origin);
-            ClassStructureDTO classStructure = applicationState.getClassStructure(classFile);
-            projectStructureNodesHandler.updateJdkNode(classFile, classStructure.getClassType(), getTreeModel());
+        classStructureParser.parseClassStructure(classesGroup, origin);
+        for (File file : classesGroup) {
+            ClassStructureDTO classStructure = applicationState.getClassStructure(file);
+            projectStructureNodesHandler.updateJdkNode(file, classStructure.getClassType(), getTreeModel());
         }
     }
 
