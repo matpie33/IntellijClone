@@ -1,6 +1,5 @@
 package root.core.dto;
 
-import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import root.core.constants.ClassType;
 
@@ -21,7 +20,7 @@ public class ClassStructureDTO {
 
     private List<Range> commentsSections = new ArrayList<>();
 
-    private Position packageDeclarationPosition;
+    private TokenPositionDTO packageDeclarationPosition;
 
     private ClassDeclarationDTO classDeclarationDTO;
 
@@ -59,7 +58,7 @@ public class ClassStructureDTO {
         this.classDeclarationDTO = classDeclarationDTO;
     }
 
-    public Position getPackageDeclarationPosition() {
+    public TokenPositionDTO getPackageDeclarationPosition() {
         return packageDeclarationPosition;
     }
 
@@ -87,4 +86,11 @@ public class ClassStructureDTO {
     public List<MethodDeclarationDTO> getMethodsDeclarations() {
         return methodsDeclarations;
     }
+
+    public void setPackageDeclarationPosition(TokenPositionDTO tokenPositionDTO) {
+        packageDeclarationPosition = tokenPositionDTO;
+    }
+
+
+
 }

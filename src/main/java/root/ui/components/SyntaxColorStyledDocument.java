@@ -357,8 +357,13 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (!classAlreadyHasThisImport){
             classStructure.addImport(fullyQualifiedClassName);
 
-            int lineAfterPackageDeclaration = classStructure.getPackageDeclarationPosition() == null? 0: classStructure.getPackageDeclarationPosition().line;
-            int offsetForImport = lineNumberToOffset(lineAfterPackageDeclaration);
+            TokenPositionDTO packageDeclarationPosition = classStructure.getPackageDeclarationPosition();
+            int offsetForImport = 0;
+            if (packageDeclarationPosition != null){
+                int packageDeclarationOffset = packageDeclarationPosition.getStartOffset();
+                offsetForImport = getOffsetForImport(packageDeclarationOffset);
+            }
+
             undoRedoManager.createImportInsertChange(offsetForImport, fullyQualifiedClassName);
             insertString(offsetForImport, importText, defaultColorAttribute);
             undoRedoManager.addCurrentChangesToList();
@@ -367,9 +372,19 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         wordBeingTyped.setLength(0);
     }
 
-    private int lineNumberToOffset(int lineAfterPackageDeclaration) {
-        Element element = getDefaultRootElement().getElement(lineAfterPackageDeclaration);
-        int offsetForImport = element.getStartOffset();
+    private int getOffsetForImport(int packageDeclarationOffset) {
+        Element rootElement = getDefaultRootElement();
+        int offsetForImport  =0 ;
+        int lineNumber = 0;
+        while (lineNumber < rootElement.getElementCount()) {
+            Element element = rootElement.getElement(lineNumber);
+            int startOffset = element.getStartOffset();
+            if (startOffset > packageDeclarationOffset){
+                offsetForImport = startOffset;
+                break;
+            }
+            lineNumber++;
+        }
         return offsetForImport;
     }
 

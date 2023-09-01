@@ -1,9 +1,6 @@
 package root.core.classmanipulating;
 
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.ImportTree;
-import com.sun.source.tree.Tree;
+import com.sun.source.tree.*;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.tree.JCTree;
 import org.springframework.stereotype.Component;
@@ -68,6 +65,7 @@ public class ClassStructureParser {
                 setClassType(classStructureDTO, classDeclaration);
                 handleImports(unit, classStructureDTO);
                 handleClassDeclaration(classStructureDTO, classDeclaration);
+                handlePackageDeclaration(classStructureDTO, unit);
                 collectClassIfItIsAccessible(origin, rootDirectory, unit, classDeclaration);
                 Set<String> fieldNames = new HashSet<>();
                 for (JCTree member : classDeclaration.getMembers()) {
@@ -86,6 +84,15 @@ public class ClassStructureParser {
         }
     }
 
+    private void handlePackageDeclaration(ClassStructureDTO classStructureDTO, CompilationUnitTree unit) {
+        PackageTree packageTree = unit.getPackage();
+        if ( packageTree instanceof JCTree.JCPackageDecl){
+            JCTree.JCPackageDecl packageDecl = (JCTree.JCPackageDecl) packageTree;
+            String packageName = packageDecl.getPackageName().toString();
+            classStructureDTO.setPackageDeclarationPosition(new TokenPositionDTO(packageDecl.pos, packageName.length()));
+        }
+    }
+
     private void collectClassIfItIsAccessible(ClassOrigin origin, String rootDirectory, CompilationUnitTree unit, JCTree.JCClassDecl classDeclaration) {
         String packageName = getPackageName(unit);
         String className = classDeclaration.getSimpleName().toString();
@@ -100,7 +107,7 @@ public class ClassStructureParser {
 
     private void handleImports(CompilationUnitTree unit, ClassStructureDTO classStructureDTO) {
         for (ImportTree anImport : unit.getImports()) {
-            classStructureDTO.addImport(anImport.toString());
+            classStructureDTO.addImport(anImport.getQualifiedIdentifier().toString());
         }
     }
 
