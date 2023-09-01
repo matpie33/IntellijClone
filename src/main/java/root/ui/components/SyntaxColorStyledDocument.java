@@ -1,6 +1,5 @@
 package root.ui.components;
 
-import com.github.javaparser.Range;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import root.core.codecompletion.AvailableClassesFilter;
@@ -212,20 +211,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (classStructure==null){
             return;
         }
-        Element rootElement = getDefaultRootElement();
-        colorComments(classStructure, rootElement);
         colorFieldAccess(classStructure);
     }
 
-    private void colorComments(ClassStructureDTO classStructure, Element rootElement) {
-        List<Range> commentSections = classStructure.getCommentsSections();
-        for (Range range : commentSections) {
-            int startOffset = rootElement.getElement(range.begin.line).getStartOffset() + range.begin.column;
-            int endOffset = rootElement.getElement(range.end.line).getStartOffset() + range.end.column;
-            int length = endOffset- startOffset + 1;
-            setCharacterAttributes(startOffset,length, commentColorAttribute, false);
-        }
-    }
 
     private void doKeywordsColoring(int offsetInDocument, String str, CommentsPositionsDTO commentsPositionsDTO) {
         Matcher matcher = keywordsPattern.matcher(str);

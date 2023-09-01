@@ -1,6 +1,5 @@
 package root.core.dto;
 
-import com.github.javaparser.Range;
 import root.core.constants.ClassType;
 
 import java.util.ArrayList;
@@ -17,8 +16,6 @@ public class ClassStructureDTO {
     private List<FieldDeclarationDTO> fieldDeclarations = new ArrayList<>();
 
     private List<MethodDeclarationDTO> methodsDeclarations = new ArrayList<>();
-
-    private List<Range> commentsSections = new ArrayList<>();
 
     private TokenPositionDTO packageDeclarationPosition;
 
@@ -44,10 +41,6 @@ public class ClassStructureDTO {
 
     public List<FieldDeclarationDTO> getFieldDeclarations() {
         return fieldDeclarations;
-    }
-
-    public List<Range> getCommentsSections() {
-        return commentsSections;
     }
 
     public ClassDeclarationDTO getClassDeclaration() {
