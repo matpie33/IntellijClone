@@ -1,7 +1,7 @@
 package root.core.nodehandling;
 
-import com.github.javaparser.Position;
 import org.springframework.stereotype.Component;
+import root.core.dto.TokenPositionDTO;
 import root.core.uievents.UIEventType;
 import root.core.uievents.UIEventsQueue;
 
@@ -31,7 +31,7 @@ public class ClassStructureNodeClickListener extends MouseAdapter {
             JTree tree = (JTree) e.getSource();
             TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-            Position position = classStructureNodesHandler.getPositionInTextEditorForClassNode(node);
+            TokenPositionDTO position = classStructureNodesHandler.getPositionInTextEditorForClassNode(node);
             uiEventsQueue.dispatchEvent(UIEventType.CLASS_STRUCTURE_NODE_CLICKED, position);
         }
     }

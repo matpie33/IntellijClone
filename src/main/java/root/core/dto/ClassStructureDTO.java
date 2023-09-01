@@ -15,11 +15,15 @@ public class ClassStructureDTO {
 
     private List<TokenPositionDTO> fieldAccessPositions = new ArrayList<>();
 
+    private List<FieldDeclarationDTO> fieldDeclarations = new ArrayList<>();
+
+    private List<MethodDeclarationDTO> methodsDeclarations = new ArrayList<>();
+
     private List<Range> commentsSections = new ArrayList<>();
 
     private Position packageDeclarationPosition;
 
-    private TokenPositionDTO classDeclarationPosition;
+    private ClassDeclarationDTO classDeclarationDTO;
 
     private Set<String> imports = new HashSet<>();
 
@@ -31,22 +35,28 @@ public class ClassStructureDTO {
         this.classType = classType;
     }
 
-    public void addCommentRange(Range range){
-        Range modifiedRange = new Range(new Position(range.begin.line - 1, range.begin.column - 1),
-                new Position(range.end.line - 1, range.end.column - 1));
-        commentsSections.add(modifiedRange);
+    public void addFieldDeclaration (FieldDeclarationDTO fieldDeclarationDTO){
+        fieldDeclarations.add(fieldDeclarationDTO);
+    }
+
+    public void addMethodDeclaration (MethodDeclarationDTO methodDeclarationDTO){
+        methodsDeclarations.add(methodDeclarationDTO);
+    }
+
+    public List<FieldDeclarationDTO> getFieldDeclarations() {
+        return fieldDeclarations;
     }
 
     public List<Range> getCommentsSections() {
         return commentsSections;
     }
 
-    public TokenPositionDTO getClassDeclarationPosition() {
-        return classDeclarationPosition;
+    public ClassDeclarationDTO getClassDeclaration() {
+        return classDeclarationDTO;
     }
 
-    public void setClassDeclarationPosition(TokenPositionDTO classDeclarationPosition) {
-        this.classDeclarationPosition = classDeclarationPosition;
+    public void setClassDeclaration(ClassDeclarationDTO classDeclarationDTO) {
+        this.classDeclarationDTO = classDeclarationDTO;
     }
 
     public Position getPackageDeclarationPosition() {
@@ -61,10 +71,6 @@ public class ClassStructureDTO {
         return imports.contains(importName);
     }
 
-    public void setPackageDeclarationPosition(Position packageDeclarationPosition) {
-        this.packageDeclarationPosition = packageDeclarationPosition;
-    }
-
     public void addFieldAccess(TokenPositionDTO tokenRange){
         fieldAccessPositions.add(tokenRange);
     }
@@ -76,5 +82,9 @@ public class ClassStructureDTO {
 
     public void removeImport(String fullyQualifiedClassName) {
         imports.remove(fullyQualifiedClassName);
+    }
+
+    public List<MethodDeclarationDTO> getMethodsDeclarations() {
+        return methodsDeclarations;
     }
 }

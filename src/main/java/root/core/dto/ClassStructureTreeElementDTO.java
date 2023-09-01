@@ -1,11 +1,10 @@
 package root.core.dto;
 
-import com.github.javaparser.Position;
 
 public class ClassStructureTreeElementDTO {
 
     private String displayName;
-    private Position startingPosition;
+    private int startingPosition;
 
     public String getDisplayName() {
         return displayName;
@@ -15,11 +14,11 @@ public class ClassStructureTreeElementDTO {
         this.displayName = displayName;
     }
 
-    public Position getStartingPosition() {
+    public int getStartingPosition() {
         return startingPosition;
     }
 
-    public void setStartingPosition(Position startingPosition) {
+    public void setStartingPosition(int startingPosition) {
         this.startingPosition = startingPosition;
     }
 

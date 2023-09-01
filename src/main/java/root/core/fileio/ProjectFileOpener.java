@@ -62,7 +62,6 @@ public class ProjectFileOpener {
         FileReadResultDTO fileReadResultDTO;
         if (!path.toString().isEmpty() && path.toString().endsWith(".class")) {
             fileReadResultDTO = classDecompiler.decompile(path);
-            String content = String.join("\n", fileReadResultDTO.getContentLines());
             classStructureParser.parseClassContent(fileReadResultDTO.getFile(), ClassOrigin.MAVEN);
         }
         else if (path.toFile().isFile() && !path.toString().endsWith(".jar")) {

@@ -1,13 +1,11 @@
 package root.ui.panelbuilders;
 
-import com.github.javaparser.ParseProblemException;
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 import org.springframework.stereotype.Component;
 import root.core.classmanipulating.ClassOrigin;
 import root.core.context.ContextConfiguration;
 import root.core.context.contextMenu.ContextType;
 import root.core.dto.ApplicationState;
+import root.core.dto.ClassStructureDTO;
 import root.core.dto.FileReadResultDTO;
 import root.core.mouselisteners.PopupMenuRequestListener;
 import root.core.nodehandling.ClassStructureNodeClickListener;
@@ -22,7 +20,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 
 @Component
 public class ClassStructurePanelBuilder implements UIEventObserver {
@@ -87,19 +84,14 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
     }
 
     private void displayJavaFileStructure(File file) {
-        try {
-            DefaultTreeModel structureModel = (DefaultTreeModel) classStructureTree.getModel();
-            CompilationUnit compilationUnit = StaticJavaParser.parse(file);
-            if (compilationUnit.getTypes().isEmpty()){
-                return;
-            }
-            DefaultMutableTreeNode rootNode = classStructureNodesHandler.build(compilationUnit.getType(0));
-            structureModel.setRoot(rootNode);
-            classStructurePanel.revalidate();
-        } catch (FileNotFoundException|ParseProblemException e) {
-            applicationState.addClassWithCompilationError(applicationState.getOpenedFile());
-            e.printStackTrace();
+        DefaultTreeModel treeModel = (DefaultTreeModel) classStructureTree.getModel();
+        ClassStructureDTO classStructure = applicationState.getClassStructure(file);
+        if (classStructure == null){
+            return;
         }
+        DefaultMutableTreeNode rootNode = classStructureNodesHandler.build(classStructure);
+        treeModel.setRoot(rootNode);
+        classStructurePanel.revalidate();
     }
 
 }

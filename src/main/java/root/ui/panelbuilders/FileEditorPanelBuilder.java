@@ -174,7 +174,8 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
         editorText.requestFocusInWindow();
         SwingUtilities.invokeLater(() -> {
             try {
-                Rectangle2D rectangleForDestinationLine = editorText.modelToView2D(position.getStartOffset() + position.getLength() - 1);
+                editorText.setCaretPosition(position.getStartOffset());
+                Rectangle2D rectangleForDestinationLine = editorText.modelToView2D(position.getStartOffset());
                 int viewportHeight = editorText.getParent().getHeight();
                 Rectangle visibleRectangular = editorText.getVisibleRect();
                 Rectangle destinationRectangular = new Rectangle((int) rectangleForDestinationLine.getX(), (int) rectangleForDestinationLine.getY(), (int) rectangleForDestinationLine.getWidth(), (int) rectangleForDestinationLine.getHeight());
@@ -204,7 +205,13 @@ public class FileEditorPanelBuilder implements UIEventObserver, ApplicationConte
             classStructureParser.parseClassStructure(Collections.singletonList(file), ClassOrigin.SOURCES);
             classStructure = applicationState.getClassStructureOfOpenedFile();
         }
-        TokenPositionDTO classDeclarationPosition = classStructure == null? new TokenPositionDTO(1,1): classStructure.getClassDeclarationPosition();
+        TokenPositionDTO classDeclarationPosition;
+        if (classStructure == null) {
+            classDeclarationPosition = new TokenPositionDTO(1, 1);
+        } else {
+            ClassDeclarationDTO classDeclaration = classStructure.getClassDeclaration();
+            classDeclarationPosition = new TokenPositionDTO(classDeclaration.getStartingOffset(), classDeclaration.getName().length());
+        }
         if (tabPaneBuilderUI.containsTab(file)){
             tabPaneBuilderUI.selectTab(file);
         }

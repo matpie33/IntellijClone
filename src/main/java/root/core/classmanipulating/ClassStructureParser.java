@@ -14,9 +14,7 @@ import com.sun.tools.javac.tree.JCTree;
 import org.springframework.stereotype.Component;
 import root.core.codecompletion.ClassNamesCollector;
 import root.core.constants.ClassType;
-import root.core.dto.ApplicationState;
-import root.core.dto.ClassStructureDTO;
-import root.core.dto.TokenPositionDTO;
+import root.core.dto.*;
 import root.core.jdk.manipulating.JavaSourcesExtractor;
 
 import javax.tools.JavaCompiler;
@@ -32,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class ClassStructureParser {
@@ -80,6 +79,9 @@ public class ClassStructureParser {
                     applicationState.putClassStructure(file, classStructureDTO);
                     continue;
                 }
+                if (typeDeclaration instanceof JCTree.JCErroneous){
+                    continue;
+                }
                 JCTree.JCClassDecl classDeclaration = (JCTree.JCClassDecl) typeDeclaration;
                 Tree.Kind classKind = classDeclaration.getKind();
                 ClassType classType = ClassType.valueOf(classKind.toString());
@@ -110,6 +112,7 @@ public class ClassStructureParser {
     }
 
     private void extractFieldAccessFromMethod(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCMethodDecl member) {
+        addMethodDeclarationToStructure(classStructureDTO, member);
         JCTree.JCBlock body = member.getBody();
         if (body != null){
             for (JCTree.JCStatement statement : body.getStatements()) {
@@ -121,6 +124,22 @@ public class ClassStructureParser {
                 }
             }
         }
+    }
+
+    private void addMethodDeclarationToStructure(ClassStructureDTO classStructureDTO, JCTree.JCMethodDecl member) {
+        int position = member.pos;
+        String name = member.getName().toString();
+        String modifiers = member.getModifiers().toString();
+        JCTree returnType = member.getReturnType();
+        String type = "";
+        if (returnType!=null){
+            type = returnType.toString();
+        }
+        name = name.replace("<init>", classStructureDTO.getClassDeclaration().getName());
+        String params = member.getParameters().stream().map(param -> param.getType().toString()).collect(Collectors.joining(", "));
+        MethodDeclarationDTO methodDeclarationDTO = new MethodDeclarationDTO(position, name, modifiers, type);
+        methodDeclarationDTO.setParameters(params);
+        classStructureDTO.addMethodDeclaration(methodDeclarationDTO);
     }
 
     private void extractFieldAccessFromExpression(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCExpression expression) {
@@ -153,9 +172,11 @@ public class ClassStructureParser {
     private void addFieldDeclarationPosition(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCVariableDecl member) {
         fieldNames.add(member.getName().toString());
         int variableDeclarationPosition = member.pos;
-        int variableNameLength = member.getName().length();
-        TokenPositionDTO declarationPosition = new TokenPositionDTO(variableDeclarationPosition, variableNameLength);
-        classStructureDTO.addFieldAccess(declarationPosition);
+        String modifiers = member.getModifiers().toString();
+        String type = member.getType().toString();
+        String names = member.getName().toString();
+        FieldDeclarationDTO fieldDeclarationDTO = new FieldDeclarationDTO(variableDeclarationPosition, names, modifiers, type);
+        classStructureDTO.addFieldDeclaration(fieldDeclarationDTO);
     }
 
     private String getPackageName(CompilationUnitTree unit) {
@@ -169,9 +190,9 @@ public class ClassStructureParser {
 
     private void addClassDeclarationPosition(ClassStructureDTO classStructureDTO, JCTree.JCClassDecl classDeclaration) {
         int declarationPosition = classDeclaration.pos;
-        int classNameLength = classDeclaration.getSimpleName().length();
-        TokenPositionDTO tokenPositionDTO = new TokenPositionDTO(declarationPosition, classNameLength);
-        classStructureDTO.setClassDeclarationPosition(tokenPositionDTO);
+        String className = classDeclaration.getSimpleName().toString();
+        ClassDeclarationDTO classDeclarationDTO = new ClassDeclarationDTO(declarationPosition, className);
+        classStructureDTO.setClassDeclaration(classDeclarationDTO);
     }
 
     private File getFile(CompilationUnitTree unit) {

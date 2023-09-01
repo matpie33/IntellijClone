@@ -46,8 +46,9 @@ public class ClassDecompiler {
                         classNames.add(fileWithClassContents);
                     }
                 }
-                List<String> decompilationResult = decompile(classNames, decompilationResultFile);
-                return createResultDTO(pathToJarFile, pathFromJarToClass, decompilationResult);
+                File fileWithDecompilationResult = decompile(classNames, decompilationResultFile);
+                List<String> fileContent = Files.readAllLines(fileWithDecompilationResult.toPath());
+                return createResultDTO(fileWithDecompilationResult, fileContent);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -55,25 +56,22 @@ public class ClassDecompiler {
 
     }
 
-    private FileReadResultDTO createResultDTO(String pathToJarFile, String pathFromJarToClass, List<String> decompilationResult) {
+    private FileReadResultDTO createResultDTO(File decompilationResultFule, List<String> decompilationResult) {
         FileReadResultDTO fileReadResultDTO = new FileReadResultDTO();
         fileReadResultDTO.setClassOrigin(ClassOrigin.MAVEN);
         fileReadResultDTO.setReadSuccessfully(true);
-        Path pathToFile = Path.of(pathToJarFile, pathFromJarToClass);
-        String pathFromRoot = pathToFile.toString();
-        fileReadResultDTO.setFile(pathToFile.toFile());
-        fileReadResultDTO.setPathFromRoot(pathFromRoot);
+        fileReadResultDTO.setFile(decompilationResultFule);
+        fileReadResultDTO.setPathFromRoot(decompilationResultFule.toString());
         fileReadResultDTO.setContentLines(decompilationResult);
         return fileReadResultDTO;
     }
 
-    private List<String> decompile(List<File> fileForClassContents, String decompilationResultFile) throws IOException {
+    private File decompile(List<File> fileForClassContents, String decompilationResultFile) throws IOException {
         File tempFileDirectory = fileForClassContents.get(0).getParentFile();
         ConsoleDecompiler consoleDecompiler = new ConsoleDecompiler(tempFileDirectory, new HashMap<>());
         fileForClassContents.forEach(file->consoleDecompiler.addSpace(file, true));
         consoleDecompiler.decompileContext();
-        File fileWithDecompilationResult = new File(decompilationResultFile.replace(".class", ".java"));
-        return Files.readAllLines(fileWithDecompilationResult.toPath());
+        return new File(decompilationResultFile.replace(".class", ".java"));
     }
 
 
