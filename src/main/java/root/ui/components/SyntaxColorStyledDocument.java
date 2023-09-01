@@ -8,6 +8,7 @@ import root.core.constants.SyntaxModifiers;
 import root.core.dto.*;
 import root.core.fileio.FileAutoSaver;
 import root.core.undoredo.UndoRedoManager;
+import root.core.utility.CommentsHandler;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -47,16 +48,19 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
 
     private FileAutoSaver fileAutoSaver;
 
+    private CommentsHandler commentsHandler;
+
     public void setIsTextSettingInProgress(boolean setTextInProgress) {
         this.isTextSettingInProgress = setTextInProgress;
     }
 
-    public SyntaxColorStyledDocument(ApplicationState applicationState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter, FileAutoSaver fileAutoSaver) {
+    public SyntaxColorStyledDocument(ApplicationState applicationState, UndoRedoManager undoRedoManager, CodeCompletionPopup codeCompletionPopup, AvailableClassesFilter availableClassesFilter, FileAutoSaver fileAutoSaver, CommentsHandler commentsHandler) {
         this.applicationState = applicationState;
         this.undoRedoManager = undoRedoManager;
         this.codeCompletionPopup = codeCompletionPopup;
         this.availableClassesFilter = availableClassesFilter;
         this.fileAutoSaver = fileAutoSaver;
+        this.commentsHandler = commentsHandler;
     }
 
 
@@ -115,7 +119,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (!isTextSettingInProgress){
             if (textToAdd.length()==1){
                 char singleCharacter = textToAdd.charAt(0);
-                if (Character.isLetterOrDigit(singleCharacter) && !isInsideComment(offset) && (wordBeingTyped.length() > 0 || (!Character.isDigit(singleCharacter) && !isAfterLetterOrDigit(offset)))) {
+                if (Character.isLetterOrDigit(singleCharacter) && !isInsideComment() && (wordBeingTyped.length() > 0 || (!Character.isDigit(singleCharacter) && !isAfterLetterOrDigit(offset)))) {
                     wordBeingTyped.append(textToAdd);
                     showCodeCompletionPopup();
                 }
@@ -156,7 +160,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             WordOffsetDTO wordOffset = findWordEndingAtOffset(offset);
             String word = wordOffset.getWord();
             int startOffset = wordOffset.getStartingOffset();
-            if (isInsideComment(offset)){
+            if (isInsideComment()){
                 setCharacterAttributes(startOffset, word.length(), commentColorAttribute, false);
             }
             else if ((word).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
@@ -167,25 +171,19 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             }
         }
         else{
-             doKeywordsColoring(offset, textToAdd);
+            CommentsPositionsDTO commentsPositionsDTO = commentsHandler.findCommentSections(offset, textToAdd);
+            commentsPositionsDTO.getCommentedCodeSections().
+                    forEach(position->setCharacterAttributes(position.getStartOffset(),
+                            position.getLength(), commentColorAttribute, true));
+            if (isInsideComment()){
+                setCharacterAttributes(offset, textToAdd.length(), commentColorAttribute, true);
+            }
+            doKeywordsColoring(offset, textToAdd, commentsPositionsDTO);
         }
     }
 
-    private boolean isInsideComment(int offset) {
-        TextPositionDTO position = offsetToLine0Based(offset);
-        ClassStructureDTO classStructure = applicationState.getClassStructureOfOpenedFile();
-        if (classStructure == null){
-            return false;
-        }
-        for (Range commentRange : classStructure.getCommentsSections()) {
-            if (commentRange.begin.line==position.getLineNumber() && commentRange.begin.column <= position.getColumnNumber()){
-                return true;
-            }
-            if (commentRange.begin.line<position.getLineNumber() && commentRange.end.line > position.getLineNumber()){
-                return true;
-            }
-        }
-        return false;
+    private boolean isInsideComment() {
+        return commentsHandler.isInMultilineCommentSection();
     }
 
     private TextPositionDTO offsetToLine0Based(int offset) {
@@ -229,16 +227,34 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         }
     }
 
-    private void doKeywordsColoring(int offsetInDocument, String str) {
+    private void doKeywordsColoring(int offsetInDocument, String str, CommentsPositionsDTO commentsPositionsDTO) {
         Matcher matcher = keywordsPattern.matcher(str);
+        List<TokenPositionDTO> commentedCodeSections = commentsPositionsDTO.getCommentedCodeSections();
         while (matcher.find()){
             int startingOffset = matcher.start();
             int endOffset = matcher.end();
             startingOffset += offsetInDocument;
             endOffset += offsetInDocument;
-            setCharacterAttributes(startingOffset, endOffset - startingOffset , keywordColorAttribute, false);
+            if (isInsideCommentSections(commentedCodeSections, startingOffset)){
+                continue;
+            }
+            setCharacterAttributes(startingOffset, endOffset - startingOffset , keywordColorAttribute, true);
         }
 
+    }
+
+    private boolean isInsideCommentSections(List<TokenPositionDTO> commentedCodeSections, int offset){
+        if (commentsHandler.isInMultilineCommentSection()){
+            return true;
+        }
+        for (TokenPositionDTO commentedCodeSection : commentedCodeSections) {
+            int startOffset = commentedCodeSection.getStartOffset();
+            int endOffset = startOffset + commentedCodeSection.getLength();
+            if (startOffset<offset && endOffset> offset){
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -297,7 +313,7 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         if (matcher.matches()){
             setCharacterAttributes(wordOffsetDTO.getStartingOffset(), word.length(), keywordColorAttribute, false);
         }
-        else if (!isInsideComment(offset)){
+        else if (!isInsideComment()){
             setCharacterAttributes(wordOffsetDTO.getStartingOffset(), word.length(), defaultColorAttribute, false);
         }
     }
