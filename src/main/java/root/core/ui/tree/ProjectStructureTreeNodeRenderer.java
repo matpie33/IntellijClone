@@ -12,43 +12,43 @@ public class ProjectStructureTreeNodeRenderer extends DefaultTreeCellRenderer {
         ProjectStructureNode node = (ProjectStructureNode) value;
         String iconName;
         if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.EMPTY)){
-            iconName = "/no project.png";
+            iconName = "/icons/no project.png";
         }
         else if (node.isRoot()){
-            iconName = "/root directory.png";
+            iconName = "/icons/root directory.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.DIRECTORY)){
-            iconName = "/directory.png";
+            iconName = "/icons/directory.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.FILE)){
-            iconName = "/java file.png";
+            iconName = "/icons/java file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.JDK_ROOT)){
-            iconName = "/jdk root.png";
+            iconName = "/icons/jdk root.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.MAVEN_ROOT)){
-            iconName = "/maven root.png";
+            iconName = "/icons/maven root.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.CLASS)){
-            iconName = "/class file.png";
+            iconName = "/icons/class file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.INTERFACE)){
-            iconName = "/interface file.png";
+            iconName = "/icons/interface file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.ENUM)){
-            iconName = "/enum file.png";
+            iconName = "/icons/enum file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.ANNOTATION_TYPE)){
-            iconName = "/annotation file.png";
+            iconName = "/icons/annotation file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.PACKAGE_DECLARATION)){
-            iconName = "/package file.png";
+            iconName = "/icons/package file.png";
         }
         else if (node.getProjectStructureNodeType().equals(ProjectStructureNodeType.MODULE)){
-            iconName = "/module file.png";
+            iconName = "/icons/module file.png";
         }
         else{
-            iconName = "/unknown.png";
+            iconName = "/icons/unknown.png";
         }
         setIcon(new ImageIcon(getClass().getResource(iconName)));
         return this;

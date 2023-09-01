@@ -13,23 +13,23 @@ public class IconsPanelBuilder {
     public JPanel createIconsPanel() {
         JPanel iconsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
 
-        iconsPanel.add(createIcon( "/build.png", "build"));
-        iconsPanel.add(createIcon( "/run.png", "run"));
-        iconsPanel.add(createIcon( "/debug.png", "debug"));
-        iconsPanel.add(createIcon( "/runWithCoverage.png", "Run with coverage"));
-        iconsPanel.add(createIcon( "/doProfile.png", "Profile <class> with 'Intellij profiler'"));
-        iconsPanel.add(createIcon( "/stopDisabled.png", "Stop application"));
+        iconsPanel.add(createIcon("/icons/build.png", "build"));
+        iconsPanel.add(createIcon("/icons/run.png", "run"));
+        iconsPanel.add(createIcon("/icons/debug.png", "debug"));
+        iconsPanel.add(createIcon("/icons/runWithCoverage.png", "Run with coverage"));
+        iconsPanel.add(createIcon("/icons/doProfile.png", "Profile <class> with 'Intellij profiler'"));
+        iconsPanel.add(createIcon("/icons/stopDisabled.png", "Stop application"));
         iconsPanel.add(createSeparator());
         iconsPanel.add(new JLabel("Git: "));
-        iconsPanel.add(createIcon( "/gitUpdate.png", "Update project"));
-        iconsPanel.add(createIcon( "/gitCommit.png", "Git commit"));
-        iconsPanel.add(createIcon( "/gitPush.png", "Git push"));
-        iconsPanel.add(createIcon( "/gitShowHistory.png", "Show history"));
-        iconsPanel.add(createIcon( "/rollback.png", "Rollback"));
+        iconsPanel.add(createIcon("/icons/gitUpdate.png", "Update project"));
+        iconsPanel.add(createIcon("/icons/gitCommit.png", "Git commit"));
+        iconsPanel.add(createIcon("/icons/gitPush.png", "Git push"));
+        iconsPanel.add(createIcon("/icons/gitShowHistory.png", "Show history"));
+        iconsPanel.add(createIcon("/icons/rollback.png", "Rollback"));
         iconsPanel.add(createSeparator());
-        iconsPanel.add(createIcon( "/searchEverywhere.png", "Search everywhere"));
-        iconsPanel.add(createIcon( "/updatesAvailable.png", "Updates available"));
-        iconsPanel.add(createIcon( "/spaceIcon.png", "Space: the integrated team environment"));
+        iconsPanel.add(createIcon("/icons/searchEverywhere.png", "Search everywhere"));
+        iconsPanel.add(createIcon("/icons/updatesAvailable.png", "Updates available"));
+        iconsPanel.add(createIcon("/icons/spaceIcon.png", "Space: the integrated team environment"));
         return iconsPanel;
     }
 

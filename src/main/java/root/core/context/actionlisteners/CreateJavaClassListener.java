@@ -86,16 +86,16 @@ public class CreateJavaClassListener extends ContextAction<ProjectStructureSelec
         String templateFile;
         switch (createClassDTO.getClassType()) {
             case CLASS:
-                templateFile = "/ClassTemplate.txt";
+                templateFile = "/templates/ClassTemplate.txt";
                 break;
             case ENUM:
-                templateFile = "/EnumTemplate.txt";
+                templateFile = "/templates/EnumTemplate.txt";
                 break;
             case INTERFACE:
-                templateFile = "/InterfaceTemplate.txt";
+                templateFile = "/templates/InterfaceTemplate.txt";
                 break;
             case ANNOTATION_TYPE:
-                templateFile = "/AnnotationTemplate.txt";
+                templateFile = "/templates/AnnotationTemplate.txt";
                 break;
             default:throw new RuntimeException();
         }
