@@ -202,7 +202,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
         List<TokenPositionDTO> fieldAccessPositions = classStructure.getFieldAccessPositions();
         for (TokenPositionDTO fieldAccessPosition : fieldAccessPositions) {
             setCharacterAttributes(fieldAccessPosition.getStartOffset(), fieldAccessPosition.getLength(), fieldColorAttribute, false);
-
+        }
+        for (FieldDeclarationDTO fieldDeclaration : classStructure.getFieldDeclarations()) {
+            setCharacterAttributes(fieldDeclaration.getStartOffset(), fieldDeclaration.getName().length(), fieldColorAttribute, true);
         }
     }
 
