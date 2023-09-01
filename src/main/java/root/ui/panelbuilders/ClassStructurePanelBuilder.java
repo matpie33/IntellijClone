@@ -68,7 +68,7 @@ public class ClassStructurePanelBuilder implements UIEventObserver {
 
                 FileReadResultDTO resultDTO = (FileReadResultDTO)data;
                 ClassOrigin classOrigin = resultDTO.getClassOrigin();
-                if (classOrigin.equals(ClassOrigin.JDK) || classOrigin.equals(ClassOrigin.SOURCES)){
+                if (classOrigin.equals(ClassOrigin.JDK) || classOrigin.equals(ClassOrigin.SOURCES) || classOrigin.equals(ClassOrigin.MAVEN)){
                     displayJavaFileStructure(resultDTO.getFile());
                 }
                 else{
