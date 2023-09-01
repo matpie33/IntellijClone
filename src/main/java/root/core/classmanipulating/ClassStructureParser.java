@@ -1,10 +1,5 @@
 package root.core.classmanipulating;
 
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.ImportTree;
@@ -36,7 +31,6 @@ import java.util.stream.Collectors;
 public class ClassStructureParser {
 
     public static final String PACKAGE_KEYWORD = "package ";
-    private final Node.TreeTraversal treeTraversal = Node.TreeTraversal.PREORDER;
     private ApplicationState applicationState;
 
     private ClassNamesCollector classNamesCollector;
@@ -66,52 +60,70 @@ public class ClassStructureParser {
             for (CompilationUnitTree unit : compilationUnitTrees) {
                 ClassStructureDTO classStructureDTO = new ClassStructureDTO();
                 List<? extends Tree> typeDeclarations = unit.getTypeDecls();
-                if (typeDeclarations.isEmpty()){
-                    classStructureDTO.setClassType(ClassType.PACKAGE_DECLARATION);
-                    File file = getFile(unit);
-                    applicationState.putClassStructure(file, classStructureDTO);
+                File file = getFile(unit);
+                if (isSpecialClassTypeThenHandleIt(file, typeDeclarations, classStructureDTO, unit)) {
                     continue;
                 }
-                Tree typeDeclaration = typeDeclarations.get(0);
-                if (typeDeclaration instanceof JCTree.JCModuleDecl){
-                    classStructureDTO.setClassType(ClassType.MODULE);
-                    File file = getFile(unit);
-                    applicationState.putClassStructure(file, classStructureDTO);
-                    continue;
-                }
-                if (typeDeclaration instanceof JCTree.JCErroneous){
-                    continue;
-                }
-                JCTree.JCClassDecl classDeclaration = (JCTree.JCClassDecl) typeDeclaration;
-                Tree.Kind classKind = classDeclaration.getKind();
-                ClassType classType = ClassType.valueOf(classKind.toString());
-                classStructureDTO.setClassType(classType);
-                for (ImportTree anImport : unit.getImports()) {
-                    classStructureDTO.addImport(anImport.toString());
-                }
-                addClassDeclarationPosition(classStructureDTO, classDeclaration);
-                String packageName = getPackageName(unit);
+                JCTree.JCClassDecl classDeclaration = (JCTree.JCClassDecl) typeDeclarations.get(0);
+                setClassType(classStructureDTO, classDeclaration);
+                handleImports(unit, classStructureDTO);
+                handleClassDeclaration(classStructureDTO, classDeclaration);
+                collectClassIfItIsAccessible(origin, rootDirectory, unit, classDeclaration);
                 Set<String> fieldNames = new HashSet<>();
-                String className = classDeclaration.getSimpleName().toString();
-                classNamesCollector.addClassIfAccessible(className, packageName, origin, rootDirectory, true);
                 for (JCTree member : classDeclaration.getMembers()) {
                     if (member instanceof JCTree.JCVariableDecl){
-                        addFieldDeclarationPosition(classStructureDTO, fieldNames, (JCTree.JCVariableDecl) member);
+                        handleFieldDeclarationPosition(classStructureDTO, fieldNames, (JCTree.JCVariableDecl) member);
                     }
                     if (member instanceof JCTree.JCMethodDecl){
-                        extractFieldAccessFromMethod(classStructureDTO, fieldNames, (JCTree.JCMethodDecl) member);
+                        handleMethodDeclaration(classStructureDTO, fieldNames, (JCTree.JCMethodDecl) member, file);
                     }
                 }
 
 
-                File file = getFile(unit);
                 applicationState.putClassStructure(file, classStructureDTO);
             }
 
         }
     }
 
-    private void extractFieldAccessFromMethod(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCMethodDecl member) {
+    private void collectClassIfItIsAccessible(ClassOrigin origin, String rootDirectory, CompilationUnitTree unit, JCTree.JCClassDecl classDeclaration) {
+        String packageName = getPackageName(unit);
+        String className = classDeclaration.getSimpleName().toString();
+        classNamesCollector.addClassIfAccessible(className, packageName, origin, rootDirectory, true);
+    }
+
+    private void setClassType(ClassStructureDTO classStructureDTO, JCTree.JCClassDecl classDeclaration) {
+        Tree.Kind classKind = classDeclaration.getKind();
+        ClassType classType = ClassType.valueOf(classKind.toString());
+        classStructureDTO.setClassType(classType);
+    }
+
+    private void handleImports(CompilationUnitTree unit, ClassStructureDTO classStructureDTO) {
+        for (ImportTree anImport : unit.getImports()) {
+            classStructureDTO.addImport(anImport.toString());
+        }
+    }
+
+    private boolean isSpecialClassTypeThenHandleIt(File file, List<? extends Tree> typeDeclarations, ClassStructureDTO classStructureDTO, CompilationUnitTree unit) {
+        if (typeDeclarations.isEmpty()){
+            classStructureDTO.setClassType(ClassType.PACKAGE_DECLARATION);
+            applicationState.putClassStructure(file, classStructureDTO);
+            return true;
+        }
+        Tree typeDeclaration = typeDeclarations.get(0);
+        if (typeDeclaration instanceof JCTree.JCModuleDecl){
+            classStructureDTO.setClassType(ClassType.MODULE);
+            applicationState.putClassStructure(file, classStructureDTO);
+            return true;
+        }
+        return typeDeclaration instanceof JCTree.JCErroneous;
+    }
+
+    private void handleMethodDeclaration(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCMethodDecl member, File file) {
+        boolean isMainMethod = isMainMethod(member);
+        if (isMainMethod){
+            applicationState.addClassWithMainMethod(file);
+        }
         addMethodDeclarationToStructure(classStructureDTO, member);
         JCTree.JCBlock body = member.getBody();
         if (body != null){
@@ -124,6 +136,18 @@ public class ClassStructureParser {
                 }
             }
         }
+    }
+
+    private boolean isMainMethod(JCTree.JCMethodDecl methodDeclaration) {
+        String modifiers = methodDeclaration.getModifiers().toString();
+        com.sun.tools.javac.util.List<JCTree.JCVariableDecl> parameters = methodDeclaration.getParameters();
+        if (modifiers.contains("public") && modifiers.contains("static")){
+            if (parameters.size()==1){
+                JCTree.JCVariableDecl parameter = parameters.get(0);
+                return parameter.getType().toString().equals("String[]");
+            }
+        }
+        return false;
     }
 
     private void addMethodDeclarationToStructure(ClassStructureDTO classStructureDTO, JCTree.JCMethodDecl member) {
@@ -169,7 +193,7 @@ public class ClassStructureParser {
         }
     }
 
-    private void addFieldDeclarationPosition(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCVariableDecl member) {
+    private void handleFieldDeclarationPosition(ClassStructureDTO classStructureDTO, Set<String> fieldNames, JCTree.JCVariableDecl member) {
         fieldNames.add(member.getName().toString());
         int variableDeclarationPosition = member.pos;
         String modifiers = member.getModifiers().toString();
@@ -188,7 +212,7 @@ public class ClassStructureParser {
         return packageName;
     }
 
-    private void addClassDeclarationPosition(ClassStructureDTO classStructureDTO, JCTree.JCClassDecl classDeclaration) {
+    private void handleClassDeclaration(ClassStructureDTO classStructureDTO, JCTree.JCClassDecl classDeclaration) {
         int declarationPosition = classDeclaration.pos;
         String className = classDeclaration.getSimpleName().toString();
         ClassDeclarationDTO classDeclarationDTO = new ClassDeclarationDTO(declarationPosition, className);
@@ -224,35 +248,6 @@ public class ClassStructureParser {
             throw new RuntimeException(e);
         }
 
-    }
-
-
-    private boolean containsMainMethod(File file, CompilationUnit cu) {
-        boolean hasMainMethod = false;
-        for (MethodDeclaration methodDeclaration : cu.findAll(MethodDeclaration.class, treeTraversal)) {
-            if (isMethodSignatureMatchingMain(methodDeclaration)) {
-                boolean isMainMethod = checkIfMethodHas1ArrayParameterOfTypeString(file, methodDeclaration);
-                if (isMainMethod) {
-                    hasMainMethod = true;
-                }
-            }
-        }
-        return hasMainMethod;
-    }
-
-    private boolean isMethodSignatureMatchingMain(MethodDeclaration method) {
-        return method.isStatic() && method.isPublic() && method.getType().isVoidType();
-    }
-
-    private boolean checkIfMethodHas1ArrayParameterOfTypeString(File file, MethodDeclaration method) {
-        NodeList<Parameter> parameters = method.getParameters();
-        if (parameters.size() ==1){
-            Parameter parameter = parameters.iterator().next();
-            if (parameter.getType().isArrayType() && parameter.getType().getElementType().toString().equals("String")){
-                return true;
-            }
-        }
-        return false;
     }
 
 }
