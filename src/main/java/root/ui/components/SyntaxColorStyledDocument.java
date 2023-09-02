@@ -159,8 +159,9 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             WordOffsetDTO wordOffset = findWordEndingAtOffset(offset);
             String word = wordOffset.getWord();
             int startOffset = wordOffset.getStartingOffset();
-            if (isInsideComment()){
-                setCharacterAttributes(startOffset, word.length(), commentColorAttribute, false);
+            boolean previousCharacterIsGreyed = isPreviousCharacterGreyed(offset);
+            if (previousCharacterIsGreyed){
+                setCharacterAttributes(offset, 1, commentColorAttribute, false);
             }
             else if ((word).matches(SyntaxModifiers.KEYWORDS_REGEXP)){
                 setCharacterAttributes(startOffset, word.length(), keywordColorAttribute, false);
@@ -180,6 +181,26 @@ public class SyntaxColorStyledDocument extends DefaultStyledDocument  {
             doKeywordsColoring(offset, textToAdd, commentsPositionsDTO);
         }
     }
+
+    private boolean isPreviousCharacterGreyed(int offset) throws BadLocationException {
+        Element previousElement = getCharacterElement(offset - 1);
+        AttributeSet previousElementAttributes = previousElement.getAttributes();
+        Color previousElementColor = StyleConstants.getForeground(previousElementAttributes);
+        boolean previousCharacterIsGreyed = previousElementColor.equals(Color.GRAY);
+        boolean isAfterCommentEnd = false;
+        if (offset>=2){
+            String twoPreviousCharacters = getText(offset - 2, 2);
+            boolean isBetweenSlashAndStar = offset<getLength() && getText(offset+1, 1).equals("*") && twoPreviousCharacters.charAt(1)=='/';
+            isAfterCommentEnd = isBetweenSlashAndStar || twoPreviousCharacters.equals("*/") ;
+
+        }
+        return previousCharacterIsGreyed && !isAfterCommentEnd;
+    }
+
+    /*
+     *
+     * @return
+     */
 
     private boolean isInsideComment() {
         return commentsHandler.isInMultilineCommentSection();
